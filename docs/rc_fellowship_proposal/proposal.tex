@@ -1,0 +1,85 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                      Homework _                            %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[letter]{article}
+
+\usepackage{lipsum}
+\usepackage[pdftex]{graphicx}
+\usepackage[margin=1.5in]{geometry}
+\usepackage[english]{babel}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{framed} 
+\usepackage{amsmath}
+\usepackage{titling}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+
+\newenvironment{menumerate}{%
+  \edef\backupindent{\the\parindent}%
+  \enumerate%
+  \setlength{\parindent}{\backupindent}%
+}{\endenumerate}
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%
+%% DOC INFO %%%
+%%%%%%%%%%%%%%%
+\newcommand{\bHWN}{_}
+\newcommand{\bCLASS}{[DEPT] [CLASSN]}
+
+\title{RC Research Fellowship Proposal: OpenBrain}
+\author{William Guss\\26793499\\wguss@berkeley.edu}
+
+\fancyhead[L]{RC Research Fellowship}
+\fancyhead[CO]{Proposal}
+\fancyhead[CE]{GUSS}
+\fancyhead[R]{\thepage}
+\fancyfoot[LR]{}
+\fancyfoot[C]{}
+\usepackage{csquotes}
+
+%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+
+%%%%%%% Be sure to set the counter and use menumerate
+\section{Background} 
+\section{Goals}
+There are essentially four goals of the OpenBrain project. 
+\begin{itemize}
+\item Build a massiveley parallel Beowulf cluster of parallela computers controlled using MPI on ArchLinux. 
+\item Create an always online, turing complete modification to the recursive neural network algorithm whose fitness
+is determined by the Universal Intelligence Measure described in (Legg and Veness, 2011). The algorithm must have the 
+following constraints:
+    \begin{itemize}
+        \item In the spirit of John Conway's turing complete Game of Life, the individual neural nodes must follow
+         arbitrarily simple rules in a decentralized fashion.
+        \item \emph{Training} is unsupervised and occurs over the lifetime of an \emph{instance} of the open brain,
+        such that the aforementioned governing rules are modified with respect to the fitness of the instance.
+    \end{itemize}
+\item Implement each neural node as an Erlang process distributed across the Beowulf cluster asynchronously.
+\item Provide always on input/output to the OpenBrain cluster in similar fashion to that done in Google DeepMind's
+  Deep Reinforcement Learning.
+\end{itemize} 
+
+
+\section
+
+
+\end{document}
