@@ -105,16 +105,16 @@ phase of the project will commense.
 
 The second phase involves implementing the algorithm on a massive parallel computing system, therefore the initial
 focus of this phase is to construct a 32 node Beowulf cluster of Parallela computers. The necessity for this construction
-is due to the large amount of CPU hours required to have the algorithm run continually. It would not be cost effective to run
-each OpenBrain instance on per CPU hour clusters such as Berkeley's own PSI cluster.  Furthermore control of the hardware
-provides the opportunity to maximize the performance of each instance with respect to parallel processing power.
+is due to the large amount of CPU hours required to have the algorithm run continually, something that would not be cost effective
+on clusters such as Berkeley's own PSI cluster. Furthermore, the ability to control the hardware of the project provides the opportunity
+to maximize the performance of the algorithm with respect to the available processing power.
 
-Once completed the cluster will be linked directly to a build system using hooks from Github which automatically pushes Erlang
-OTP code for the OpenBrain algorithm to every node. This will allow for easy prototyping and live code hot swapping.
+Once completed the child nodes of the cluster will be linked directly to a build system using hooks from Github which automatically pushes Erlang
+OTP code for the OpenBrain algorithm to every node. This will allow for easy prototyping and utilizes Erlang's live code hot swapping feature.
 
-Finally much research can be done in a variety of external environments using the universal intelligence indicator and other metrics that evaluate performance.
-Specifically, OpenBrain will be compared to Deep Reinforcement Learning. These applications and comparisons will be
-understood with more specificity as the project matures.
+Finally much research can be done in a variety of external environments using the universal intelligence indicator
+and other metrics that evaluate performance. Specifically, OpenBrain will be compared to algorithms like Deep Reinforcement Learning. 
+These applications and comparisons will be understood with more specificity as the project matures.
 
 \section{Qualifications}
 \textbf{Coursework}
