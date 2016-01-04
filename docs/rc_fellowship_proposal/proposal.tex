@@ -11,7 +11,7 @@
 \usepackage{listings}
 \usepackage{amsthm}
 \usepackage{amssymb}
-\usepackage{framed} 
+\usepackage{framed}
 \usepackage{amsmath}
 \usepackage{titling}
 \usepackage{fancyhdr}
@@ -59,13 +59,22 @@
 
 
 %%%%%%% Be sure to set the counter and use menumerate
-\section{Background} 
+\section{Background}
+Machine learning research in the past decade has had a large focus on variations of the artificial neural network (ANN),
+a biologically inspired algorithm originating from the mathematical neuron model proposed by McCulloch and Pitts\cite{mcpitts},
+the perceptron neuron proposed by Rosenblatt\cite{perceptron}, and made practical by the back propogation algorithm created by Werbos \cite{bprop}.
+Although derivative of biological neural networks, the ANN and its variations stray away from many features involved in biological learning. One
+such feature is that learning occurs at the level of the individual biological neuron, whereas the ANN paradigm centralizes this process.
+Additionally, ANN learning algorithms don't have a notion of synaptogenesis, which has been shown to be a key component of learning in the biological
+brain\cite{gene}. Finally, there is the brain's distribution of processing among billions of individual neurons, something that is difficult to handle
+in fully connected paradigms of ANN \cite{annbook}.
+
 \section{Goals}
-There are essentially four goals of the OpenBrain project. 
+There are essentially four goals of the OpenBrain project.
 \begin{itemize}
-\item Build a massiveley parallel Beowulf cluster of parallela computers controlled using MPI on ArchLinux. 
+\item Build a massiveley parallel Beowulf cluster of parallela computers controlled using MPI on ArchLinux.
 \item Create an always online, turing complete modification to the recursive neural network algorithm whose fitness
-is determined by the Universal Intelligence Measure described in (Legg and Veness, 2011). The algorithm must have the 
+is determined by the Universal Intelligence Measure described in (Legg and Veness, 2011). The algorithm must have the
 following constraints:
     \begin{itemize}
         \item In the spirit of John Conway's turing complete Game of Life, the individual neural nodes must follow
@@ -76,10 +85,25 @@ following constraints:
 \item Implement each neural node as an Erlang process distributed across the Beowulf cluster asynchronously.
 \item Provide always on input/output to the OpenBrain cluster in similar fashion to that done in Google DeepMind's
   Deep Reinforcement Learning.
-\end{itemize} 
+\end{itemize}
 
 
-\section
+% \section
+\begin{thebibliography}{1}
+    \bibitem{annbook} Nicolaos Karayiannis and Anastasios N. Venetsanopoulos {\em
+    Artificial Neural Networks: Learning Algorithms, Performance Evaluation, and Applications} 2013: Springer Science
+    & Business Media.
 
+    \bibitem{mcpitts} Warren S. McCulloch and Walter Pitts {\em A Logical Calculus of the Ideas Immanent in Nervous Activity} 1943.
+
+    \bibitem{perceptron} Frank Rosenblatt {\em The perceptron: a probabilistic model for information storage and organization in the brain.}
+    1958: Psychological review, 65(6), 386.
+
+    \bibitem{bprop} Paul Werbos {\em Beyond Regression: New Tools for Prediction and Analysis in the Behavioral Sciences.} 1974: PhD thesis,
+    Harvard University.
+
+    \bibitem{sgene} Monica Hoyos Flight {\em Synaptogenesis: Switching to learn} 2011: Nature Review Neuroscience.
+
+\end{thebibliography}
 
 \end{document}
