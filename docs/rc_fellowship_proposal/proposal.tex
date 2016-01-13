@@ -60,7 +60,7 @@
 \section{Background}
 Machine learning research in the past decade has had a large focus on variations of the artificial neural network (ANN),
 a biologically inspired algorithm originating from the mathematical neuron model proposed by McCulloch and Pitts\cite{mcpitts},
-the perceptron neuron proposed by Rosenblatt\cite{perceptron}, and made practical by the back propogation algorithm created by Werbos \cite{bprop}.
+the perceptron neuron proposed by Rosenblatt\cite{perceptron}, and made practical by the back propagation algorithm created by Werbos \cite{bprop}.
 Although derivative of biological neural networks, the ANN and its variations stray away from many features involved in biological learning. One
 such feature is that learning occurs at the level of the individual biological neuron, whereas the ANN paradigm centralizes this process.
 Additionally, ANN learning algorithms don't have a notion of synaptogenesis, which has been shown to be a key component of learning in the biological
@@ -70,12 +70,12 @@ in fully connected paradigms of ANN \cite{annbook}.
 \section{Goals}
 There are essentially four goals of the OpenBrain project.
 \begin{itemize}
-\item Build a massiveley parallel Beowulf cluster of parallela computers controlled using MPI on ArchLinux.
-\item Create an always online, turing complete modification to the recursive neural network algorithm whose fitness
+\item Build a massively parallel Beowulf cluster of parallela computers controlled using MPI on ArchLinux.
+\item Create an always online, Turing complete modification to the recursive neural network algorithm whose fitness
 is determined by the Universal Intelligence Measure described in (Legg and Veness, 2011). The algorithm must have the
 following constraints:
     \begin{itemize}
-        \item In the spirit of John Conway's turing complete Game of Life \cite{conway}, the individual neural nodes must follow
+        \item In the spirit of John Conway's Turing complete Game of Life \cite{conway}, the individual neural nodes must follow
          arbitrarily simple rules in a decentralized fashion.
         \item \emph{Training} is unsupervised and occurs over the lifetime of an \emph{instance} of the open brain,
         such that the aforementioned governing rules are modified with respect to the fitness of the instance.
@@ -86,22 +86,22 @@ following constraints:
 \end{itemize}
 
 \section{Plans}
-The OpenBrain project will commense in two phases. First the algorithm must be precisely theorized and mathematical
-guarentees about its capabilities must be developed. Then the project will implement the algorithm through the proper hardware and software.
+The OpenBrain project will commence in two phases. First the algorithm must be precisely theorized and mathematical
+guarantees about its capabilities must be developed. Then the project will implement the algorithm through the proper hardware and software.
 
 For the theory behind OpenBrain, we apply the neuron model proposed in McCulloch and Pitts \cite{mcpitts} and assume that each neuron
-functions according Conwaynian turing complete rules; that is in particular, we apply the synaptogenesis model suggested in
+functions according Conwaynian Turing complete rules; that is in particular, we apply the synaptogenesis model suggested in
 (Thomas et al, 2015) with parameters dictated by a universal intelligence indicator function.
 
 For any neuron $\pi$ in the OpenBrain algorithm, a list of axonally connected posterior neurons $P_\pi$ is stored along with
-a list of proximal neighboring neurons, $N_\pi.$ The neuron $\pi$ is efficiently implimented as asyncrhonous thread with a message
+a list of proximal neighboring neurons, $N_\pi.$ The neuron $\pi$ is efficiently implemented as asynchronous thread with a message
 queue such that neurons connected to its anterior can \ activate and provide a voltage on $\pi$ such that $\pi$ itself
 will activate. Furthermore, each neuron has the capacity to signal to a particular proximal neuron in order to form a new dendritic or axonal
 synapse.
 
 Under this lightweight model, we will experiment freely with different schemes of synaptogenesis and learning. Upon finding the most
-appropriate model, guarentees will be made on its computational capacity of the algorithm, and thenthe second
-phase of the project will commense.
+appropriate model, guarantees will be made on its computational capacity of the algorithm, and then the second
+phase of the project will commence.
 
 The second phase involves implementing the algorithm on a massive parallel computing system, therefore the initial
 focus of this phase is to construct a 32 node Beowulf cluster of Parallela computers. The necessity for this construction
@@ -119,19 +119,19 @@ These applications and comparisons will be understood with more specificity as t
 \section{Qualifications}
 \textbf{Coursework}
 \begin{menumerate}
-\item Honors Real Analysis (MATH H104) [A] - Useful tools for providing mathematical guarentees on computability.
+\item Honors Real Analysis (MATH H104) [A] - Useful tools for providing mathematical guarantees on computability.
 \item Data Structures and Algorithms (CS61B) [A] - Useful for ensuring optimal computational complexity as it pertains to the project.
 \end{menumerate}
 
 
 \textbf{Past Research} \\
 Over the past year, I've been developing an algorithmic generalization of McCulloch and Pitts feed-forward neural networks
-called functional neural networks. The project has provided me the education and the toolset to give actuall guarentees on
+called functional neural networks. The project has provided me the education and the tool set to give actual guarantees on
 a variety of different neural network algorithms. The project received a prize from the AAAI at the Intel International Science and Engineering Fair.
 Attached is a copy of the paper, currently in progress, describing the project. Hopefully that may provide a sample of the quality
 of research I will do.
 
-\textbf{Miscelaneous} \\
+\textbf{Miscellaneous} \\
 Over the past semester I've attended Peter Bartlett's Statistical Machine Learning reading group weekly.
 
 \section{Significance of the Project}
@@ -159,7 +159,7 @@ Item& Use& Quantity&Price & Total\\
   \hline
   8 GB Class 10 SD Card & Storage for ArchLinux on each parallela node. &32 &\$8.79 &\$281.28 \\
     \hline
-  Standoff M/F M3 25mm &Structureal support for nodes. &74 &\$0.40 &\$27.79 \\
+  Standoff M/F M3 25mm &Structural support for nodes. &74 &\$0.40 &\$27.79 \\
     \hline
   2ft Cat6 Network Ethernet Patch Cable & For connecting the nodes to a network switch. &32 &\$2.11 &\$67.60 \\
    \hline
@@ -171,7 +171,7 @@ Item& Use& Quantity&Price & Total\\
 \begin{thebibliography}{1}
     \bibitem{annbook} Nicolaos Karayiannis and Anastasios N. Venetsanopoulos {\em
     Artificial Neural Networks: Learning Algorithms, Performance Evaluation, and Applications} 2013: Springer Science
-    & Business Media.
+    \& Business Media.
 
     \bibitem{mcpitts} Warren S. McCulloch and Walter Pitts {\em A Logical Calculus of the Ideas Immanent in Nervous Activity} 1943.
 
