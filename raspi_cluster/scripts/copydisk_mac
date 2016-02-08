@@ -1,0 +1,32 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+    echo "command should be formatted as 'copydisk <path-to-disk-img> <new-hostname>'"
+    exit 1
+fi
+
+IMG_PATH=$1
+HOSTNAME=$2
+SDNUM='4'
+SD="/dev/disk$SDNUM"
+RSD="/dev/rdisk$SDNUM"
+#set -x
+# change the image name to reflect the hostname 
+function mount_img () {
+  local mountop=($(hdiutil attach $IMG_PATH)) 
+  echo ${mountop[0]} ${mountop[4]}
+} 
+
+
+read DISK VOLUME <<< $(mount_img)
+
+echo -e "Disk\tVolume"
+echo -e "$DISK\t$VOLUME"
+
+# change the hostname on the sd card
+echo $HOSTNAME > $VOLUME/etc/hostname
+
+hdiutil detach $DISK
+
+diskutil unmountDisk $SD
+dd if=$1 | pv | dd of=$RSD bs=5m
