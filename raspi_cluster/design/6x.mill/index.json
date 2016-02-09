@@ -1,0 +1,92 @@
+{
+  "snapOnDrag" : true,
+  "millVersion" : 2,
+  "version" : 4,
+  "fixturing" : {
+    "spoilboard" : {
+      "stockRegistration" : 1
+    },
+    "bracket" : null
+  },
+  "plans" : [
+    "9E417780-CE0A-4753-A4CB-C76CCBEE1DFA"
+  ],
+  "stock" : {
+    "height" : 101.6,
+    "depth" : 1.54,
+    "flipped" : false,
+    "laminate" : "211D8AAC-F38A-48CA-B692-7004D3222719",
+    "offset" : {
+      "y" : -0.0001220755897515247,
+      "b" : 0,
+      "z" : 0,
+      "x" : -0.0001803058172320515,
+      "a" : 0,
+      "c" : 0
+    },
+    "width" : 127,
+    "name" : "Existing Stock",
+    "zrotation" : 0.001296189477467225
+  },
+  "displayUnits" : "mm",
+  "showDimensions" : true,
+  "otherplanVersionName" : "release-build",
+  "currentJobUUID" : null,
+  "tools" : [
+    {
+      "group" : "Endmill",
+      "conductive" : "yes",
+      "flutes" : 2,
+      "name" : "1\/32in Flat End Mill",
+      "profile" : [
+        [
+          3.175,
+          36.5,
+          0,
+          0
+        ],
+        [
+          3.175,
+          9.5,
+          0,
+          -1
+        ],
+        [
+          0.79375,
+          1.5875,
+          0,
+          1
+        ],
+        [
+          0.79375,
+          0,
+          0,
+          1
+        ]
+      ],
+      "uuid" : "FFC3953B-A29D-4C22-8263-975B2722ADBC"
+    }
+  ],
+  "showMotionPlan" : true,
+  "otherplanVersion" : "0.14.6",
+  "stepSize" : 0,
+  "laminates" : [
+    {
+      "uuid" : "211D8AAC-F38A-48CA-B692-7004D3222719",
+      "group" : "Circuit Board",
+      "maxDepth" : 1.8,
+      "name" : "Single-Sided FR-1 L2",
+      "minDepth" : 1,
+      "layers" : [
+        {
+          "fixed" : 0.1,
+          "material" : "copper"
+        },
+        {
+          "float" : 1.44,
+          "material" : "phenolic"
+        }
+      ]
+    }
+  ]
+}
