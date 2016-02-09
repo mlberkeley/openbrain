@@ -7,7 +7,7 @@ fi
 
 IMG_PATH=$1
 HOSTNAME=$2
-SDNUM='4'
+SDNUM='2'
 SD="/dev/disk$SDNUM"
 RSD="/dev/rdisk$SDNUM"
 #set -x
@@ -29,4 +29,4 @@ echo $HOSTNAME > $VOLUME/etc/hostname
 hdiutil detach $DISK
 
 diskutil unmountDisk $SD
-dd if=$1 | pv | dd of=$RSD bs=5m
+dd if=$1 | pv | dd of=$RSD bs=1m
