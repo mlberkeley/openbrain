@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="raspi_cluster/gm_demo/mcerl/src"/>
+	<classpathentry kind="lib" path="raspi_cluster/gm_demo/minecraft_server.1.8.9.jar"/>
+	<classpathentry kind="lib" path="raspi_cluster/gm_demo/Minecraft.jar"/>
+	<classpathentry kind="lib" path="/Users/maxjohansen/projects/otp/lib/jinterface/priv/OtpErlang.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/Users/maxjohansen/Library/Application Support/minecraft/versions/1.8.9/1.8.9.jar"/>
+	<classpathentry kind="output" path="raspi_cluster/gm_demo/mcerl/bin"/>
+</classpath>

@@ -2,53 +2,63 @@ package mcerl;
 
 import java.awt.AWTException;
 import java.awt.FlowLayout;
-import java.awt.Frame;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.awt.image.DataBuffer;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
 import java.io.IOException;
+import java.util.Arrays;
 
-import javax.imageio.ImageIO;
+import javax.swing.GrayFilter;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
- 
+
+import com.ericsson.otp.erlang.OtpErlangAtom;
+import com.ericsson.otp.erlang.OtpErlangBinary;
+import com.ericsson.otp.erlang.OtpErlangByte;
+import com.ericsson.otp.erlang.OtpErlangDecodeException;
+import com.ericsson.otp.erlang.OtpErlangExit;
+import com.ericsson.otp.erlang.OtpErlangInt;
+import com.ericsson.otp.erlang.OtpErlangList;
+import com.ericsson.otp.erlang.OtpErlangObject;
+import com.ericsson.otp.erlang.OtpErlangRangeException;
+import com.ericsson.otp.erlang.OtpErlangTuple;
+import com.ericsson.otp.erlang.OtpMbox;
+import com.ericsson.otp.erlang.OtpNode;
+
 /**
- * This program demonstrates how to capture a screenshot (full screen)
- * as an image which will be saved into a file.
- * @author www.codejava.net
  *
  */
 public class Program {
- 
-    public static BufferedImage capture(){
-        try{    
-            Robot robot = new Robot();
-            String format = "jpg";
-            String fileName = "FullScreenshot." + format;
-             
-            Rectangle screenRect = new Rectangle(50,241, 856, 482);
-            BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
-            return screenFullImage;
-        } catch (AWTException  ex) {
-            System.err.println(ex);
-            return null;
-        }
 
-    }
-    
-    public static void main(String[] args) {
-        JLabel img = new JLabel(new ImageIcon(capture()));
-        JFrame frame = new JFrame();
-        frame.getContentPane().setLayout(new FlowLayout());
-        frame.getContentPane().add(img);
-        frame.pack();
-        frame.setVisible(true);
-        
-        while(true){
-
-            
-        }
-    }
+	public static void main(String[] args) {
+		String nodeName = args.length > 0 ? args[0] : "com@Maxs-MacBook-Pro-2.local";
+		String cookie = "ZWCAMBALXIPKLDBDVTZW";
+		
+		try {
+			OtpNode localNode = new OtpNode("binterface@Maxs-MacBook-Pro-2.local");
+			InputManager im = new InputManager(localNode, nodeName);
+			Thread input = new Thread(im);
+			input.start();
+			
+			PixelManager pm = new PixelManager(localNode, nodeName);
+			Thread pixel = new Thread(pm);
+			pixel.start();
+			pm.getFrame().addKeyListener(im);
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
