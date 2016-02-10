@@ -7,7 +7,7 @@
                 net=0,
                 marker=-1,
                 markerProx=[],
-                output=false}). % the proximals that have not been checked by posteriors
+                output={false, -1}}). % the proximals that have not been checked by posteriors
 
 %  Neuron **SHOULD BE**  a neuron, but is not
 net(Neuron) ->
@@ -30,6 +30,17 @@ thresholding(Posteriors, Weights, NewNet) ->
         true ->
             NewNet
     end.
+thresholding(NewNet, Output) ->
+    Threshold = 0.5,
+    if
+        NewNet > Threshold ->
+            {true, Key} = Output,
+            pressKey(Key),
+            0;
+        true ->
+            NewNet
+    end.
+
 
 % the neuron process handler
 % neuron([], [], [], 0, -1)
@@ -55,11 +66,18 @@ neuron(Neuron) ->
             io:format("Net: ~w~n", [net(Neuron)]),
             neuron(Neuron);
         {feed, Num} ->
-            Posteriors = Neuron#neuron.posteriors,
-            Weights = Neuron#neuron.weights,
-            Net = Neuron#neuron.net,
+            #neuron{posteriors=Posteriors, weights=Weights, net=Net, output=Outputs} = Neuron,
+            % Posteriors = Neuron#neuron.posteriors,
+            % Weights = Neuron#neuron.weights,
+            % Net = Neuron#neuron.net,
             %io:format("{~w, Net:~w}~n",[self(),Net+Num]),
-            neuron(Neuron#neuron{net=thresholding(Posteriors, Weights, Num+Net)});
+            {IsOutput, Key} = Outputs,
+            if
+                IsOutput == false ->
+                    neuron(Neuron#neuron{net=thresholding(Posteriors, Weights, Num+Net)});
+                IsOutput == true ->
+                    neuron(Neuron#neuron{net=thresholding(Num+Net, Outputs)})
+            end;
         % adds a proximal node to this neuron's graph
         {proximal, Prox} ->
             neuron(addProximal(Neuron, Prox));
@@ -79,10 +97,11 @@ neuron(Neuron) ->
             neuron(Neuron);
         % the dfs receiver
         {dfs, NewMarker, ParentPID} ->
-            #neuron{marker=Marker, output=IsOutput} = Neuron,
+            #neuron{marker=Marker, output=Output} = Neuron,
+            {IsOutput, _} = Output,
             if
                 % stop running dfs if we hit output node
-                IsOutput == true ->
+                IsOutput /= false ->
                     ParentPID ! {posterior, self()},
                     neuron(Neuron);
                 % has not been marked by this node yet
@@ -97,11 +116,24 @@ neuron(Neuron) ->
                     ParentPID ! {faileddfs, self(), NewMarker},
                     neuron(Neuron)
             end;
-        % flags this node as output
-        output ->
-            neuron(Neuron#neuron{output=true})
+        % flags this node as output and sets the Num as the key
+        {output, Num} ->
+            neuron(Neuron#neuron{output={true, Num}})
 
     end.
+    %
+pressKey(Num) ->
+    {inputListener,'macs'} ! inputKey(Num).
+% send key_data to the server
+inputKey(Num) ->
+    case Num of
+        0 -> w;
+        1 -> a;
+        2 -> s;
+        3 -> d;
+        4 -> space
+    end.
+
 % reset the MarkProximals s othat they will randomly choose
 resetDFS(Neuron) ->
     MarkerProx = shuffle(Neuron#neuron.proximals),

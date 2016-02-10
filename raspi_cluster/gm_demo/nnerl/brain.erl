@@ -112,7 +112,7 @@ get_ins_outs(InputC, OutputC, MatrixRec) ->
     L = lists:seq(1, trunc(math:pow(ncols(MatrixRec),2))),
     Shuffle = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- L])],
     Ins = getPids(lists:sublist(Shuffle, InputC),[], MatrixRec),
-    Outs = getPids(output,lists:sublist(Shuffle, InputC+1, OutputC),[], MatrixRec),
+    Outs = getPids(output,lists:sublist(Shuffle, InputC+1, OutputC),[], MatrixRec, 0),
     {Ins, Outs}.
 
 % converts the position value from a 1d vector to a 2d of dimensions MxN
@@ -130,14 +130,14 @@ getPids(InputL, OutputL, MatrixRec) ->
     getPids(RestI, [access(MatrixRec, X, Y)|OutputL], MatrixRec).
 
 % returns the Pids of all and marks some as output
-getPids(output, [], OutputL, _) ->
+getPids(output, [], OutputL, _, _) ->
     OutputL;
-getPids(output,InputL, OutputL, MatrixRec) ->
+getPids(output,InputL, OutputL, MatrixRec, Count) ->
     [FirstI| RestI] = InputL,
     {X,Y} = dto2d(FirstI, nrows(MatrixRec), ncols(MatrixRec)),
     NewPid = access(MatrixRec, X, Y),
-    NewPid ! output,
-    getPids(output, RestI, [NewPid| OutputL], MatrixRec).
+    NewPid ! {output,Count},
+    getPids(output, RestI, [NewPid| OutputL], MatrixRec, Count + 1).
 % % Creates a graph that matches the nodal structure
 construct(BrainParams) ->
     #brainParams{inputsz=InputC, outputsz=OutputC, nodesz=NodeC} = BrainParams,
