@@ -1,4 +1,4 @@
-package mcerl;
+package javashit;
 
 import java.awt.AWTException;
 import java.awt.FlowLayout;
@@ -28,12 +28,7 @@ import com.ericsson.otp.erlang.OtpMbox;
 import com.ericsson.otp.erlang.OtpNode;
 
 public class PixelManager implements Runnable{
-	private OtpNode localNode;
-	private String nodeName;
 	private JFrame frame;
-
-	
-	
 	public JFrame getFrame() {
 		return frame;
 	}
@@ -42,9 +37,7 @@ public class PixelManager implements Runnable{
 		this.frame = frame;
 	}
 
-	public PixelManager(OtpNode localNode, String nodeName) {
-		this.localNode = localNode;
-		this.nodeName = nodeName;
+	public PixelManager() {
 		frame = new JFrame();
 		frame.getContentPane().setLayout(new FlowLayout());
 
@@ -54,15 +47,12 @@ public class PixelManager implements Runnable{
 	
 	@Override
 	public void run() {
-		OtpMbox mbox = localNode.createMbox();
 		JLabel img = new JLabel(new ImageIcon(capture()));
 		frame.getContentPane().add(img);
 		
 		OtpErlangInt[] erInt = new OtpErlangInt[412592 / 4];
 
 		while(true){
-			
-				
 			BufferedImage capturedImage = capture();
 	
 			ImageFilter filter = new GrayFilter(true, 50);  
@@ -85,10 +75,8 @@ public class PixelManager implements Runnable{
 			msg[0] = new OtpErlangAtom("pixels");
 			msg[1] = new OtpErlangList(erInt);
 			OtpErlangTuple tuple = new OtpErlangTuple(msg);
-	
 
-			mbox.send("pixelListener", nodeName, tuple);
-
+			Program.javaMbox.send(Program.erlNodePid, tuple);
 		}
 	}
 

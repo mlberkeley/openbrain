@@ -19,14 +19,20 @@ brain(Params) ->
             NewParams = construct(Params),
             brain(NewParams);
         {feed, Inputs} ->
-            feed(Params#brainParams.ins, Inputs),
+            feed(Inputs, Params#brainParams.ins),
             brain(Params);
         % returns a list of the output neuron values
         getoutput ->
             % [Head | Tail] = Params#brainParams.outs,
             % io:format("slit~w~n", [neuron:net(Head)]),
-            printNets(Params#brainParams.outs),
+            print_output(Params#brainParams.outs),
             % [neuron:net(X  ! getNeuron) || X <- Params#brainParams.outs],
+            brain(Params);
+        stop ->
+            unregister(brain);
+        regOne ->
+            [In | _] = Params#brainParams.ins,
+            In ! register,
             brain(Params)
     end.
 
@@ -39,7 +45,7 @@ feed(InputVals, InputPIDs) ->
     [PID| RestPID] = InputPIDs,
     [Val | RestVal] = InputVals,
     PID ! {feed, Val},
-    feed(RestPID, RestVal).
+    feed(RestVal, RestPID).
 
 
 
@@ -50,9 +56,7 @@ feed(InputVals, InputPIDs) ->
 assign_neurons(NumInputs, NumOutputs, MatrixRcrd) ->
     L = lists:seq(1, trunc(math:pow(ncols(MatrixRcrd),2))), % TODO this should be the number of elements in hte graph
     Shuffle = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- L])],
-    io:format("setting inputs~n",[]),
     Ins = get_input_pids(lists:sublist(Shuffle, NumInputs),MatrixRcrd),
-    io:format("setting outputs~n",[]),
     Outs = get_output_pids(lists:sublist(Shuffle, NumInputs+1, NumOutputs),MatrixRcrd),
 
     % returns
@@ -66,7 +70,9 @@ get_input_pids([], _, PiDs) ->
     PiDs;
 get_input_pids(Positions,  Matrix, PiDs) ->
     [CurPosition| RestPositions] = Positions,
-    get_input_pids(RestPositions, Matrix, [access(Matrix, CurPosition) | PiDs]).
+    NewPid = access(Matrix, CurPosition),
+    NewPid ! {set_type, input},
+    get_input_pids(RestPositions, Matrix, [NewPid | PiDs]).
 
 %% @doc Returns the process ids for the output neurons indexed by Positions.
 get_output_pids(Positions, MatrixRcrd) ->
@@ -77,7 +83,7 @@ get_output_pids([], _, _, PiDs)->
 get_output_pids(Positions, Matrix, Count, PiDs) ->
     [CurPosition| RestPositions] = Positions,
     NewPid = access(Matrix, CurPosition),
-    NewPid ! {output, Count},
+    NewPid ! {set_type, output},
     get_output_pids(RestPositions, Matrix, Count + 1, [NewPid|PiDs]).
 % getPids([], OutputL, _) ->
 %     OutputL;
@@ -112,9 +118,9 @@ construct(NumNodes, NumInputs, NumOutputs) ->
     ProxMat = gen_matrix(Side,Side),
     % Matrix = matrix(ProxMat),
     % setup proximity graph
-    io:format("pre-proximity~n",[]),
+
     proximity_rows(ProxMat),
-    io:format("post-proximity~n",[]),
+
     % pull out the input and output lists
     {InNeurons, OutNeurons} = assign_neurons(NumInputs, NumOutputs, ProxMat),
     % Construct the Connectivity graph
@@ -129,6 +135,7 @@ create_connections([], _) ->
     ok;
 create_connections(InputNL, Counter) ->
     [Head | Rest] = InputNL,
+    io:format("Starting ~w Input's DFS~n",[Counter]),
     Head ! {startdfs, Counter},
     create_connections(Rest, Counter+1).
 
@@ -179,13 +186,13 @@ get_adjacents(MatrixRcrd, R, C) ->
 %% -------------------------
 %% -------------------------
 %% Test utils
-printNets([]) ->
+print_output([]) ->
     ok;
-printNets(L) ->
+print_output(L) ->
     [Head | Rest] = L,
-    Head ! printNet,
+    Head ! identity,
     % io:format("this~w~n",[(Head ! getNeuron)]),
-    printNets(Rest).
+    print_output(Rest).
 %% -------------------------
 %% --- move all of this to a math util
 % function which rounds a number to the nearest int <= x
@@ -263,11 +270,15 @@ list_to_matrix(Pos, M, N) ->
 
 % c(brain) and c(neuron) first
 main() ->
-    % c(neuron),
-    % unregister(brain),
-    register(brain, spawn(brain, brain, [10,2,1])),
+    compile:file(neuron),
+    % brain ! stop,
+    register(brain, spawn(brain, brain, [10,2,2])),
     brain ! newbrain,
+    % brain
+    brain ! regOne,
     brain ! getoutput.
+
+    % brain ! {feed, [1,1]}.
 
 
 

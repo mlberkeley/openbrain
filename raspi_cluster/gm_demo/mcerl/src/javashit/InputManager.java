@@ -1,4 +1,4 @@
-package mcerl;
+package javashit;
 
 import java.awt.AWTException;
 import java.awt.MouseInfo;
@@ -7,17 +7,16 @@ import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.IOException;
 
 import com.ericsson.otp.erlang.OtpErlangAtom;
 import com.ericsson.otp.erlang.OtpErlangBinary;
 import com.ericsson.otp.erlang.OtpErlangDecodeException;
 import com.ericsson.otp.erlang.OtpErlangExit;
 import com.ericsson.otp.erlang.OtpErlangObject;
+import com.ericsson.otp.erlang.OtpErlangPid;
 import com.ericsson.otp.erlang.OtpErlangTuple;
 import com.ericsson.otp.erlang.OtpMbox;
 import com.ericsson.otp.erlang.OtpNode;
-import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
 
 public class InputManager implements Runnable, KeyListener{
 	private static final byte W = 0b1000000;
@@ -27,12 +26,8 @@ public class InputManager implements Runnable, KeyListener{
 	private static final byte LEFT = 0b0000100;
 	private static final byte RIGHT = 0b0000010;
 	private static final byte CLICK = 0b0000001;
-
 	private static int XSHIFT = 100;
-	
-	OtpNode inputServer;
-	private String nodeName;
-	boolean enabled =false;
+	boolean enabled = false;
 	int dir;
 	private Robot mrRoboto;
 	private Point p;
@@ -42,9 +37,7 @@ public class InputManager implements Runnable, KeyListener{
 	 * EC has already been connected.
 	 * @param ec
 	 */
-	public InputManager(OtpNode ec, String nodeName){
-		this.inputServer = ec;
-		this.nodeName = nodeName;
+	public InputManager(){
 		try {
 			this.mrRoboto = new Robot();
 			this.p = new Point(0,0);
@@ -56,15 +49,11 @@ public class InputManager implements Runnable, KeyListener{
 	
 	@Override
 	public void run() {
-		OtpMbox mbox = inputServer.createMbox();
-		//Establish the message passing interface with a handshake.
-		
-		mbox.send("inputListener",nodeName, new OtpErlangTuple(new OtpErlangObject[] {new OtpErlangAtom("connect"), mbox.self()}));
 		try {
 			while(true){
 				if(!enabled){
 					try {
-						System.out.println("dft");
+						System.out.println("asstitties");
 						Thread.sleep(3000);
 		        		p = MouseInfo.getPointerInfo().getLocation();
 					} catch (InterruptedException e) {
@@ -73,9 +62,7 @@ public class InputManager implements Runnable, KeyListener{
 					}
 				}
 				else{
-
-					
-					getInput(mbox);
+					getInput();
 				}
 			}
 		} catch (OtpErlangExit | OtpErlangDecodeException | AWTException e) {
@@ -83,13 +70,8 @@ public class InputManager implements Runnable, KeyListener{
 		}
 	}
 
-	private void getInput(OtpMbox mbox) throws AWTException, OtpErlangExit, OtpErlangDecodeException {
-		
-
-		
-
-		OtpErlangBinary reply = (OtpErlangBinary) mbox.receive();
-
+	private void getInput() throws AWTException, OtpErlangExit, OtpErlangDecodeException {
+		OtpErlangBinary reply = (OtpErlangBinary) Program.javaMbox.receive();
 
 		byte[] bytes = reply.binaryValue();
 
@@ -141,9 +123,11 @@ public class InputManager implements Runnable, KeyListener{
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		if(e.getKeyChar() == '`')
+		System.out.println("om nom");
+		if(e.getKeyChar() == 'a'){
+			System.out.println("eyyy");
 			enabled = !enabled;
-		
+		}
 	}
 
 	@Override

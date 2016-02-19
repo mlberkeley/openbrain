@@ -1,3 +1,4 @@
+*.beam
 # Compiled Object files
 *.slo
 *.lo

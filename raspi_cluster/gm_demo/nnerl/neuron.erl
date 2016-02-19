@@ -7,8 +7,12 @@
                 net=0,
                 marker=-1,
                 markerProx=[],
-                output={false, -1}}). % the proximals that have not been checked by posteriors
+                type=normal,
+                key=-1}).
+                % output={false, -1}}). % the proximals that have not been checked by posteriors
 
+net(NeuronRcrd) ->
+    NeuronRcrd#neuron.net.
 % shuffle a list randomly
 shuffle(L) ->
     [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- L])].
@@ -17,7 +21,7 @@ shuffle(L) ->
 listFind(Element, List) ->
     lists:member(Element, List).
 
- % added this line because of vague notion of erlang proper form
+%% @doc Handles the thresholding action of net.
 thresholding(Posteriors, Weights, NewNet) ->
     Threshold = 0.5,
     if
@@ -27,11 +31,12 @@ thresholding(Posteriors, Weights, NewNet) ->
         true ->
             NewNet
     end.
-thresholding(NewNet, Output) ->
+%% @TODO this could prboably be incorporated into feed.
+% threshold([], [], NewNet) - this is probably the solution
+thresholding(NewNet, Key) ->
     Threshold = 0.5,
     if
         NewNet > Threshold ->
-            {true, Key} = Output,
             pressKey(Key),
             0;
         true ->
@@ -44,11 +49,11 @@ thresholding(NewNet, Output) ->
 addProximal(Neuron, Proximal) ->
     Proximals = Neuron#neuron.proximals,
     Neuron#neuron{proximals=[Proximal|Proximals]}.
-addPosterior(Neuron, Posterior) ->
+addPosterior(Neuron, NewPost) ->
     Posteriors = Neuron#neuron.posteriors,
-    case listFind(Posterior, Posteriors) of
+    case listFind(NewPost, Posteriors) of
         false ->
-            Neuron#neuron{posteriors=[Posterior|Posteriors], weights=[min(random:uniform(), 0.99) |  Neuron#neuron.weights]};
+            Neuron#neuron{posteriors=[NewPost|Posteriors], weights=[min(random:uniform(), 0.99) |  Neuron#neuron.weights]};
         true ->
             Neuron
     end.
@@ -59,29 +64,36 @@ neuron() ->
 neuron(Neuron) ->
     receive
         % feed forward structure
+        regSelf ->
+            io:format('tryna register ~n',[]),
+            global:re_register_name(neuron, self());
+        identity ->
+            io:format("Neuron: ~w~n", [Neuron]);
         printNet ->
             io:format("Net: ~w~n", [net(Neuron)]),
             neuron(Neuron);
         {feed, Num} ->
-            #neuron{posteriors=Posteriors, weights=Weights, net=Net, output=Outputs} = Neuron,
+            
+            #neuron{posteriors=Posteriors, weights=Weights, net=Net, type=Type, key=Key} = Neuron,
             % Posteriors = Neuron#neuron.posteriors,
             % Weights = Neuron#neuron.weights,
             % Net = Neuron#neuron.net,
             %io:format("{~w, Net:~w}~n",[self(),Net+Num]),
-            {IsOutput, Key} = Outputs,
+            % {IsOutput, Key} = Outputs,
+            Is_Output = (Type == output),
             if
-                IsOutput == false ->
+                Is_Output == false ->
                     neuron(Neuron#neuron{net=thresholding(Posteriors, Weights, Num+Net)});
-                IsOutput == true ->
-                    neuron(Neuron#neuron{net=thresholding(Num+Net, Outputs)})
+                Is_Output == true ->
+                    neuron(Neuron#neuron{net=thresholding(Num+Net, Key)})
             end;
         % adds a proximal node to this neuron's graph
         {proximal, Prox} ->
             neuron(addProximal(Neuron, Prox));
-
         % makes a posterior connection with the neuron. If it already exists, then
         % nothing happens
         {posterior, Posterior} ->
+            io:format('Add proximal ~w->~w~n',[self(), Posterior]),
             neuron(addPosterior(Neuron, Posterior));
         % if the dfs of as child node fails, then
         {faileddfs, Touched, Marker} ->
@@ -94,8 +106,8 @@ neuron(Neuron) ->
             neuron(Neuron);
         % the dfs receiver
         {dfs, NewMarker, ParentPID} ->
-            #neuron{marker=Marker, output=Output} = Neuron,
-            {IsOutput, _} = Output,
+            #neuron{marker=Marker, type=Type} = Neuron,
+            IsOutput = (Type == output),
             if
                 % stop running dfs if we hit output node
                 IsOutput /= false ->
@@ -114,16 +126,20 @@ neuron(Neuron) ->
                     neuron(Neuron)
             end;
         % flags this node as output and sets the Num as the key
-        {output, Num} ->
-            neuron(Neuron#neuron{output={true, Num}})
-
+        % {output, Num} ->
+        %     neuron(Neuron#neuron{output={true, Num}});
+        {set_type, Type} ->
+            neuron(Neuron#neuron{type=Type})
     end.
-    %
-pressKey(Num) ->
-    {inputListener,'macs'} ! inputKey(Num).
-% send key_data to the server
-inputKey(Num) ->
-    case Num of
+%% ----------------------------------------
+%% TODO MOVE THIS TO ANOTHER MODULE
+%% @doc Sends the pressKey command to the mc server.
+pressKey(KeyNum) ->
+    io:format("pressed ~w~n", [KeyNum]),
+    {inputListener,'macs'} ! inputKey(KeyNum).
+%% @doc Maps key index to key press
+inputKey(KeyNum) ->
+    case KeyNum of
         0 -> w;
         1 -> a;
         2 -> s;
