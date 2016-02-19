@@ -1,25 +1,20 @@
 -module(brain).
--export([brain/0, brain/1,brain/3, construct/3, main/0]).
+-export([brain/1,brain/3, construct/3, main/0, feed/2]).
 
 -record(matrix, {matrix=[],
                 r=0,
                 c=0}).
--record(brainParams, {  ins=[],
-                        outs=[],
-                        nodesz=0,
-                        inputsz=0,
-                        outputsz=0
+-record(brainParams, {  ins=[], outs=[], nodesz=0, inputsz=0, outputsz=0
                     }).
 
 
-% the main server
-brain() ->
-    brain(#brainParams{}).
-brain(Nodesz, Inputsz, Outputsz) ->
-    brain(#brainParams{nodesz=Nodesz, inputsz=Inputsz, outputsz=Outputsz}).
+%% @doc The brain server that takes in inputs
+brain(NumNodes, NumInputs, NumOutputs) ->
+    brain(#brainParams{nodesz=NumNodes, inputsz=NumInputs, outputsz=NumOutputs}).
 brain(Params) ->
     % io:format('~w~n', ['lit']),
     receive
+        % TODO consider whether this would be better in constructor paradigm
         newbrain ->
             NewParams = construct(Params),
             brain(NewParams);
@@ -34,6 +29,156 @@ brain(Params) ->
             % [neuron:net(X  ! getNeuron) || X <- Params#brainParams.outs],
             brain(Params)
     end.
+
+% @doc Passes input valus into the network
+feed([],_) ->
+    ok;
+feed(_,[]) ->
+    ok;
+feed(InputVals, InputPIDs) ->
+    [PID| RestPID] = InputPIDs,
+    [Val | RestVal] = InputVals,
+    PID ! {feed, Val},
+    feed(RestPID, RestVal).
+
+
+
+
+%% @doc Randomly assigns some numbers as input and output neurons based on the
+%% size of the input and output vectors
+%% @params MatrixRcr
+assign_neurons(NumInputs, NumOutputs, MatrixRcrd) ->
+    L = lists:seq(1, trunc(math:pow(ncols(MatrixRcrd),2))), % TODO this should be the number of elements in hte graph
+    Shuffle = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- L])],
+    io:format("setting inputs~n",[]),
+    Ins = get_input_pids(lists:sublist(Shuffle, NumInputs),MatrixRcrd),
+    io:format("setting outputs~n",[]),
+    Outs = get_output_pids(lists:sublist(Shuffle, NumInputs+1, NumOutputs),MatrixRcrd),
+
+    % returns
+    {Ins, Outs}.
+
+%% @doc Returns the process ids for the input neurons indexed by Positions.
+get_input_pids(Positions, MatrixRcrd) ->
+    % Matrix = matrix(MatrixRcrd),
+    get_input_pids(Positions, MatrixRcrd, []).
+get_input_pids([], _, PiDs) ->
+    PiDs;
+get_input_pids(Positions,  Matrix, PiDs) ->
+    [CurPosition| RestPositions] = Positions,
+    get_input_pids(RestPositions, Matrix, [access(Matrix, CurPosition) | PiDs]).
+
+%% @doc Returns the process ids for the output neurons indexed by Positions.
+get_output_pids(Positions, MatrixRcrd) ->
+    % Matrix = matrix(MatrixRcrd),
+    get_output_pids(Positions, MatrixRcrd, 0, []).
+get_output_pids([], _, _, PiDs)->
+    PiDs;
+get_output_pids(Positions, Matrix, Count, PiDs) ->
+    [CurPosition| RestPositions] = Positions,
+    NewPid = access(Matrix, CurPosition),
+    NewPid ! {output, Count},
+    get_output_pids(RestPositions, Matrix, Count + 1, [NewPid|PiDs]).
+% getPids([], OutputL, _) ->
+%     OutputL;
+% getPids(Positions, OutputL, Matrix) ->
+%     [CurPosition| RestPositions] = Positions,
+%     {X,Y} = list_to_matrix(CurPosition, nrows(Matrix), ncols(Matrix)),
+%     getPids(RestPositions, [access(Matrix, X, Y)|OutputL], Matrix).
+
+% returns the Pids of all and marks some as output
+% getPids(output, [], OutputL, _, _) ->
+%     OutputL;
+% getPids(output,InputL, OutputL, MatrixRcrd, Count) ->
+%     [FirstI| RestI] = InputL,
+%     {X,Y} = list_to_matrix(FirstI, nrows(MatrixRcrd), ncols(MatrixRcrd)),
+%     NewPid = access(MatrixRcrd, X, Y),
+%     NewPid ! {output,Count},
+%     getPids(output, RestI, [NewPid| OutputL], MatrixRcrd, Count + 1).
+
+%% Creates a graph that matches the nodal structure
+construct(BrainParams) ->
+    #brainParams{inputsz=InputC, outputsz=OutputC, nodesz=NodeC} = BrainParams,
+    construct(NodeC, InputC, OutputC).
+
+
+%% @doc Creates the network with NumNodes nodes, NumInputs inputs and NumOutputs
+%% outputs. NumNodes > NumInput + NumOutputs.
+construct(NumNodes, NumInputs, NumOutputs) ->
+    % #brainParams{inputsz=NumInputs, outputsz=NumOutputs, nodesz=NumNodes} = BrainParams,
+    Side = ceiling(math:sqrt(NumNodes)),
+    Params = #brainParams{inputsz=NumInputs, outputsz=NumOutputs, nodesz=Side*Side},
+
+    ProxMat = gen_matrix(Side,Side),
+    % Matrix = matrix(ProxMat),
+    % setup proximity graph
+    io:format("pre-proximity~n",[]),
+    proximity_rows(ProxMat),
+    io:format("post-proximity~n",[]),
+    % pull out the input and output lists
+    {InNeurons, OutNeurons} = assign_neurons(NumInputs, NumOutputs, ProxMat),
+    % Construct the Connectivity graph
+    create_connections(InNeurons, 0),
+    % io:format("post-create_connections~n",[]),
+
+    % copies the
+    Params#brainParams{ins=InNeurons, outs=OutNeurons}.
+
+%% @doc Starts the depth first search that creates the feedforward graph
+create_connections([], _) ->
+    ok;
+create_connections(InputNL, Counter) ->
+    [Head | Rest] = InputNL,
+    Head ! {startdfs, Counter},
+    create_connections(Rest, Counter+1).
+
+%% @doc Sets up the proximity graph for all of the elements in the matrix.
+proximity_rows(MatrixRcrd) ->
+    proximity_rows(matrix(MatrixRcrd), ncols(MatrixRcrd), nrows(MatrixRcrd), MatrixRcrd).
+proximity_rows([],_,_, _) ->
+    ok;
+proximity_rows(Matrix, RowIdx, Length, MatrixRcrd) ->
+    [Row| Rest] = Matrix,
+    proximity_row_elms(Row, RowIdx, Length, MatrixRcrd),
+    proximity_rows(Rest, RowIdx-1, Length, MatrixRcrd).
+
+%% @doc Sets up the proximity graph of all of the rows.
+%% Helper to proximity_rows
+%% @see proximity_rows
+proximity_row_elms([], _, _, _) ->
+    ok;
+proximity_row_elms(List, Row, Col, Matrix) ->
+    [First | Rest] = List,
+    set_proximity(First, get_adjacents(Matrix, Row, Col)),
+    proximity_row_elms(Rest, Row, Col-1, Matrix).
+
+%% --------------------------------
+%% TODO MOVE THIS TO NEURON
+%% @doc Sets up the links from the node to its immediately proximal neurons
+%% Helper to proximity_row_elms.
+%% @see proximity_row_elms
+set_proximity(_, []) ->
+    ok;
+set_proximity(Node, Adjacents) ->
+    [First | Rest] = Adjacents,
+    Node ! {proximal, First},
+    % io:format("~w -> ~w~n", [Node, First]),
+    set_proximity(Node, Rest).
+
+% returns the 8 adjacent matrices to the node at this position
+%% TODO make this less janky
+get_adjacents(MatrixRcrd, R, C) ->
+    [access(MatrixRcrd, R+1, C),
+    access(MatrixRcrd, R+1, C+1),
+    access(MatrixRcrd, R, C+1),
+    access(MatrixRcrd, R-1, C+1),
+    access(MatrixRcrd, R-1, C),
+    access(MatrixRcrd, R-1, C-1),
+    access(MatrixRcrd, R, C-1),
+    access(MatrixRcrd, R+1, C-1)].
+%% -------------------------
+%% -------------------------
+%% Test utils
 printNets([]) ->
     ok;
 printNets(L) ->
@@ -41,18 +186,8 @@ printNets(L) ->
     Head ! printNet,
     % io:format("this~w~n",[(Head ! getNeuron)]),
     printNets(Rest).
-% feeds the network input values
-feed([],_) ->
-    ok;
-feed(_,[]) ->
-    ok;
-feed(InputPIDs, InputVals) ->
-    [PID| RestPID] = InputPIDs,
-    [Val | RestVal] = InputVals,
-    PID ! {feed, Val},
-    feed(RestPID, RestVal).
-
-
+%% -------------------------
+%% --- move all of this to a math util
 % function which rounds a number to the nearest int <= x
 floor(X) when X < 0 ->
     T = trunc(X),
@@ -73,7 +208,7 @@ ceiling(X) ->
         false -> T + 1
     end.
 
-% modulus
+% modulus operator
 mod(X,Y) ->
     R = X rem Y,
     if R < 0 ->
@@ -82,134 +217,55 @@ mod(X,Y) ->
         R
     end.
 
+%% --- end of move
+
+%% -----------------------
+%% MOVE THIS TO A MATRIX MODULE
 % Matrix data structure function
 % generates the matrix
 gen_matrix(Rows,Columns) ->
     #matrix{matrix=[[spawn(neuron, neuron, []) || _ <- lists:seq(1,Columns)] || _ <- lists:seq(1,Rows)], r=Rows, c=Columns}.
 
 % gets the matrix component of the matrix data structure
-matrix(MatrixRec) ->
-    % io:format("matrix()~w~n",[MatrixRec]),
-    MatrixRec#matrix.matrix.
+matrix(MatrixRcrd) ->
+    % io:format("matrix()~w~n",[MatrixRcrd]),
+    MatrixRcrd#matrix.matrix.
+
 % gets the number of columns of a matrix record
-ncols(MatrixRec) ->
-    % io:format("matrix()~w~n",[MatrixRec]),
-    MatrixRec#matrix.c.
+ncols(MatrixRcrd) ->
+    % io:format("matrix()~w~n",[MatrixRcrd]),
+    MatrixRcrd#matrix.c.
+
 %gets the number of columns of a matrix record
-nrows(MatrixRec) ->
-    MatrixRec#matrix.r.
+nrows(MatrixRcrd) ->
+    MatrixRcrd#matrix.r.
+
+%% Accesses matrix elements using 1d indexing
+access(MatrixRcrd, I) ->
+    {X, Y} = list_to_matrix(I, nrows(MatrixRcrd),ncols(MatrixRcrd)),
+    access(MatrixRcrd, X, Y).
 
 % grabs the element at row R and column C in Matrix.
-% 1 indexed !!!
-access(MatrixRec, R, C) ->
-    Matrix = matrix(MatrixRec),
+% 1 indexed !!! TODO make this 0 indexed
+access(MatrixRcrd, X, Y) ->
+    Matrix = matrix(MatrixRcrd),
     lists:nth(
-        mod(C, ncols(MatrixRec))+1,
-        lists:nth(mod(R, nrows(MatrixRec))+1, Matrix)).
+        mod(Y, ncols(MatrixRcrd))+1,
+        lists:nth(mod(X, nrows(MatrixRcrd))+1, Matrix)).
 
-% returns random values
-get_ins_outs(InputC, OutputC, MatrixRec) ->
-    L = lists:seq(1, trunc(math:pow(ncols(MatrixRec),2))),
-    Shuffle = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- L])],
-    Ins = getPids(lists:sublist(Shuffle, InputC),[], MatrixRec),
-    Outs = getPids(output,lists:sublist(Shuffle, InputC+1, OutputC),[], MatrixRec, 0),
-    {Ins, Outs}.
+%% @doc Converts a 1d position to the coordinates in a 2d_matrix with dims MxN
+list_to_matrix(Pos, M, N) ->
+    X = floor(Pos/M) + 1,
+    Y = Pos rem N + 1,
+    {X, Y}.
+%% ---- end  of the module
 
-% converts the position value from a 1d vector to a 2d of dimensions MxN
-dto2d(Pos, M, N) ->
-    X = floor(Pos/M),
-    Y = Pos rem N,
-    {X,Y}.
 
-% returns the Pids of all
-getPids([], OutputL, _) ->
-    OutputL;
-getPids(InputL, OutputL, MatrixRec) ->
-    [FirstI| RestI] = InputL,
-    {X,Y} = dto2d(FirstI, nrows(MatrixRec), ncols(MatrixRec)),
-    getPids(RestI, [access(MatrixRec, X, Y)|OutputL], MatrixRec).
-
-% returns the Pids of all and marks some as output
-getPids(output, [], OutputL, _, _) ->
-    OutputL;
-getPids(output,InputL, OutputL, MatrixRec, Count) ->
-    [FirstI| RestI] = InputL,
-    {X,Y} = dto2d(FirstI, nrows(MatrixRec), ncols(MatrixRec)),
-    NewPid = access(MatrixRec, X, Y),
-    NewPid ! {output,Count},
-    getPids(output, RestI, [NewPid| OutputL], MatrixRec, Count + 1).
-% % Creates a graph that matches the nodal structure
-construct(BrainParams) ->
-    #brainParams{inputsz=InputC, outputsz=OutputC, nodesz=NodeC} = BrainParams,
-    construct(NodeC, InputC, OutputC).
-construct(NodeC, InputC, OutputC) ->
-    % #brainParams{inputsz=InputC, outputsz=OutputC, nodesz=NodeC} = BrainParams,
-    Side = ceiling(math:sqrt(NodeC)),
-    BrainParams = #brainParams{inputsz=InputC, outputsz=OutputC, nodesz=Side*Side},
-
-    ProxMat = gen_matrix(Side,Side),
-    % Matrix = matrix(ProxMat),
-    % setup proximity graph
-    io:format("pre-proximity~n",[]),
-    proximity_rows(matrix(ProxMat), Side, Side, ProxMat),
-    io:format("post-proximity~n",[]),
-    % pull out the input and output lists
-    {Ins, Outs} = get_ins_outs(InputC, OutputC, ProxMat),
-    % Construct the Connectivity graph
-    connectivity(Ins, 0),
-    % io:format("post-connectivity~n",[]),
-    BrainParams#brainParams{ins=Ins, outs=Outs}.
-
-% handles the dfs connectivity
-connectivity([], _) ->
-    ok;
-connectivity(InputNL, Counter) ->
-    [Head | Rest] = InputNL,
-    Head ! {startdfs, Counter},
-    connectivity(Rest, Counter+1).
-
-% column-wise adjacency adjustment
-proximity_rows([],_,_, _) ->
-    ok;
-proximity_rows(MatrixRest, Rows, Length, Matrix) ->
-    [First | Rest] = MatrixRest,
-    proximity_row_elms(First, Rows, Length, Matrix),
-    proximity_rows(Rest, Rows-1, Length, Matrix).
-
-% creates the adjacency of an element of matrices
-% helper to proximity_rows
-proximity_row_elms([], _, _, _) ->
-    ok;
-proximity_row_elms(List, Row, Col, Matrix) ->
-    [First | Rest] = List,
-    set_proximity(First, get_adjacents(Matrix, Row, Col)),
-    proximity_row_elms(Rest, Row, Col-1, Matrix).
-
-% sets the proximity of the matrix
-% helper to proximity_row_elms
-set_proximity(_, []) ->
-    ok;
-set_proximity(Node, Adjacents) ->
-    [First | Rest] = Adjacents,
-    Node ! {proximal, First},
-    % io:format("~w -> ~w~n", [Node, First]),
-    set_proximity(Node, Rest).
-
-% returns the 8 adjacent matrices to the node at this position
-get_adjacents(MatrixRec, R, C) ->
-    [access(MatrixRec, R+1, C),
-    access(MatrixRec, R+1, C+1),
-    access(MatrixRec, R, C+1),
-    access(MatrixRec, R-1, C+1),
-    access(MatrixRec, R-1, C),
-    access(MatrixRec, R-1, C-1),
-    access(MatrixRec, R, C-1),
-    access(MatrixRec, R+1, C-1)].
 % c(brain) and c(neuron) first
 main() ->
     % c(neuron),
     % unregister(brain),
-    register(brain, spawn(brain, brain, [200000,8,4])),
+    register(brain, spawn(brain, brain, [10,2,1])),
     brain ! newbrain,
     brain ! getoutput.
 

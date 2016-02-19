@@ -9,9 +9,6 @@
                 markerProx=[],
                 output={false, -1}}). % the proximals that have not been checked by posteriors
 
-%  Neuron **SHOULD BE**  a neuron, but is not
-net(Neuron) ->
-    Neuron#neuron.net.
 % shuffle a list randomly
 shuffle(L) ->
     [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- L])].

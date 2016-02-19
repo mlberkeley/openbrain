@@ -2,4 +2,4 @@
 world/
 logs
 /logs
-
+*.beam
