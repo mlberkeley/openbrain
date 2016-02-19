@@ -14,7 +14,7 @@ startPixels() ->
 
 pixels(NNPid) ->
   receive
-    %send pixels to nural network.
+    %send pixels to neural network.
     {pixels, Pixels} ->
       %NNPid ! Pixels
       pixels(NNPid);
@@ -63,10 +63,11 @@ input(JavaPid) ->
         inputListener ! Other
       end.
 
-
 start() ->
-     register(pixelListener, spawn(game, startPixels, [])),
-     register(inputListener, spawn(game, startInput, [])).
+  PixelPid = spawn(game, startPixels, []),
+  register(pixelListener, PixelPid),
+  {echo,java@maxbook} ! {PixelPid,"Hello, Java!"},
+  register(inputListener, spawn(game, startInput, [])).
 
 stop() ->
      unregister(pixelListener),
