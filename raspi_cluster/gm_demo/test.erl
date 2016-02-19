@@ -1,9 +1,16 @@
 -module(test).
 
--export([send/1]).
+-export([makeSexyTimes/0]).
 
+makeSexyTimes() ->
+  {echo,java@maxbook} ! {self(),"Hello, Java!"},
+  getMessages().
 
-send(Host) ->
-  {inputListener, 'com@Maxs-MacBook-Pro-2.local'} ! Host,
-  timer:sleep(1000),
-  send(Host).
+getMessages() ->
+  receive
+    {connect,Sender} ->
+      io:format("Got a message from ~p~n", [Sender]);
+    {pixels, PixelData} ->
+      io:format("Got pixels~n", [])
+    end,
+  getMessages().
