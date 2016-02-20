@@ -115,7 +115,8 @@ acs-*.bib
 
 # listings
 *.lol
-
+/logs
+logs
 # makeidx
 *.idx
 *.ilg
