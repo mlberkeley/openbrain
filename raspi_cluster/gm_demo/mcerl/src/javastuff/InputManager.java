@@ -1,4 +1,4 @@
-package javashit;
+package javastuff;
 
 import java.awt.AWTException;
 import java.awt.MouseInfo;
@@ -53,7 +53,7 @@ public class InputManager implements Runnable, KeyListener{
 			while(true){
 				if(!enabled){
 					try {
-						System.out.println("asstitties");
+						System.out.println("pong");
 						Thread.sleep(3000);
 		        		p = MouseInfo.getPointerInfo().getLocation();
 					} catch (InterruptedException e) {

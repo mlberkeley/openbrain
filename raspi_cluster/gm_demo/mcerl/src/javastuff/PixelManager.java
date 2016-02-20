@@ -1,4 +1,4 @@
-package javashit;
+package javastuff;
 
 import java.awt.AWTException;
 import java.awt.FlowLayout;
