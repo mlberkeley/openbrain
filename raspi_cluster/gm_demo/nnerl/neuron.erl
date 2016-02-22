@@ -66,21 +66,24 @@ neuron(Neuron) ->
         % feed forward structure
         regSelf ->
             io:format('tryna register ~n',[]),
-            global:re_register_name(neuron, self());
+            global:re_register_name(neuron, self()),
+            neuron(Neuron);
         identity ->
-            io:format("Neuron: ~w~n", [Neuron]);
+            io:format("Neuron: ~w~n", [Neuron]),
+            neuron(Neuron);
         printNet ->
             io:format("Net: ~w~n", [net(Neuron)]),
             neuron(Neuron);
         {feed, Num} ->
-            
+
             #neuron{posteriors=Posteriors, weights=Weights, net=Net, type=Type, key=Key} = Neuron,
             % Posteriors = Neuron#neuron.posteriors,
             % Weights = Neuron#neuron.weights,
             % Net = Neuron#neuron.net,
-            %io:format("{~w, Net:~w}~n",[self(),Net+Num]),
+            % io:format("{~w, Fed:~w}~n",[self(),Num]),
             % {IsOutput, Key} = Outputs,
             Is_Output = (Type == output),
+            % io:format('is output~w~n', [Is_Output]),
             if
                 Is_Output == false ->
                     neuron(Neuron#neuron{net=thresholding(Posteriors, Weights, Num+Net)});
@@ -93,7 +96,7 @@ neuron(Neuron) ->
         % makes a posterior connection with the neuron. If it already exists, then
         % nothing happens
         {posterior, Posterior} ->
-            io:format('Add proximal ~w->~w~n',[self(), Posterior]),
+            % io:format('Add proximal ~w->~w~n',[self(), Posterior]),
             neuron(addPosterior(Neuron, Posterior));
         % if the dfs of as child node fails, then
         {faileddfs, Touched, Marker} ->
@@ -125,21 +128,25 @@ neuron(Neuron) ->
                     ParentPID ! {faileddfs, self(), NewMarker},
                     neuron(Neuron)
             end;
-        % flags this node as output and sets the Num as the key
-        % {output, Num} ->
-        %     neuron(Neuron#neuron{output={true, Num}});
+        % flags this node as Type
         {set_type, Type} ->
-            neuron(Neuron#neuron{type=Type})
+            neuron(Neuron#neuron{type=Type});
+        % special handle for output
+        {set_type, output, Key} ->
+            neuron(Neuron#neuron{type=output,key=Key})
+
+
     end.
 %% ----------------------------------------
 %% TODO MOVE THIS TO ANOTHER MODULE
 %% @doc Sends the pressKey command to the mc server.
 pressKey(KeyNum) ->
-    io:format("pressed ~w~n", [KeyNum]),
-    {inputListener,'macs'} ! inputKey(KeyNum).
+    % io:format("pressed ~w~n", [KeyNum]),
+    inputListener ! inputKey(KeyNum).
 %% @doc Maps key index to key press
 inputKey(KeyNum) ->
     case KeyNum of
+        -1 -> w; % remove this
         0 -> w;
         1 -> a;
         2 -> s;

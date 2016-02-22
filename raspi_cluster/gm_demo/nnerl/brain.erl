@@ -1,5 +1,5 @@
 -module(brain).
--export([brain/1,brain/3, construct/3, main/0, feed/2]).
+-export([brain/1,brain/3, construct/3, start/0, stop/0, feed/2, pseudo_server/0]).
 
 -record(matrix, {matrix=[],
                 r=0,
@@ -19,6 +19,7 @@ brain(Params) ->
             NewParams = construct(Params),
             brain(NewParams);
         {feed, Inputs} ->
+            % io:format('Sending fed info into brainParams~w~n', [Params#brainParams.ins]),
             feed(Inputs, Params#brainParams.ins),
             brain(Params);
         % returns a list of the output neuron values
@@ -28,8 +29,8 @@ brain(Params) ->
             print_output(Params#brainParams.outs),
             % [neuron:net(X  ! getNeuron) || X <- Params#brainParams.outs],
             brain(Params);
-        stop ->
-            unregister(brain);
+        % stop ->
+        %     unregister(brain);
         regOne ->
             [In | _] = Params#brainParams.ins,
             In ! register,
@@ -42,8 +43,10 @@ feed([],_) ->
 feed(_,[]) ->
     ok;
 feed(InputVals, InputPIDs) ->
+
     [PID| RestPID] = InputPIDs,
     [Val | RestVal] = InputVals,
+    % io:format("feed ~w -> ~w~n",[Val, PID]),
     PID ! {feed, Val},
     feed(RestVal, RestPID).
 
@@ -83,7 +86,7 @@ get_output_pids([], _, _, PiDs)->
 get_output_pids(Positions, Matrix, Count, PiDs) ->
     [CurPosition| RestPositions] = Positions,
     NewPid = access(Matrix, CurPosition),
-    NewPid ! {set_type, output},
+    NewPid ! {set_type, output, Count},
     get_output_pids(RestPositions, Matrix, Count + 1, [NewPid|PiDs]).
 % getPids([], OutputL, _) ->
 %     OutputL;
@@ -267,16 +270,27 @@ list_to_matrix(Pos, M, N) ->
     {X, Y}.
 %% ---- end  of the module
 
-
+pseudo_server() ->
+    receive
+        Other ->
+            io:format("received ~w~n",[Other])
+    end.
 % c(brain) and c(neuron) first
-main() ->
-    compile:file(neuron),
+start() ->
+    % compile:file(neuron),
     % brain ! stop,
+    game:start(),
     register(brain, spawn(brain, brain, [10,2,2])),
     brain ! newbrain,
+    register(pseudojava, spawn(brain, pseudo_server, [])),
+    inputListener ! {connect, pseudojava}.
     % brain
-    brain ! regOne,
-    brain ! getoutput.
+    % brain ! regOne,
+    % brain ! getoutput.
+% stops the current running brain.
+stop() ->
+    game:stop(),
+    unregister(brain).
 
     % brain ! {feed, [1,1]}.
 

@@ -17,6 +17,7 @@ pixels(NNPid) ->
     %send pixels to neural network.
     {pixels, Pixels} ->
       %NNPid ! Pixels
+
       pixels(NNPid);
     Other ->
       unregister(pixelListener),
@@ -37,9 +38,11 @@ startInput()->
 input(JavaPid) ->
     receive
       w ->
+        io:format('pressed w ~n', []),
         JavaPid ! <<64>>,
         input(JavaPid);
       a ->
+        io:format('pressed a ~n', []),
         JavaPid ! <<32>>,
         input(JavaPid);
       s ->
@@ -64,10 +67,11 @@ input(JavaPid) ->
       end.
 
 start() ->
-  PixelPid = spawn(game, startPixels, []),
-  register(pixelListener, PixelPid),
-  {echo,java@maxbook} ! {PixelPid,"Hello, Java!"},
-  register(inputListener, spawn(game, startInput, [])).
+    PixelPid = spawn(game, startPixels, []),
+    register(pixelListener, PixelPid),
+    {echo,java@maxbook} ! {PixelPid, "Hello, Java!"},
+    register(inputListener, spawn(game, startInput, [])).
+    
 
 stop() ->
      unregister(pixelListener),
