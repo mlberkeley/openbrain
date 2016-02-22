@@ -19,7 +19,6 @@ brain(Params) ->
             NewParams = construct(Params),
             brain(NewParams);
         {feed, Inputs} ->
-            % io:format('Sending fed info into brainParams~w~n', [Params#brainParams.ins]),
             feed(Inputs, Params#brainParams.ins),
             brain(Params);
         % returns a list of the output neuron values
@@ -29,8 +28,9 @@ brain(Params) ->
             print_output(Params#brainParams.outs),
             % [neuron:net(X  ! getNeuron) || X <- Params#brainParams.outs],
             brain(Params);
-        % stop ->
-        %     unregister(brain);
+        stop ->
+            unregister(brain);
+
         regOne ->
             [In | _] = Params#brainParams.ins,
             In ! register,
@@ -291,6 +291,8 @@ start() ->
 stop() ->
     game:stop(),
     unregister(brain).
+
+    % brain ! {feed, [1,1]}.
 
     % brain ! {feed, [1,1]}.
 

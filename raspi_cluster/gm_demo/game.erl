@@ -71,7 +71,6 @@ start() ->
     register(pixelListener, PixelPid),
     {echo,java@maxbook} ! {PixelPid, "Hello, Java!"},
     register(inputListener, spawn(game, startInput, [])).
-    
 
 stop() ->
      unregister(pixelListener),

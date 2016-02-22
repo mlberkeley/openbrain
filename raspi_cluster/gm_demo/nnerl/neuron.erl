@@ -83,7 +83,6 @@ neuron(Neuron) ->
             % io:format("{~w, Fed:~w}~n",[self(),Num]),
             % {IsOutput, Key} = Outputs,
             Is_Output = (Type == output),
-            % io:format('is output~w~n', [Is_Output]),
             if
                 Is_Output == false ->
                     neuron(Neuron#neuron{net=thresholding(Posteriors, Weights, Num+Net)});
