@@ -181,3 +181,47 @@ pythontex-files-*/
 # endfloat
 *.ttt
 *.fff
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+.eunit
+deps
+*.o
+*.beam
+*.plt
+erl_crash.dump
+ebin
+.concrete/DEV_MODE
+.rebar
+
+*.img
+
+#Minecraft IMPORTANT: REMOVE IF TRYING TO BUILD CUSTOM MINECRAFT SERVER
+minecraft_server.1.8.9.jar
+ops.json
+server.properties
+usercache.json
+whitelist.json
+eula.txt
+banned-players.jason
+banned-ips.json
+Minecraft.jar
+/world
+world/
+
+
+
+logs
+/logs
+*.beam
+*.class
