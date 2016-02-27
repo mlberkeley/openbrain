@@ -273,7 +273,8 @@ list_to_matrix(Pos, M, N) ->
 pseudo_server() ->
     receive
         Other ->
-            io:format("received ~w~n",[Other])
+            io:format("received ~w~n",[Other]),
+            pseudo_server()
     end.
 % c(brain) and c(neuron) first
 start() ->
@@ -290,7 +291,8 @@ start() ->
 % stops the current running brain.
 stop() ->
     game:stop(),
-    unregister(brain).
+    unregister(brain),
+    unregister(pseudojava).
 
     % brain ! {feed, [1,1]}.
 
