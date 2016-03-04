@@ -115,7 +115,7 @@ construct(BrainParams) ->
 %% outputs. NumNodes > NumInput + NumOutputs.
 construct(NumNodes, NumInputs, NumOutputs) ->
     % #brainParams{inputsz=NumInputs, outputsz=NumOutputs, nodesz=NumNodes} = BrainParams,
-    Side = ceiling(math:sqrt(NumNodes)),
+    Side = extra_math:ceiling(math:sqrt(NumNodes)),
     Params = #brainParams{inputsz=NumInputs, outputsz=NumOutputs, nodesz=Side*Side},
 
     ProxMat = gen_matrix(Side,Side),
@@ -196,38 +196,7 @@ print_output(L) ->
     Head ! identity,
     % io:format("this~w~n",[(Head ! getNeuron)]),
     print_output(Rest).
-%% -------------------------
-%% --- move all of this to a math util
-% function which rounds a number to the nearest int <= x
-floor(X) when X < 0 ->
-    T = trunc(X),
-    case X - T == 0 of
-        true -> T;
-        false -> T - 1
-    end;
-floor(X) ->
-    trunc(X).
 
-% function which rounds a number to the nearest int >= x
-ceiling(X) when X < 0 ->
-    trunc(X);
-ceiling(X) ->
-    T = trunc(X),
-    case X - T == 0 of
-        true -> T;
-        false -> T + 1
-    end.
-
-% modulus operator
-mod(X,Y) ->
-    R = X rem Y,
-    if R < 0 ->
-        R + Y;
-    true ->
-        R
-    end.
-
-%% --- end of move
 
 %% -----------------------
 %% MOVE THIS TO A MATRIX MODULE
@@ -260,12 +229,12 @@ access(MatrixRcrd, I) ->
 access(MatrixRcrd, X, Y) ->
     Matrix = matrix(MatrixRcrd),
     lists:nth(
-        mod(Y, ncols(MatrixRcrd))+1,
-        lists:nth(mod(X, nrows(MatrixRcrd))+1, Matrix)).
+        extra_math:mod(Y, ncols(MatrixRcrd))+1,
+        lists:nth(extra_math:mod(X, nrows(MatrixRcrd))+1, Matrix)).
 
 %% @doc Converts a 1d position to the coordinates in a 2d_matrix with dims MxN
 list_to_matrix(Pos, M, N) ->
-    X = floor(Pos/M) + 1,
+    X = extra_math:floor(Pos/M) + 1,
     Y = Pos rem N + 1,
     {X, Y}.
 %% ---- end  of the module
