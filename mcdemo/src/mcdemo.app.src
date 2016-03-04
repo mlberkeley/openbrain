@@ -1,0 +1,6 @@
+{application, mcdemo,
+	[{vsn, "1.0.0"},
+	{modules, [game, brain, neuron, extra_math, test, mcdemo]},
+	{registered, [pixel_listener, input_listener, brain]},
+	{mod, {mcdemo, []}}
+]}.

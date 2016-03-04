@@ -1,3 +1,3 @@
 [submodule "mcdemo/erlvpn"]
 	path = mcdemo/erlvpn
-	url = git@github.com:mlberkeley/erlvpn.git
+	url = https://github.com/mlberkeley/erlvpn.git 

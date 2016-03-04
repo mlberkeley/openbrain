@@ -23,7 +23,7 @@ listFind(Element, List) ->
 
 %% @doc Handles the thresholding action of net.
 thresholding(Posteriors, Weights, NewNet) ->
-    Threshold = 0.5,
+    Threshold = 1,
     if
         NewNet > Threshold ->
             feed(Posteriors, Weights, NewNet),
@@ -35,6 +35,7 @@ thresholding(Posteriors, Weights, NewNet) ->
 % threshold([], [], NewNet) - this is probably the solution
 thresholding(NewNet, Key) ->
     Threshold = 0.5,
+	io:format("uber eveywhere ~w~n", ["shorty bad as hell"]),
     if
         NewNet > Threshold ->
             pressKey(Key),
@@ -75,7 +76,7 @@ neuron(Neuron) ->
             io:format("Net: ~w~n", [net(Neuron)]),
             neuron(Neuron);
         {feed, Num} ->
-
+			io:format("yuh ~w~n", [self()]),
             #neuron{posteriors=Posteriors, weights=Weights, net=Net, type=Type, key=Key} = Neuron,
             % Posteriors = Neuron#neuron.posteriors,
             % Weights = Neuron#neuron.weights,
@@ -132,7 +133,10 @@ neuron(Neuron) ->
             neuron(Neuron#neuron{type=Type});
         % special handle for output
         {set_type, output, Key} ->
-            neuron(Neuron#neuron{type=output,key=Key})
+            neuron(Neuron#neuron{type=output,key=Key});
+		stop ->
+			ok
+
 
 
     end.
@@ -140,17 +144,19 @@ neuron(Neuron) ->
 %% TODO MOVE THIS TO ANOTHER MODULE
 %% @doc Sends the pressKey command to the mc server.
 pressKey(KeyNum) ->
-    % io:format("pressed ~w~n", [KeyNum]),
-    inputListener ! inputKey(KeyNum).
+	io:format("pressed ~w~n", [KeyNum]),
+    input_listener ! inputKey(KeyNum).
 %% @doc Maps key index to key press
 inputKey(KeyNum) ->
+	
     case KeyNum of
-        -1 -> w; % remove this
+        
         0 -> w;
         1 -> a;
         2 -> s;
         3 -> d;
-        4 -> space
+        4 -> space;
+		_ -> w % remove this
     end.
 
 % reset the MarkProximals s othat they will randomly choose

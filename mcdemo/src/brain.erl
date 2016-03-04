@@ -1,5 +1,5 @@
 -module(brain).
--export([brain/1,brain/3, construct/3, start/0, stop/0, feed/2, pseudo_server/0]).
+-export([brain/1,brain/3, construct/3, start/0, stop/0, feed/2, test/0]).
 
 -record(matrix, {matrix=[],
                 r=0,
@@ -19,6 +19,7 @@ brain(Params) ->
             NewParams = construct(Params),
             brain(NewParams);
         {feed, Inputs} ->
+			io:format("send me love baby ~w ~n", ['sus']),
             feed(Inputs, Params#brainParams.ins),
             brain(Params);
         % returns a list of the output neuron values
@@ -29,6 +30,7 @@ brain(Params) ->
             % [neuron:net(X  ! getNeuron) || X <- Params#brainParams.outs],
             brain(Params);
         stop ->
+			stop(Params#brainParams.ins),
             unregister(brain);
 
         regOne ->
@@ -43,12 +45,18 @@ feed([],_) ->
 feed(_,[]) ->
     ok;
 feed(InputVals, InputPIDs) ->
-
+	io:format("feed me more ~w~n", ['sus']),
     [PID| RestPID] = InputPIDs,
     [Val | RestVal] = InputVals,
-    % io:format("feed ~w -> ~w~n",[Val, PID]),
+%%  io:format("feed ~w -> ~w~n",[Val, PID]),
     PID ! {feed, Val},
     feed(RestVal, RestPID).
+stop([]) ->
+	ok;
+stop(InputPids) ->
+	[Pid | RestPid] = InputPids, 
+	Pid ! stop,
+	stop(RestPid).
 
 
 
@@ -80,10 +88,12 @@ get_input_pids(Positions,  Matrix, PiDs) ->
 %% @doc Returns the process ids for the output neurons indexed by Positions.
 get_output_pids(Positions, MatrixRcrd) ->
     % Matrix = matrix(MatrixRcrd),
+	io:format("yee~n",[]),
     get_output_pids(Positions, MatrixRcrd, 0, []).
 get_output_pids([], _, _, PiDs)->
     PiDs;
 get_output_pids(Positions, Matrix, Count, PiDs) ->
+	io:format("setting outputs~n"),
     [CurPosition| RestPositions] = Positions,
     NewPid = access(Matrix, CurPosition),
     NewPid ! {set_type, output, Count},
@@ -239,33 +249,33 @@ list_to_matrix(Pos, M, N) ->
     {X, Y}.
 %% ---- end  of the module
 
-pseudo_server() ->
-    receive
-        Other ->
-            io:format("received ~w~n",[Other]),
-            pseudo_server()
-    end.
+%% pseudo_server() ->
+%%     receive
+%%         Other ->
+%%             io:format("received ~w~n",[Other]),
+%%             pseudo_server()
+%%     end.
 % c(brain) and c(neuron) first
 start() ->
-    % compile:file(neuron),
     % brain ! stop,
-    game:start(),
-    register(brain, spawn(brain, brain, [10,2,2])),
-    brain ! newbrain,
-    register(pseudojava, spawn(brain, pseudo_server, [])),
-    inputListener ! {connect, pseudojava}.
+%%     game:start(),
+	Neurons = 10,
+	Inputs = 2,
+	Outputs = 6, 
+    register(brain, spawn(brain, brain, [Neurons,Inputs,Outputs])),
+    brain ! newbrain.
+%%     brain ! {feed, [1,1]}.
+%%     register(pseudojava, spawn(brain, pseudo_server, [])),
+%%     inputListener ! {connect, pseudojava}.
     % brain
     % brain ! regOne,
     % brain ! getoutput.
 % stops the current running brain.
 stop() ->
-    game:stop(),
-    unregister(brain),
-    unregister(pseudojava).
-
-    % brain ! {feed, [1,1]}.
-
-    % brain ! {feed, [1,1]}.
+    unregister(brain).
+test() ->
+	brain ! {feed, [1,1]}.
+%%     unregister(pseudojava).
 
 
 
