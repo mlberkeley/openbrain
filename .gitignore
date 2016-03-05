@@ -225,3 +225,8 @@ logs
 /logs
 *.beam
 *.class
+
+*.settings
+*.setting
+*.classpath
+*.project
