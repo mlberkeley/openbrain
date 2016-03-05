@@ -73,6 +73,6 @@ public class ScreenGrabberDude{
 
 		OtpErlangTuple myTuple = new OtpErlangTuple(reply);
 
-		Robotter.myOtpMbox.send(Robotter.pixelRecipient, myTuple);
+		Robotter.myOtpMbox.send(Robotter.pixel_pid, myTuple);
 	}
 }
