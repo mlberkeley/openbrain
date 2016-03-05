@@ -20,36 +20,26 @@ import com.ericsson.otp.erlang.OtpNode;
 public class Robotter {
 	protected static OtpNode myOtpNode;
 	protected static OtpMbox myOtpMbox;
-	protected static OtpErlangPid pixelRecipient;
+	protected static OtpErlangPid erl_master;
+	protected static OtpErlangPid pixel_pid;
 	
 	public static void doHandshake(){
-		System.out.println("Starting handshake");
 		try {
 			myOtpNode = new OtpNode("pxserver");
-			System.out.println("OTP Node Started");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		myOtpMbox = myOtpNode.createMbox("pxinbox");
-		if (myOtpNode.ping("pixel_register@sus", 2000)) {
-			System.out.println("Pinged pixel_register");
-		} else {
-			System.out.println("couldn't ping");
-		}
-		
+
 		OtpErlangObject myObject = null;
 
 		OtpErlangTuple myMsg;
 
 		OtpErlangString theMessage;
-
-		OtpErlangAtom myAtom = new OtpErlangAtom("pong");
 		
 		try {
-			System.out.println("trying handshake");
 			myObject = myOtpMbox.receive();
-			System.out.println("Handshake");
 		} catch (OtpErlangExit e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -60,19 +50,37 @@ public class Robotter {
 		
 		myMsg = (OtpErlangTuple) myObject;
 
-        pixelRecipient = (OtpErlangPid) myMsg.elementAt(0);
+        erl_master = (OtpErlangPid) myMsg.elementAt(0);
 
         theMessage = (OtpErlangString) myMsg.elementAt(1);
         System.out.println(theMessage);
+        
         OtpErlangObject[] reply = new OtpErlangObject[2];
 
-        reply[0] = myAtom;
+        reply[0] = new OtpErlangAtom("setup_java");
 
         reply[1] = myOtpMbox.self();
 
         OtpErlangTuple myTuple = new OtpErlangTuple(reply);
 
-        myOtpMbox.send(pixelRecipient, myTuple);
+        myOtpMbox.send(erl_master, myTuple);
+        
+        OtpErlangObject pixelObject = null;
+		try {
+			pixelObject = myOtpMbox.receive();
+		} catch (OtpErlangExit e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OtpErlangDecodeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		OtpErlangTuple pixelMessage = (OtpErlangTuple) pixelObject;
+		
+        pixel_pid = (OtpErlangPid) pixelMessage.elementAt(1);
+
+        System.out.println(pixelMessage.elementAt(0));
 	}
 	
 	public static void startGame(){
@@ -85,14 +93,13 @@ public class Robotter {
 		}
 		
 		try {
-			System.out.println("Running Minecraft");
-			Runtime.getRuntime().exec("java -jar /Users/philkuz/Documents/Minecraft.jar");
+			Runtime.getRuntime().exec("java -jar /Users/maxjohansen/Minecraft.jar");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
-		robot.setAutoDelay(8000);
+		robot.delay(8000);
 		
 		robot.mouseMove(624, 760);
 		
@@ -100,21 +107,21 @@ public class Robotter {
 
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 		
-		robot.setAutoDelay(3500);
+		robot.delay(3500);
 		robot.mouseMove(346, 199);
 		
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 		
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 		
-		robot.setAutoDelay(3500);
+		robot.delay(3500);
 		robot.mouseMove(658, 280);
 		
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 		
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 		
-		robot.setAutoDelay(3500);
+		robot.delay(3500);
 		robot.mouseMove(606, 54);
 		
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -143,8 +150,10 @@ public class Robotter {
 
 	public static void main(String[] args) {
 		doHandshake();
-		System.out.println("Handshake done; Starting game.");
+		
 		startGame();
+		
+		delegateJobs();
 	}
 
 }
