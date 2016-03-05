@@ -230,3 +230,9 @@ logs
 *.setting
 *.classpath
 *.project
+
+/bin
+bin
+*/bin
+*/bin/
+
