@@ -69,7 +69,7 @@ input(JavaPid) ->
 start() ->
     PixelPid = spawn(game, start_pixels, []),
     register(pixel_register, PixelPid),
-%%    pxserver ! {PixelPid, "Hello, Java!"},
+    pxserver ! {PixelPid, "Hello, Java!"},
 %%  try {pxinbox, phillipMBP} ! {PixelPid, "Hello, Java!"} of
 %%      _ -> ok
 %%  catch
