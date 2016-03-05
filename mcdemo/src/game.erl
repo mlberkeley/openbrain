@@ -7,8 +7,8 @@ start_pixels() ->
   receive
 %% make this fault tolerant 	  
     Pid ->
-        io:format("~p connected to pixel listener!~n", [Pid]),
-		register(pixel_listener, spawn(game, pixels, [Pid]))
+      io:format("~p connected to pixel listener!~n", [Pid]),
+      register(pixel_listener, spawn(game, pixels, [Pid]))
     end.
 
 pixels(NNPid) ->
@@ -69,8 +69,14 @@ input(JavaPid) ->
 start() ->
     PixelPid = spawn(game, start_pixels, []),
     register(pixel_register, PixelPid),
-    {echo,java@maxbook} ! {PixelPid, "Hello, Java!"},
-    register(input_listener, spawn(game, start_input, [])). 	
+%%    pxserver ! {PixelPid, "Hello, Java!"},
+%%  try {pxinbox, phillipMBP} ! {PixelPid, "Hello, Java!"} of
+%%      _ -> ok
+%%  catch
+%%      _:Type  ->  io:format("Couldn't connect for ~w ~n", [Type])
+%%  end ,
+%%    pxinbox ! {PixelPid, "Hello, Java!"},
+    register(input_listener, spawn(game, start_input, [])).
 
 stop() ->
      unregister(pixel_register),

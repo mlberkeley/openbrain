@@ -23,14 +23,21 @@ public class Robotter {
 	protected static OtpErlangPid pixelRecipient;
 	
 	public static void doHandshake(){
+		System.out.println("Starting handshake");
 		try {
 			myOtpNode = new OtpNode("pxserver");
+			System.out.println("OTP Node Started");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		myOtpMbox = myOtpNode.createMbox("pxinbox");
-
+		if (myOtpNode.ping("pixel_register@sus", 2000)) {
+			System.out.println("Pinged pixel_register");
+		} else {
+			System.out.println("couldn't ping");
+		}
+		
 		OtpErlangObject myObject = null;
 
 		OtpErlangTuple myMsg;
@@ -40,7 +47,9 @@ public class Robotter {
 		OtpErlangAtom myAtom = new OtpErlangAtom("pong");
 		
 		try {
+			System.out.println("trying handshake");
 			myObject = myOtpMbox.receive();
+			System.out.println("Handshake");
 		} catch (OtpErlangExit e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -54,7 +63,7 @@ public class Robotter {
         pixelRecipient = (OtpErlangPid) myMsg.elementAt(0);
 
         theMessage = (OtpErlangString) myMsg.elementAt(1);
-        
+        System.out.println(theMessage);
         OtpErlangObject[] reply = new OtpErlangObject[2];
 
         reply[0] = myAtom;
@@ -76,7 +85,8 @@ public class Robotter {
 		}
 		
 		try {
-			Runtime.getRuntime().exec("java -jar /Users/maxjohansen/Minecraft.jar");
+			System.out.println("Running Minecraft");
+			Runtime.getRuntime().exec("java -jar /Users/philkuz/Documents/Minecraft.jar");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -133,7 +143,7 @@ public class Robotter {
 
 	public static void main(String[] args) {
 		doHandshake();
-		
+		System.out.println("Handshake done; Starting game.");
 		startGame();
 	}
 

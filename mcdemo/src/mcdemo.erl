@@ -7,8 +7,9 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start/2, stop/0]).
-
+-export([start/0,start/2, stop/0]).
+start() ->
+	start(normal, placeholder).
 %% @doc Starts the module
 start(normal, _Args) ->
 	brain:start(),

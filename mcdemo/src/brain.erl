@@ -4,39 +4,37 @@
 -record(matrix, {matrix=[],
                 r=0,
                 c=0}).
--record(brainParams, {  ins=[], outs=[], nodesz=0, inputsz=0, outputsz=0
+-record(brain_params, {  ins=[], outs=[], nodesz=0, inputsz=0, outputsz=0
                     }).
 
 
 %% @doc The brain server that takes in inputs
 brain(NumNodes, NumInputs, NumOutputs) ->
-    brain(#brainParams{nodesz=NumNodes, inputsz=NumInputs, outputsz=NumOutputs}).
+    brain(#brain_params{nodesz=NumNodes, inputsz=NumInputs, outputsz=NumOutputs}).
 brain(Params) ->
     % io:format('~w~n', ['lit']),
     receive
         % TODO consider whether this would be better in constructor paradigm
+        status ->
+            io:format("Alive @~w ~n", [self()]),
+            brain(Params);
         newbrain ->
             NewParams = construct(Params),
             brain(NewParams);
         {feed, Inputs} ->
-			io:format("send me love baby ~w ~n", ['sus']),
-            feed(Inputs, Params#brainParams.ins),
+            feed(Inputs, Params#brain_params.ins),
             brain(Params);
         % returns a list of the output neuron values
         getoutput ->
-            % [Head | Tail] = Params#brainParams.outs,
+            % [Head | Tail] = Params#brain_params.outs,
             % io:format("slit~w~n", [neuron:net(Head)]),
-            print_output(Params#brainParams.outs),
-            % [neuron:net(X  ! getNeuron) || X <- Params#brainParams.outs],
+            print_output(Params#brain_params.outs),
+            % [neuron:net(X  ! getNeuron) || X <- Params#brain_params.outs],
             brain(Params);
         stop ->
-			stop(Params#brainParams.ins),
-            unregister(brain);
+			      stop(Params#brain_params.ins),
+            unregister(brain)
 
-        regOne ->
-            [In | _] = Params#brainParams.ins,
-            In ! register,
-            brain(Params)
     end.
 
 % @doc Passes input valus into the network
@@ -45,10 +43,9 @@ feed([],_) ->
 feed(_,[]) ->
     ok;
 feed(InputVals, InputPIDs) ->
-	io:format("feed me more ~w~n", ['sus']),
     [PID| RestPID] = InputPIDs,
     [Val | RestVal] = InputVals,
-%%  io:format("feed ~w -> ~w~n",[Val, PID]),
+    io:format("feed ~w -> ~w~n",[Val, PID]),
     PID ! {feed, Val},
     feed(RestVal, RestPID).
 stop([]) ->
@@ -82,20 +79,21 @@ get_input_pids([], _, PiDs) ->
 get_input_pids(Positions,  Matrix, PiDs) ->
     [CurPosition| RestPositions] = Positions,
     NewPid = access(Matrix, CurPosition),
+    io:format("setting ~w as  input~n", [NewPid]),
     NewPid ! {set_type, input},
     get_input_pids(RestPositions, Matrix, [NewPid | PiDs]).
 
 %% @doc Returns the process ids for the output neurons indexed by Positions.
 get_output_pids(Positions, MatrixRcrd) ->
     % Matrix = matrix(MatrixRcrd),
-	io:format("yee~n",[]),
     get_output_pids(Positions, MatrixRcrd, 0, []).
 get_output_pids([], _, _, PiDs)->
     PiDs;
 get_output_pids(Positions, Matrix, Count, PiDs) ->
-	io:format("setting outputs~n"),
+
     [CurPosition| RestPositions] = Positions,
     NewPid = access(Matrix, CurPosition),
+    io:format("setting ~w as output~n", [NewPid]),
     NewPid ! {set_type, output, Count},
     get_output_pids(RestPositions, Matrix, Count + 1, [NewPid|PiDs]).
 % getPids([], OutputL, _) ->
@@ -117,43 +115,43 @@ get_output_pids(Positions, Matrix, Count, PiDs) ->
 
 %% Creates a graph that matches the nodal structure
 construct(BrainParams) ->
-    #brainParams{inputsz=InputC, outputsz=OutputC, nodesz=NodeC} = BrainParams,
+    #brain_params{inputsz=InputC, outputsz=OutputC, nodesz=NodeC} = BrainParams,
     construct(NodeC, InputC, OutputC).
 
 
 %% @doc Creates the network with NumNodes nodes, NumInputs inputs and NumOutputs
 %% outputs. NumNodes > NumInput + NumOutputs.
 construct(NumNodes, NumInputs, NumOutputs) ->
-    % #brainParams{inputsz=NumInputs, outputsz=NumOutputs, nodesz=NumNodes} = BrainParams,
+    % #brain_params{inputsz=NumInputs, outputsz=NumOutputs, nodesz=NumNodes} = BrainParams,
     Side = extra_math:ceiling(math:sqrt(NumNodes)),
-    Params = #brainParams{inputsz=NumInputs, outputsz=NumOutputs, nodesz=Side*Side},
+    Params = #brain_params{inputsz=NumInputs, outputsz=NumOutputs, nodesz=Side*Side},
 
     ProxMat = gen_matrix(Side,Side),
-    % Matrix = matrix(ProxMat),
-    % setup proximity graph
 
-    proximity_rows(ProxMat),
+    setup_proximity_connections(ProxMat),
 
-    % pull out the input and output lists
+    % assign random neurons as inputs and outputs
+    io:format('assign neurons~n'),
     {InNeurons, OutNeurons} = assign_neurons(NumInputs, NumOutputs, ProxMat),
-    % Construct the Connectivity graph
+
+    % make the appropriate connections
+    io:format('creating connections~n'),
     create_connections(InNeurons, 0),
     % io:format("post-create_connections~n",[]),
 
     % copies the
-    Params#brainParams{ins=InNeurons, outs=OutNeurons}.
+    Params#brain_params{ins=InNeurons, outs=OutNeurons}.
 
 %% @doc Starts the depth first search that creates the feedforward graph
 create_connections([], _) ->
     ok;
 create_connections(InputNL, Counter) ->
     [Head | Rest] = InputNL,
-    io:format("Starting ~w Input's DFS~n",[Counter]),
-    Head ! {startdfs, Counter},
+    Head ! startdfs,
     create_connections(Rest, Counter+1).
 
 %% @doc Sets up the proximity graph for all of the elements in the matrix.
-proximity_rows(MatrixRcrd) ->
+setup_proximity_connections(MatrixRcrd) ->
     proximity_rows(matrix(MatrixRcrd), ncols(MatrixRcrd), nrows(MatrixRcrd), MatrixRcrd).
 proximity_rows([],_,_, _) ->
     ok;
@@ -211,7 +209,7 @@ print_output(L) ->
 %% -----------------------
 %% MOVE THIS TO A MATRIX MODULE
 % Matrix data structure function
-% generates the matrix
+% generates the matrix with the neurons instantitated
 gen_matrix(Rows,Columns) ->
     #matrix{matrix=[[spawn(neuron, neuron, []) || _ <- lists:seq(1,Columns)] || _ <- lists:seq(1,Rows)], r=Rows, c=Columns}.
 
@@ -259,11 +257,14 @@ list_to_matrix(Pos, M, N) ->
 start() ->
     % brain ! stop,
 %%     game:start(),
-	Neurons = 10,
-	Inputs = 2,
-	Outputs = 6, 
-    register(brain, spawn(brain, brain, [Neurons,Inputs,Outputs])),
-    brain ! newbrain.
+	Neurons = 40,
+	Inputs = 10,
+	Outputs = 6,
+  register(brain, spawn(brain, brain, [Neurons,Inputs,Outputs])),
+  brain ! newbrain,
+    timer:sleep(5000),
+    brain ! {feed, [1,1,1,1,1,1,1,1,1,1]}.
+
 %%     brain ! {feed, [1,1]}.
 %%     register(pseudojava, spawn(brain, pseudo_server, [])),
 %%     inputListener ! {connect, pseudojava}.
