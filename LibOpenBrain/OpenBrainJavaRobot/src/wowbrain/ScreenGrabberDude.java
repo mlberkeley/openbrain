@@ -1,23 +1,10 @@
 package wowbrain;
 
-import java.awt.*;
+import com.ericsson.otp.erlang.*;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.ImageFilter;
-import java.awt.image.ImageProducer;
 import java.awt.image.WritableRaster;
-
-import javax.swing.GrayFilter;
-
-import com.ericsson.otp.erlang.OtpErlangAtom;
-import com.ericsson.otp.erlang.OtpErlangByte;
-import com.ericsson.otp.erlang.OtpErlangList;
-import com.ericsson.otp.erlang.OtpErlangObject;
-import com.ericsson.otp.erlang.OtpErlangTuple;
-
-import za.co.luma.geom.Vector2DDouble;
-import za.co.luma.math.sampling.UniformPoissonDiskSampler;
 
 public class ScreenGrabberDude{
 	public static void sendScreenPixels(){

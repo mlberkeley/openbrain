@@ -1,11 +1,10 @@
 package wowbrain;
 
-import java.awt.AWTException;
-import java.awt.Robot;
+import com.ericsson.otp.erlang.*;
+
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-
-import com.ericsson.otp.erlang.*;
 
 public class ActionDoer {
 	public static void doStuff(){
