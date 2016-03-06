@@ -2,6 +2,8 @@ package wowbrain;
 
 import com.ericsson.otp.erlang.*;
 
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -126,16 +128,22 @@ public class Robotter {
 	public static void delegateJobs(){
 	    // start a worker thread
 	    ExecutorService exec = Executors.newFixedThreadPool(2);
-		// ask the worker thread to execute a task (
-		exec.submit(() -> {
-			ScreenGrabberDude.sendScreenPixels();
+		// ask the worker thread to execute a task
+		exec.submit(new Runnable() {
+			@Override
+			public void run() {
+				ScreenGrabberDude.sendScreenPixels();
+			}
 		});
 
-		exec.submit(() -> {
-			ActionDoer.doStuff();
+		exec.submit(new Runnable() {
+			@Override
+			public void run() {
+				ActionDoer.doStuff();
+			}
 		});
 
-	    // terminate the worker thread (otherwise, the thread will wait for more work)
+		// terminate the worker thread (otherwise, the thread will wait for more work)
 	    exec.shutdown();
 	}
 
