@@ -231,8 +231,9 @@ logs
 *.classpath
 *.project
 
-**/.idea/workspace.xml
-**/.idea/tasks.xml
+**.iml
+**/.idea
+**/.idea
 
 /bin
 bin
