@@ -151,7 +151,7 @@ public class Robotter {
 	public static void main(String[] args) {
 		doHandshake();
 		
-		startGame();
+//		startGame();
 		
 		delegateJobs();
 	}
