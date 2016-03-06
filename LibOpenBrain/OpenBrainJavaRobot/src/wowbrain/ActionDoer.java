@@ -30,7 +30,6 @@ public class ActionDoer {
 			try {
 				robot = new Robot();
 			} catch (AWTException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -47,10 +46,8 @@ public class ActionDoer {
 			try {
 				theMessage = (OtpErlangAtom) actionMbox.receive();
 			} catch (OtpErlangExit e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (OtpErlangDecodeException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
