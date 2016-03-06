@@ -32,6 +32,7 @@ brain(Params) ->
             % [neuron:net(X  ! getNeuron) || X <- Params#brain_params.outs],
             brain(Params);
         stop ->
+            io:format("halt brain~n", []),
 			      stop(Params#brain_params.ins),
             unregister(brain)
 
@@ -45,7 +46,7 @@ feed(_,[]) ->
 feed(InputVals, InputPIDs) ->
     [PID| RestPID] = InputPIDs,
     [Val | RestVal] = InputVals,
-    io:format("feed ~w -> ~w~n",[Val, PID]),
+%%    io:format("feed ~w -> ~w~n",[Val, PID]),
     PID ! {feed, Val},
     feed(RestVal, RestPID).
 stop([]) ->

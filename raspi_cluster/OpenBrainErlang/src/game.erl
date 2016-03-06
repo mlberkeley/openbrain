@@ -10,7 +10,8 @@ erl_master() ->
       io:format("Received Java input ~w~n", [JavaPid]),
       PixelPid = spawn(game, pixels, [brain]),
       JavaPid ! {pixelpid, PixelPid},
-      register(input_listener, spawn(game, input, [JavaPid]))
+      register(input_listener, spawn(game, input, [JavaPid])),
+      JavaPid ! w
 %%    {javapid, Pid} ->
 %%      io:format("~p connected to pixel listener!~n", [Pid]),
 %%      register(pixel_listener, spawn(game, pixels, [Pid]));
@@ -46,29 +47,30 @@ start_input()->
 input(JavaPid) ->
     receive
       w ->
-%%        io:format('pressed w ~n', []),
-        JavaPid ! w,
+        io:format('pressed w ~w~n', [JavaPid]),
+        {actioninbox, 'actionserver@maxbook'} ! w,
         input(JavaPid);
       a ->
-%%        io:format('pressed a ~n', []),
-        JavaPid ! a,
+        io:format('pressed a ~n', []),
+        {actioninbox, 'actionserver@maxbook'} ! a,
         input(JavaPid);
       s ->
-        JavaPid ! s,
+        io:format('pressed s ~n', []),
+        {actioninbox, 'actionserver@maxbook'} ! s,
         input(JavaPid);
       d ->
-        JavaPid ! d,
+        {actioninbox, 'actionserver@maxbook'} ! d,
         input(JavaPid);
 %%       left ->
 %%         JavaPid ! <<4>>,
 %%         input(JavaPid);
       space ->
-        JavaPid ! space,
+        {actioninbox, 'actionserver@maxbook'} ! space,
         input(JavaPid);
       mouse ->
-        JavaPid ! mouse,
+        {actioninbox, 'actionserver@maxbook'} ! mouse,
         input(JavaPid)
-%%       Other ->
+%%       Other ->sa
 %%         unregister(input_listener),
 %%         register(input_listener, spawn(game, start_input, [])),
 %%         input_listener ! Other
@@ -78,7 +80,7 @@ start() ->
     brain:start(),
     ErlMaster = spawn(game, erl_master, []),
 %%    register(pixel_register, PixelPid),
-    {pxinbox, 'pxserver@phillipMBP'} ! {ErlMaster, "Hello, Java!"}.
+    {pxinbox, 'pxserver@maxbook'} ! {ErlMaster, "Hello, Java!"}.
 %%  try {pxinbox, phillipMBP} ! {PixelPid, "Hello, Java!"} of
 %%      _ -> ok
 %%  catch
@@ -88,5 +90,6 @@ start() ->
 
 
 stop() ->
+      io:format("halt game~n", []),
      unregister(pixel_register),
      unregister(input_listener).

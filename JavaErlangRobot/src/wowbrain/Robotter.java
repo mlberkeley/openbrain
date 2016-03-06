@@ -1,8 +1,9 @@
 package wowbrain;
 
-import java.awt.AWTException;
-import java.awt.Robot;
+import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,11 +18,15 @@ import com.ericsson.otp.erlang.OtpErlangTuple;
 import com.ericsson.otp.erlang.OtpMbox;
 import com.ericsson.otp.erlang.OtpNode;
 
+import javax.swing.*;
+
 public class Robotter {
 	protected static OtpNode myOtpNode;
 	protected static OtpMbox myOtpMbox;
 	protected static OtpErlangPid erl_master;
 	protected static OtpErlangPid pixel_pid;
+	protected static boolean enabled = true;
+
 	
 	public static void doHandshake(){
 		try {
@@ -93,7 +98,7 @@ public class Robotter {
 		}
 		
 		try {
-			Runtime.getRuntime().exec("java -jar /Users/philkuz/Documents/Minecraft.jar");
+			Runtime.getRuntime().exec("java -jar /Users/maxjohansen/Minecraft.jar");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -132,27 +137,53 @@ public class Robotter {
 	public static void delegateJobs(){
 	    // start a worker thread
 	    ExecutorService exec = Executors.newFixedThreadPool(2);
+		// ask the worker thread to execute a task (
+		exec.submit(() -> {
+			ScreenGrabberDude.sendScreenPixels();
+		});
 
-	    while(true){
-		    // ask the worker thread to execute a task (
-		    exec.submit(() -> {
-		        ScreenGrabberDude.sendScreenPixels();
-		    });
-		    
-		    exec.submit(() -> {
-		        ActionDoer.doStuff();
-		    });
-	    }
+		exec.submit(() -> {
+			ActionDoer.doStuff();
+		});
 
 	    // terminate the worker thread (otherwise, the thread will wait for more work)
-//	    exec.shutdown();
+	    exec.shutdown();
 	}
 
 	public static void main(String[] args) {
 		doHandshake();
 		
 //		startGame();
-		
+
+		JFrame frame = new JFrame();
+		frame.getContentPane().setLayout(new FlowLayout());
+
+		frame.pack();
+		frame.setVisible(true);
+
+		frame.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyChar() == 'q'){
+					System.out.println("toggle");
+					enabled = !enabled;
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+
+			}
+		});
+
+//		JLabel img = new JLabel(new ImageIcon(capture()));
+//		frame.getContentPane().add(img);
+
 		delegateJobs();
 	}
 
