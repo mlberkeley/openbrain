@@ -1,7 +1,6 @@
 package wowbrain;
 
 import com.ericsson.otp.erlang.*;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -46,9 +45,14 @@ public class Robotter {
 		
 		myMsg = (OtpErlangTuple) myObject;
 
-        erl_master = (OtpErlangPid) myMsg.elementAt(0);
+        if(myMsg != null){
+            erl_master = (OtpErlangPid) myMsg.elementAt(0);
+            theMessage = (OtpErlangString) myMsg.elementAt(1);
+        } else {
+            throw new RuntimeException("Didn't get a message");
+        }
 
-        theMessage = (OtpErlangString) myMsg.elementAt(1);
+
         System.out.println(theMessage);
         
         OtpErlangObject[] reply = new OtpErlangObject[2];
@@ -65,18 +69,19 @@ public class Robotter {
 		try {
 			pixelObject = myOtpMbox.receive();
 		} catch (OtpErlangExit e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (OtpErlangDecodeException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		OtpErlangTuple pixelMessage = (OtpErlangTuple) pixelObject;
-		
-        pixel_pid = (OtpErlangPid) pixelMessage.elementAt(1);
 
-        System.out.println(pixelMessage.elementAt(0));
+        if(pixelMessage != null){
+            pixel_pid = (OtpErlangPid) pixelMessage.elementAt(1);
+            System.out.println(pixelMessage.elementAt(0));
+        } else {
+            throw new RuntimeException("Malformed handshake response");
+        }
 	}
 	
 	public static void startGame(){
@@ -84,17 +89,19 @@ public class Robotter {
 		try {
 			robot = new Robot();
 		} catch (AWTException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
 		try {
 			Runtime.getRuntime().exec("java -jar /Users/maxjohansen/Minecraft.jar");
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+
+        if(robot == null){
+            throw new RuntimeException("Couldn't get robot");
+        }
+
 		robot.delay(8000);
 		
 		robot.mouseMove(624, 760);

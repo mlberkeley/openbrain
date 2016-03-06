@@ -34,6 +34,10 @@ public class ActionDoer {
 				e.printStackTrace();
 			}
 
+			if(robot == null){
+                throw new RuntimeException("Couldn't get robot");
+            }
+
 			OtpErlangAtom theMessage = null;
 
 			OtpErlangAtom myAtom = new OtpErlangAtom("pong");

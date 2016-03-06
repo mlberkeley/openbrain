@@ -2,6 +2,7 @@ package wowbrain;
 
 import com.ericsson.otp.erlang.*;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
