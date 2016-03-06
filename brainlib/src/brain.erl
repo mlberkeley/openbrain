@@ -12,7 +12,6 @@
 brain(NumNodes, NumInputs, NumOutputs) ->
     brain(#brain_params{nodesz=NumNodes, inputsz=NumInputs, outputsz=NumOutputs}).
 brain(Params) ->
-    % io:format('~w~n', ['lit']),
     receive
         % TODO consider whether this would be better in constructor paradigm
         status ->
@@ -26,13 +25,9 @@ brain(Params) ->
             brain(Params);
         % returns a list of the output neuron values
         getoutput ->
-            % [Head | Tail] = Params#brain_params.outs,
-            % io:format("slit~w~n", [neuron:net(Head)]),
             print_output(Params#brain_params.outs),
-            % [neuron:net(X  ! getNeuron) || X <- Params#brain_params.outs],
             brain(Params);
         stop ->
-            io:format("halt brain~n", []),
 			      stop(Params#brain_params.ins),
             unregister(brain)
 
@@ -46,7 +41,6 @@ feed(_,[]) ->
 feed(InputVals, InputPIDs) ->
     [PID| RestPID] = InputPIDs,
     [Val | RestVal] = InputVals,
-%%    io:format("feed ~w -> ~w~n",[Val, PID]),
     PID ! {feed, Val},
     feed(RestVal, RestPID).
 stop([]) ->
@@ -97,22 +91,6 @@ get_output_pids(Positions, Matrix, Count, PiDs) ->
     io:format("setting ~w as output~n", [NewPid]),
     NewPid ! {set_type, output, Count},
     get_output_pids(RestPositions, Matrix, Count + 1, [NewPid|PiDs]).
-% getPids([], OutputL, _) ->
-%     OutputL;
-% getPids(Positions, OutputL, Matrix) ->
-%     [CurPosition| RestPositions] = Positions,
-%     {X,Y} = list_to_matrix(CurPosition, nrows(Matrix), ncols(Matrix)),
-%     getPids(RestPositions, [access(Matrix, X, Y)|OutputL], Matrix).
-
-% returns the Pids of all and marks some as output
-% getPids(output, [], OutputL, _, _) ->
-%     OutputL;
-% getPids(output,InputL, OutputL, MatrixRcrd, Count) ->
-%     [FirstI| RestI] = InputL,
-%     {X,Y} = list_to_matrix(FirstI, nrows(MatrixRcrd), ncols(MatrixRcrd)),
-%     NewPid = access(MatrixRcrd, X, Y),
-%     NewPid ! {output,Count},
-%     getPids(output, RestI, [NewPid| OutputL], MatrixRcrd, Count + 1).
 
 %% Creates a graph that matches the nodal structure
 construct(BrainParams) ->
@@ -123,7 +101,6 @@ construct(BrainParams) ->
 %% @doc Creates the network with NumNodes nodes, NumInputs inputs and NumOutputs
 %% outputs. NumNodes > NumInput + NumOutputs.
 construct(NumNodes, NumInputs, NumOutputs) ->
-    % #brain_params{inputsz=NumInputs, outputsz=NumOutputs, nodesz=NumNodes} = BrainParams,
     Side = extra_math:ceiling(math:sqrt(NumNodes)),
     Params = #brain_params{inputsz=NumInputs, outputsz=NumOutputs, nodesz=Side*Side},
 
@@ -138,7 +115,6 @@ construct(NumNodes, NumInputs, NumOutputs) ->
     % make the appropriate connections
     io:format('creating connections~n'),
     create_connections(InNeurons, 0),
-    % io:format("post-create_connections~n",[]),
 
     % copies the
     Params#brain_params{ins=InNeurons, outs=OutNeurons}.
@@ -181,7 +157,6 @@ set_proximity(_, []) ->
 set_proximity(Node, Adjacents) ->
     [First | Rest] = Adjacents,
     Node ! {proximal, First},
-    % io:format("~w -> ~w~n", [Node, First]),
     set_proximity(Node, Rest).
 
 % returns the 8 adjacent matrices to the node at this position
@@ -203,7 +178,6 @@ print_output([]) ->
 print_output(L) ->
     [Head | Rest] = L,
     Head ! identity,
-    % io:format("this~w~n",[(Head ! getNeuron)]),
     print_output(Rest).
 
 
@@ -216,12 +190,10 @@ gen_matrix(Rows,Columns) ->
 
 % gets the matrix component of the matrix data structure
 matrix(MatrixRcrd) ->
-    % io:format("matrix()~w~n",[MatrixRcrd]),
     MatrixRcrd#matrix.matrix.
 
 % gets the number of columns of a matrix record
 ncols(MatrixRcrd) ->
-    % io:format("matrix()~w~n",[MatrixRcrd]),
     MatrixRcrd#matrix.c.
 
 %gets the number of columns of a matrix record
@@ -234,7 +206,7 @@ access(MatrixRcrd, I) ->
     access(MatrixRcrd, X, Y).
 
 % grabs the element at row R and column C in Matrix.
-% 1 indexed !!! TODO make this 0 indexed
+% 1 indexed!
 access(MatrixRcrd, X, Y) ->
     Matrix = matrix(MatrixRcrd),
     lists:nth(
@@ -248,47 +220,16 @@ list_to_matrix(Pos, M, N) ->
     {X, Y}.
 %% ---- end  of the module
 
-%% pseudo_server() ->
-%%     receive
-%%         Other ->
-%%             io:format("received ~w~n",[Other]),
-%%             pseudo_server()
-%%     end.
 % c(brain) and c(neuron) first
 start() ->
-    % brain ! stop,
-%%     game:start(),
 	Neurons = 1000,
 	Inputs = 500,
 	Outputs = 5,
   register(brain, spawn(brain, brain, [Neurons,Inputs,Outputs])),
   brain ! newbrain.
-%%    timer:sleep(5000),
-%%    brain ! {feed, [1,1,1,1,1,1,1,1,1,1]}.
 
-%%     brain ! {feed, [1,1]}.
-%%     register(pseudojava, spawn(brain, pseudo_server, [])),
-%%     inputListener ! {connect, pseudojava}.
-    % brain
-    % brain ! regOne,
-    % brain ! getoutput.
 % stops the current running brain.
 stop() ->
     unregister(brain).
 test() ->
 	brain ! {feed, [1,1]}.
-%%     unregister(pseudojava).
-
-
-
-
-
-% creates the proximal graphs
-% construct_graph(Rows, Columns) ->
-    % asdkfjlkajsd;flkjas;dlkfj;aksdjf;akjsd;fkljasd;fklja;skdjf;aksjdf;kjasd;fkja;sdkjf;aksjdf;kasjd
-
-% Creates the brain cluster
-% create_brain(Nodes) ->
-%     TempColumn = Nodes / 3,
-%     Column = max(trunc(Column), round(Column)),
-%     construct_matrix(3, Column).

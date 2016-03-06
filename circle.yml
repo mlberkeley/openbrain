@@ -1,0 +1,8 @@
+general:
+  build_dir: .
+
+
+checkout:
+  post:
+    - git submodule sync
+    - git submodule update --init
