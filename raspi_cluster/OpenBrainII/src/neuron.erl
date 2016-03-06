@@ -46,11 +46,14 @@ thresholding(NewNet, Key) ->
 %% @doc removes the proximal from the neuron.
 remove_proximal(Neuron, ProximalToEnd) ->
   try Neuron#neuron.proximals of
-    _ - > Proximals = Neuron#neuron.proximals
+    _ ->
+      Proximals = Neuron#neuron.proximals,
+      Neuron#neuron{proximals=lists:delete(ProximalToEnd, Proximals)}
+
   catch
     _:Error -> io:format("Neuron: ~w failed by error ~w", [Neuron, Error])
-  end,
-  Neuron#neuron{proximals=lists:delete(ProximalToEnd, Proximals)}.
+  end.
+
 %% @doc Returns an updated record that contains the new proximal as a reference.
 add_proximal(Neuron, Proximal) ->
     Proximals = Neuron#neuron.proximals,
@@ -71,22 +74,28 @@ make_anterior(Neuron, Parent) ->
   NewNeuron = remove_proximal(Neuron, Parent),
   Parent ! {proximal, self()}.
 %% @doc Returns a neuron that sets one of it's proximal neurons as a posterior
-dfs(#neuron{proximals = []}, _) ->
-  io:format("Proximals for empty."),
-  ok;
+%%dfs(#neuron{proximals = []}, _) ->
+%%  io:format("Proximals for empty."),
+%%  ok;
 dfs(Neuron, Pid) ->
   #neuron{proximals=Proximals} = shuffle_proximals(Neuron),
-  [NewPosterior | RProximals] = Proximals,
-  NewNeuron = add_posterior(Neuron, NewPosterior),
-  NewPosterior ! {dfs, Pid},
-  NewNeuron#neuron{proximals=RProximals}.
+  case Proximals of
+    [] ->
+      Neuron;
+    _ ->
+      [NewPosterior | RProximals] = Proximals,
+      NewNeuron = add_posterior(Neuron, NewPosterior),
+      NewPosterior ! {dfs, Pid},
+      NewNeuron#neuron{proximals=RProximals}
+  end.
+
 
   
 %% @doc returns whether this neuron is an output or not
-is_output({type, Type}) ->
-  (Type == output);
+is_output(type, Type) ->
+  (Type == output).
 is_output(#neuron{type=Type}) ->
-  is_output({type, Type}).
+  (Type == output).
 %% @doc starts a neuron that has no properties.
 neuron() ->
     neuron(#neuron{}).
@@ -107,7 +116,7 @@ neuron(Neuron) ->
 %%      io:format("~w ~w received ~w~n", [Type, self(), Num]),io:format("~w ~w received ~w~n", [Type, self(), Num]),
 
       NewNet = newnet(Num, Net),
-      case is_output({type, Type}) of
+      case is_output(type, Type) of
           false ->
               neuron(Neuron#neuron{net=thresholding(Posteriors, Weights, NewNet)});
           true ->

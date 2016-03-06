@@ -78,7 +78,7 @@ start() ->
     brain:start(),
     ErlMaster = spawn(game, erl_master, []),
 %%    register(pixel_register, PixelPid),
-    {pxinbox, 'pxserver@maxbook'} ! {ErlMaster, "Hello, Java!"}.
+    {pxinbox, 'pxserver@phillipMBP'} ! {ErlMaster, "Hello, Java!"}.
 %%  try {pxinbox, phillipMBP} ! {PixelPid, "Hello, Java!"} of
 %%      _ -> ok
 %%  catch

@@ -93,7 +93,7 @@ public class Robotter {
 		}
 		
 		try {
-			Runtime.getRuntime().exec("java -jar /Users/maxjohansen/Minecraft.jar");
+			Runtime.getRuntime().exec("java -jar /Users/philkuz/Documents/Minecraft.jar");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
