@@ -1,6 +1,6 @@
 -module(game).
 
--export([start/0, erl_master/0, pixels/1, start_input/0, input/1, stop/0]).
+-export([start/0, erl_master/0, pixels/1, start_input/0, input/0, stop/0]).
 
 
 erl_master() ->
@@ -10,7 +10,7 @@ erl_master() ->
       io:format("Received Java input ~w~n", [JavaPid]),
       PixelPid = spawn(game, pixels, [brain]),
       JavaPid ! {pixelpid, PixelPid},
-      register(input_listener, spawn(game, input, [JavaPid]))
+      register(input_listener, spawn(game, input, []))
 %%    {javapid, Pid} ->
 %%      io:format("~p connected to pixel listener!~n", [Pid]),
 %%      register(pixel_listener, spawn(game, pixels, [Pid]));
@@ -37,37 +37,37 @@ start_input()->
   receive
     {connect, Pid} ->
       io:format("~p connected to input listener!~n", [Pid]),
-      input(Pid)
+      input()
 %%      Other ->
 %%        io:format("shit~n"),
 %%        stop()
     end.
 
-input(JavaPid) ->
+input() ->
     receive
       w ->
 %%        io:format('pressed w ~n', []),
-        JavaPid ! w,
-        input(JavaPid);
+        {actioninbox, 'actionserver@maxbook'} ! w,
+        input();
       a ->
 %%        io:format('pressed a ~n', []),
-        JavaPid ! a,
-        input(JavaPid);
+        {actioninbox, 'actionserver@maxbook'} ! a,
+        input();
       s ->
-        JavaPid ! s,
-        input(JavaPid);
+        {actioninbox, 'actionserver@maxbook'} ! s,
+        input();
       d ->
-        JavaPid ! d,
-        input(JavaPid);
+        {actioninbox, 'actionserver@maxbook'} ! d,
+        input();
 %%       left ->
 %%         JavaPid ! <<4>>,
 %%         input(JavaPid);
       space ->
-        JavaPid ! space,
-        input(JavaPid);
+        {actioninbox, 'actionserver@maxbook'} ! space,
+        input();
       mouse ->
-        JavaPid ! mouse,
-        input(JavaPid)
+        {actioninbox, 'actionserver@maxbook'} ! mouse,
+        input()
 %%       Other ->
 %%         unregister(input_listener),
 %%         register(input_listener, spawn(game, start_input, [])),
@@ -78,7 +78,7 @@ start() ->
     brain:start(),
     ErlMaster = spawn(game, erl_master, []),
 %%    register(pixel_register, PixelPid),
-    {pxinbox, 'pxserver@phillipMBP'} ! {ErlMaster, "Hello, Java!"}.
+    {pxinbox, 'pxserver@maxbook'} ! {ErlMaster, "Hello, Java!"}.
 %%  try {pxinbox, phillipMBP} ! {PixelPid, "Hello, Java!"} of
 %%      _ -> ok
 %%  catch

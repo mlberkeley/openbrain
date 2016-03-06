@@ -45,7 +45,7 @@ feed(_,[]) ->
 feed(InputVals, InputPIDs) ->
     [PID| RestPID] = InputPIDs,
     [Val | RestVal] = InputVals,
-    io:format("feed ~w -> ~w~n",[Val, PID]),
+%%    io:format("feed ~w -> ~w~n",[Val, PID]),
     PID ! {feed, Val},
     feed(RestVal, RestPID).
 stop([]) ->

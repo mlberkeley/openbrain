@@ -111,7 +111,7 @@ newnet(Num, Net) ->
 neuron(Neuron) ->
   receive
     {feed, Num} ->
-      io:format("~w~n", [Neuron]),
+%%      io:format("~w~n", [Neuron]),
       #neuron{posteriors=Posteriors, weights=Weights, net=Net, type=Type, key=Key} = Neuron,
 %%      io:format("~w ~w received ~w~n", [Type, self(), Num]),io:format("~w ~w received ~w~n", [Type, self(), Num]),
 
@@ -189,9 +189,9 @@ neuron(Neuron) ->
 %% @doc Sends the pressKey command to the mc server.
 pressKey(KeyNum) ->
   timer:sleep(200),
-	io:format("pressed ~w~n", [KeyNum]),
   Key = inputKey(KeyNum),
-    input_listener ! Key.
+  io:format("pressed ~w on ~n", [KeyNum]),
+  input_listener ! Key.
 %% @doc Maps key index to key press
 inputKey(KeyNum) ->
     case KeyNum of
