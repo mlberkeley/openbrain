@@ -16,10 +16,6 @@ net(NeuronRcrd) ->
 shuffle(L) ->
     [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- L])].
 
-%% @doc checks whether an element is in a list
-in_list(Element, List) ->
-    lists:member(Element, List).
-
 %% @TODO Make this pattern matching instead
 %% @doc Handles the thresholding action of net.
 thresholding(Posteriors, Weights, NewNet) ->
@@ -68,15 +64,7 @@ add_posterior(Neuron, NewPost) ->
   NewNeuron = remove_proximal(Neuron, NewPost),
   NewNeuron#neuron{posteriors=[NewPost|Posteriors], weights=[new_weight()|Neuron#neuron.weights]}.
 
-%% @doc Makes this node an anterior Neuron to the Parent
-%% and removes the parent from its list of parents.
-make_anterior(Neuron, Parent) ->
-  NewNeuron = remove_proximal(Neuron, Parent),
-  Parent ! {proximal, self()}.
 %% @doc Returns a neuron that sets one of it's proximal neurons as a posterior
-%%dfs(#neuron{proximals = []}, _) ->
-%%  io:format("Proximals for empty."),
-%%  ok;
 dfs(Neuron, Pid) ->
   #neuron{proximals=Proximals} = shuffle_proximals(Neuron),
   case Proximals of
@@ -84,9 +72,8 @@ dfs(Neuron, Pid) ->
       Neuron;
     _ ->
       [NewPosterior | RProximals] = Proximals,
-      NewNeuron = add_posterior(Neuron, NewPosterior),
-      NewPosterior ! {dfs, Pid},
-      NewNeuron#neuron{proximals=RProximals}
+      add_posterior(Neuron, NewPosterior)#neuron{proximals = RProximals},
+      NewPosterior ! {dfs, Pid}
   end.
 
 
@@ -99,7 +86,6 @@ is_output(#neuron{type=Type}) ->
 %% @doc starts a neuron that has no properties.
 neuron() ->
     neuron(#neuron{}).
-% neuron(Proximals, Posteriors, Weights, Net, Marker) ->
 newnet(Num, Net) ->
   try Num + Net of
     _ -> Num + Net
@@ -111,9 +97,7 @@ newnet(Num, Net) ->
 neuron(Neuron) ->
   receive
     {feed, Num} ->
-%%      io:format("~w~n", [Neuron]),
       #neuron{posteriors=Posteriors, weights=Weights, net=Net, type=Type, key=Key} = Neuron,
-%%      io:format("~w ~w received ~w~n", [Type, self(), Num]),io:format("~w ~w received ~w~n", [Type, self(), Num]),
 
       NewNet = newnet(Num, Net),
       case is_output(type, Type) of
@@ -138,7 +122,6 @@ neuron(Neuron) ->
       NewNeuron = remove_proximal(Neuron, Anterior),
       case is_output(Neuron) of
         false ->
-%%          io:format('Passing dfs through ~w~n', [self()]), % for DEBUG
           neuron(dfs(NewNeuron, self()));
         true ->
           io:format('Reached output at ~w~n', [self()]), % for DEBUG
@@ -152,38 +135,8 @@ neuron(Neuron) ->
       neuron(Neuron#neuron{type=output,key=Key});
     stop ->
       ok
-  % if the marker of the connection has already been instantiating.
-%%    {faileddfs, Touched, Marker} ->
-%%      MarkerProximals= Neuron#neuron.markerProx,
-%%      NewNeuron = Neuron#neuron{markerProx=lists:delete(Touched, MarkerProximals)},
-%%      dfsNext(NewNeuron, Marker, self()),
-%%      neuron(NewNeuron);
-%%    {startdfs, NewMarker} ->
-%%      dfsNext(Neuron, NewMarker, self()),
-%%      neuron(Neuron);
-%%    % the dfs message-receiver.
-%%    {dfs, NewMarker, ParentPID} ->
-%%      #neuron{marker=Marker, type=Type} = Neuron,
-%%      IsOutput = (Type == output),
-%%      if
-%%          % stop running dfs if we hit output node
-%%          IsOutput == true ->
-%%              make_anterior(Neuron, ParentPID),
-%%              neuron(Neuron);
-%%          % has not been marked by this node yet
-%%          NewMarker > Marker ->
-%%              io:format("this new marker is in. You out.~n"),
-%%              % notify the parent that this is a good connection
-%%              make_anterior(Neuron, ParentPID),
-%%              % reset the MarkProximals s othat they will randomly choose
-%%              dfsNext(Neuron , NewMarker, self()),
-%%              neuron(Neuron);
-%%          %  has been marked
-%%          true ->
-%%              ParentPID ! {faileddfs, self(), NewMarker},
-%%              neuron(Neuron)
-%%      end;
   end.
+
 %% ----------------------------------------
 %% TODO MOVE THIS TO ANOTHER MODULE
 %% @doc Sends the pressKey command to the mc server.
@@ -207,13 +160,6 @@ inputKey(KeyNum) ->
 shuffle_proximals(Neuron) ->
     NewProximals = shuffle(Neuron#neuron.proximals),
     Neuron#neuron{proximals=NewProximals}.
-%% @doc Runs DFS for the next neuron
-%%dfsNext(#neuron{markerProx=[]}, _, _) ->
-%%    ok;
-%%dfsNext(Neuron, Marker, SelfPid) ->
-%%  #neuron{markerProx=Proximals} = shuffle_proximals(Neuron),
-%%  [Head | _] = Proximals,
-%%  Head ! {dfs, Marker, SelfPid}.
 
 % handles feed forwarding for a list of neurons and their corresponding weights
 feed([], [], _) ->
