@@ -1,0 +1,74 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{nips15submit_e,times}
+\usepackage{hyperref}
+\usepackage{url}
+
+
+%% TODO NOTES. To remove for camera ready version.
+\usepackage{todonotes}
+\usepackage{regexpatch}
+\makeatletter
+%make all todo notes inline.
+\xpatchcmd{\@todo}{\setkeys{todonotes}{#1}}{\setkeys{todonotes}{inline,#1}}{}{}
+\makeatother
+%end to notes
+
+\title{OpenBrain: Massiveley Asynchronous Neurocomputation}
+
+
+\author{
+William H.~Guss \\
+Machine Learning at Berkeley\\
+2650 Durant Ave, Berkeley CA, 94720 \\
+\texttt{wguss@ml.berkeley.edu} \\
+\And
+Mike Zhong \\
+Machine Learning at Berkeley \\
+Berkeley CA, 94720 \\
+\texttt{lol@gmail.com} \\
+\And
+Phillip Kuznetsov \\
+Machine Learning at Berkeley \\
+Berkeley CA, 94720 \\
+\texttt{philkuz@ml.berkeley.edu} \\
+\And
+Instert yourself \\
+Machine Learning at Berkeley \\
+Address \\
+\texttt{email} \\
+\And
+We can add footnotes clarifying \\
+Machine Learning at Berkeley \\
+Address \\
+\texttt{email} \\
+\And
+equal contributions to the work \\
+(if needed)\\
+Machine Learning at Berkeley \\
+Address \\
+\texttt{email} 
+}
+
+
+\nipsfinalcopy % Uncomment for camera-ready version
+
+\begin{document}
+
+
+\maketitle
+\listoftodos
+
+\begin{abstract}
+ The OpenBrain white paper. \todo{Produce a 4-6 sentence abstract about the paper.} \emph{Note:} Most of the sections for this document are included as submodules using the following command. \begin{verbatim}
+ \input{section} %imports section.tex \end{verbatim}
+ The main file should not be modified, except to change the abstract, add new sections, or modify packages!
+\end{abstract}
+
+\input{introduction}
+\input{model}
+\input{learning}
+\input{implementation}
+\input{conclusion}
+
+
+\end{document}
