@@ -1,2 +1,30 @@
-%!TEX root = main.tex
+%!TEX root = ../main.tex
 \subsection{Continuous Time Universal Intelligence Measure}
+
+In alignment with the philosophy which predicates OpenBrain, we wish to extend the evaluation of our algorithm well beyond its performance in supervised learning tasks; that is, what can be said about the intelligence of OpenBrain as an agent in an environment? The answer will motivate an important discussion of representation theory annd learning rules.
+
+A well established\cite{legg2008machine, mnih2015human, rathmanner2011philosophical}  machine intelligence measure is the Universal Intelligence Measure proposed by Legg and Hutter \cite{legg2007universal}. Drawing from a large amount of disparate literature on the subject they develop a consise definition of the intelligence of an \emph{agent} in an \emph{environment}. 
+\todo{The following exposition may be unnecessary, and we should consider just stating the result of Legg and Hutter.}
+
+Environment-agent interaction is defined with respect to an observation space, $\mathcal{O}$, and an action space, $\mathcal{A}$, both of which consist of abstract symbols. The perception space, $\mathcal{P} \subset \mathcal{O} \times \mathbb{R}$, is the combination of observations and rewards.
+\begin{definition}
+	An environment $\mu$ is a probability measure, specifically defining
+	\begin{equation}
+			\mu(o_kr_k | o_1r_1a_1 \dots o_{k-1}r_{k-1}a_{k-1}),
+	\end{equation}
+	the probability the agent observing $o_kr_k$ given a history, a string $o_1\dots a_{k-1} \in \bigtimes_{i=1}^k \mathcal{P} \times \mathcal{A}.$
+\end{definition}
+Let $E$ be the space of all turing complete reward environments, and $K: E \to  \mathbb{R}$ be the Kolmogorov complexity of an environment. This complexity is calculated with respect to the length of the string with which a reference machine $\mathcal{U}$ generates the environment.
+\begin{definition}
+	Given an agent $\pi$
+\end{definition}
+\
+\begin{tikzpicture}
+	\draw[style=dashed, fill=red!30] (2,.5) circle (0.5);
+	\draw[fill=green!30] (0,0.5) circle(0.5);
+	\path[draw, ->, snake it] (0.5,0.5) -- (4.5,.5) ;
+	\path[draw, ->, snake it] (0.5,0.5) -- (4.5,.9) ;
+	\path[draw, ->, snake it] (0.5,0.5) -- (4.5,.7) ;
+	\path[draw, ->, snake it] (0.5,0.5) -- (4.5,.3) ;
+	\path[draw, ->, snake it] (0.5,0.5) -- (4.5,.1) ;
+\end{tikzpicture} 

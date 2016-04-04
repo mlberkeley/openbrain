@@ -2,7 +2,40 @@
 \usepackage{nips15submit_e,times}
 \usepackage{hyperref}
 \usepackage{url}
+\usepackage[toc,page]{appendix}
 
+%citation
+\usepackage[backend=bibtex]{biblatex}
+\bibliography{openbrain}
+%
+
+% tikz and associated macros
+\usepackage{tikz}
+
+\usetikzlibrary{decorations.pathmorphing}
+\tikzset{snake it/.style={decorate, decoration=snake}}
+%
+
+% math
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathabx}
+\newcommand{\BlackBox}{\rule{1.5ex}{1.5ex}}  % end of proof
+\newtheorem{example}{Example} 
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma} 
+\newtheorem{proposition}[theorem]{Proposition} 
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{axiom}[theorem]{Axiom}
+
+\numberwithin{equation}{subsection}
+\numberwithin{theorem}{subsection}
+
+%
 
 %% TODO NOTES. To remove for camera ready version.
 \usepackage{todonotes}
@@ -70,5 +103,8 @@ Address \\
 \input{implementation}
 \input{conclusion}
 
+\printbibliography
+
+\input{appendices}
 
 \end{document}
