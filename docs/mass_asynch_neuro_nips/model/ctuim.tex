@@ -8,11 +8,11 @@ A well established\cite{legg2008machine, mnih2015human, rathmanner2011philosophi
 
 Environment-agent interaction is defined with respect to an observation space, $\mathcal{O}$, and an action space, $\mathcal{A}$, both of which consist of abstract symbols. The perception space, $\mathcal{P} \subset \mathcal{O} \times \mathbb{R}$, is the combination of observations and rewards.
 \begin{definition}
-	An environment $\mu$ is a probability measure, specifically defining
+	An \textbf{environment} $\mu$ is a probability measure, specifically defining
 	\begin{equation}
 			\mu(o_kr_k | o_1r_1a_1 \dots o_{k-1}r_{k-1}a_{k-1}),
 	\end{equation}
-	the probability the agent observing $o_kr_k$ given a history, a string $o_1\dots a_{k-1} \in \bigtimes_{i=1}^k \mathcal{P} \times \mathcal{A}.$
+	the probability of observing $o_kr_k \in \mathcal{P}$ given a history, a string $o_1\dots a_{k-1} \in \bigtimes_{i=1}^k \mathcal{P} \times \mathcal{A}.$
 \end{definition}
 Let $E$ be the space of all turing complete reward environments, and $K: E \to  \mathbb{R}$ be the Kolmogorov complexity of an environment. This complexity is calculated with respect to the length of the string with which a reference machine $\mathcal{U}$ generates the environment.
 \begin{definition}
