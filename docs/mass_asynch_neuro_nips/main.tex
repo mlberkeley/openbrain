@@ -1,5 +1,6 @@
 \documentclass{article} % For LaTeX2e
 \usepackage{nips15submit_e,times}
+
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage[toc,page]{appendix}
@@ -35,15 +36,15 @@
 \numberwithin{equation}{subsection}
 \numberwithin{theorem}{subsection}
 
+\DeclareSymbolFont{cmlargesymbols}{OMX}{cmex}{m}{n}
+\let\sumop\relax
+\DeclareMathSymbol{\sumop}{\mathop}{cmlargesymbols}{"50}
+
 %
 
-%% TODO NOTES. To remove for camera ready version.
+%% todo[inline] NOTES. To remove for camera ready version.
 \usepackage{todonotes}
 \usepackage{regexpatch}
-\makeatletter
-%make all todo notes inline.
-\xpatchcmd{\@todo}{\setkeys{todonotes}{#1}}{\setkeys{todonotes}{inline,#1}}{}{}
-\makeatother
 %end to notes
 
 \title{OpenBrain: Massiveley Asynchronous Neurocomputation}
@@ -92,7 +93,7 @@ Address \\
 \listoftodos
 
 \begin{abstract}
- The OpenBrain white paper. \todo{Produce a 4-6 sentence abstract about the paper.} \emph{Note:} Most of the sections for this document are included as submodules using the following command. \begin{verbatim}
+ The OpenBrain white paper. \todo[inline]{Produce a 4-6 sentence abstract about the paper.} \emph{Note:} Most of the sections for this document are included as submodules using the following command. \begin{verbatim}
  \input{section} %imports section.tex \end{verbatim}
  The main file should not be modified, except to change the abstract, add new sections, or modify packages!
 \end{abstract}

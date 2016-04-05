@@ -1,7 +1,7 @@
 %!TEX root = ../main.tex
 \subsection{The Core Framework}
 
-\todo{This section needs an actuall discussion. For now here are the working definitions of Openbrain.}
+\todo[inline]{This section needs an actuall discussion. For now here are the working definitions of Openbrain.}
 \begin{definition}\label{neuron}
 	A \textbf{neuron} $n \in N$ is defined by
 	\begin{itemize}
@@ -16,7 +16,7 @@
 	where $n_i$ is  the \textbf{anterior neuron}, $n_j$ is the \textbf{posterior neuron}, and $w_ij$
 	is the standard synaptic weight.
 \end{definition}
-\todo{Make connection diagram.}
+\todo[inline]{Make connection diagram.}
 For a neuron $n$, we denote the set of anterior neurons $A_n$ and the dendritic connections, $C_{n}^a$. In the same light we will use the notations $P_n$ and $C_n^p$ to denote the sets of posterior neurons and posterior connections for $n$ respectiveley.
 \begin{definition}\label{fire}
 	A neuron $n$ is said to \textbf{fire} if it is not in its refractory period and $V_n(k) > \theta_n$. Then for all $m \in P_n$, 
@@ -35,6 +35,6 @@ For a neuron $n$, we denote the set of anterior neurons $A_n$ and the dendritic 
 
 Combining \eqref{eq:fire} and \eqref{eq:decay} we get that for a neuron $m$ at time $k+1$
 \begin{equation}
-	V_m(k+1) = V_m(k)e^{-\Delta  t/\tau} + \sum_{\substack{n \in A'_m}} w_{nm} \sigma(V_n(k))
+	V_m(k+1) = V_m(k)e^{-\Delta  t/\tau} + \sumop_{\substack{n \in A'_m}} w_{nm} \sigma(V_n(k))
 \end{equation}
 such that $A'_m$ is the set of anterior neurons which fired at time $k.$
