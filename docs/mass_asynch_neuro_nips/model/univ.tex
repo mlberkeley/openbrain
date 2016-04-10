@@ -1,2 +1,20 @@
 %!TEX root = ../main.tex
 \subsection{Universal Approximation and Representation}
+
+The ideal Openbrain agent would take the same actions as Hutter's AIXI in every environment $\mu$, that is, $\forall \mu,\ \pi_o^*$ = $\pi^*$. However, due to the finite nature of this agent, it is unreasonable to expect a single agent to match AIXI in every possible environment. This motivates a learning nature in which the Openbrain agent makes mistakes in the beginning, but slowly converges to Hutter's AIXI, and starts maximising the sum of expected rewards after some time step $t_o$.
+
+\begin{conjecture}
+    $\exists \pi_o$ such that $\forall \mu \ \exists t_o \ s.t.\  V_\mu^{\pi_o}[t_o] = V_\mu^*[t_o] $, where $V_\mu^{\pi}[t_o]$ is the expected sum of rewards for agent $\pi$ after time step $t_o$
+\end{conjecture}
+
+This is a nice property to have, but this conjecture falls apart in environments that are chaotic or have absorbing states. For example, consider a simple MDP with an absorbing state neighbouring the initial state. If the agent accidentally steps into the absorbing state, then by definition it is stuck there forever, and it can never get good rewards. Since every learning agent is bound to make mistakes at some point, we limit our environments to those where it is possible to recover from mistakes.
+
+\begin{definition}
+    An environment $\mu$ is \textbf{recoverable} iff for every state $s, \epsilon > 0, \exists t_o > 0\  s.t.\ |V_\mu^*[t_o]-V_{\mu,s}^*[t_o]| < \epsilon$, where $V_{\mu,s}^*$ is the expected sum of rewards starting from state s and acting optimally
+\end{definition}
+
+\todo[inline]{Make the $V_{\mu,s}^*[t_o]$ part more formal with proper RL notation.}
+
+\begin{conjecture}
+    There is a $\pi_o$ such that for all recoverable environments $\mu, \epsilon > 0$, $\exists t_o$ such that $|V_\mu^{\pi_o}[t_o]-V_\mu^*[t_o]|<\epsilon$
+\end{conjecture}
