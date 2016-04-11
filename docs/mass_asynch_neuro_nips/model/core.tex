@@ -1,0 +1,40 @@
+%!TEX root = ../main.tex
+\subsection{The Core Framework}
+
+\todo[inline]{This section needs an actuall discussion. For now here are the working definitions of Openbrain.}
+\begin{definition}\label{neuron}
+	A \textbf{neuron} $n \in N$ is defined by
+	\begin{itemize}
+		\item a voltage $V_n(t)$,
+		\item a decay time $\tau_n$,
+		\item a refactory period $\rho_n$
+		\item a voltaic threshold $\theta_n$.
+	\end{itemize}
+\end{definition}
+\begin{definition}\label{connection}
+	A \textbf{connection} $c \in C$ is a tuple $(n_i, n_j, w_{ij}) \in N \times N \times \mathbb{R}$
+	where $n_i$ is  the \textbf{anterior neuron}, $n_j$ is the \textbf{posterior neuron}, and $w_ij$
+	is the standard synaptic weight.
+\end{definition}
+\todo[inline]{Make connection diagram.}
+For a neuron $n$, we denote the set of anterior neurons $A_n$ and the dendritic connections, $C_{n}^a$. In the same light we will use the notations $P_n$ and $C_n^p$ to denote the sets of posterior neurons and posterior connections for $n$ respectiveley.
+\begin{definition}\label{fire}
+	A neuron $n$ is said to \textbf{fire} if it is not in its refractory period and $V_n(k) > \theta_n$. Then for all $m \in P_n$, 
+	\begin{equation}
+		V_m(k+1) \leftarrow V_m(k+1) + w_{nm} \sigma(V_n(k)); \label{eq:fire}
+	\end{equation}
+	that is, voltage is propagated to the posterior neurons. 	Immediately after $n$ fires, it enters  a \textbf{refractory period} until $k + \frac{\rho_n}{\Delta t}$.
+\end{definition}
+
+\begin{definition}\label{decay}
+	We say that a neuron $n$ experiences \textbf{voltage decay} so that for all $k$,
+	\begin{equation}
+		V_n(k+1) \leftarrow V_n(k+1) + V_n(k)e^{-\Delta t/\tau}. \label{eq:decay}
+	\end{equation}
+\end{definition}
+
+Combining \eqref{eq:fire} and \eqref{eq:decay} we get that for a neuron $m$ at time $k+1$
+\begin{equation}
+	V_m(k+1) = V_m(k)e^{-\Delta  t/\tau} + \sumop_{\substack{n \in A'_m}} w_{nm} \sigma(V_n(k))
+\end{equation}
+such that $A'_m$ is the set of anterior neurons which fired at time $k.$
