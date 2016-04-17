@@ -36,7 +36,7 @@
 \numberwithin{equation}{subsection}
 \numberwithin{theorem}{subsection}
 
-\DeclareSymbolFont{cmlargesymbols}{OMX}{cmex}{m}{n}
+\DeclareSymbolFont{cmlargesymbols}{OMX}{cmex}{m}{n}b
 \let\sumop\relax
 \DeclareMathSymbol{\sumop}{\mathop}{cmlargesymbols}{"50}
 
@@ -47,7 +47,7 @@
 \usepackage{regexpatch}
 %end to notes
 
-\title{OpenBrain: Massiveley Asynchronous Neurocomputation}
+\title{OpenBrain: Massively Asynchronous Neurocomputation}
 
 
 \author{
@@ -95,14 +95,13 @@ Address \\
 
 
 \maketitle
-\listoftodos
 
 \begin{abstract}
- The OpenBrain white paper. \todo[inline]{Produce a 4-6 sentence abstract about the paper.} \emph{Note:} Most of the sections for this document are included as submodules using the following command. \begin{verbatim}
- \input{section} %imports section.tex \end{verbatim}
- The main file should not be modified, except to change the abstract, add new sections, or modify packages!
+	In this paper we introduce a new framework and philosophy for recurrent neurocomputation. By requiring that all neurons act asynchrynously and independently, we introduce a new metric for evaluating the universal intelligence of continuous time agents. We proved representation and universal approximation results in this context which lead to a set of learning rules in the spirt of John Conway's game of life. Finally evaluate this framework against different intelligent agent algorithms by implementing an approximate universal intelligence measure for agents embedded in turing computable environments in Minecraft, BF, and a variety of other reference machines. 
 \end{abstract}
 
+
+\listoftodos
 \input{introduction}
 \input{model}
 \input{learning}

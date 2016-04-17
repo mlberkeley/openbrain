@@ -41,10 +41,25 @@ The definition is satisfactory for agents which act synchronously with their env
 
 Despite this, the environments which we normally consider an intelligent agent to 'act well' in are often chaotic and operate with noise which is temporally independent from the agent-environment interaction itself. \todo{Why!?} For example, a real time game does not wait for a player to press a key, and yet the player still receives perceptual information. The intelligence measure proposed fails to encompass agent-environment interactions where the agent has some delay in acting as the environment continues; modeling such delays as $a_k = \emptyset$ is no more enlightening.
 
-In order to integrate OpenBrain with this framework, we will propose a sort of continuous time universal intelligence measure.
+In order to integrate OpenBrain with this framework, we will propose a continuous time universal intelligence measure.
+
+\subsection{Continuous Time Intelligence}
+
+To make a continuous time intelligence measure which is compatible with agents who act instantaneously within an environment, we will define a completed perception space.
+
+Since different agents 
+
+\begin{definition}
+	Given an environment $\mu$ with an associated 
+	perception space $\mathcal{P}$ we define the
+	\textbf{completion} $\tilde{\mathcal{P}}$ with respect to the admissible sequences of observations in $\mu$; that is,
+	\begin{equation}
+		\tilde{\mathcal{P}} = \bigsqcup_{k=1}^\infty \mathcal{P}^k.
+	\end{equation}
+\end{definition}
 
 
-
+Pre med = jessica $^2q$
 \begin{centering}
 
 \begin{tikzpicture}
