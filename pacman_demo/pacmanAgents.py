@@ -18,7 +18,10 @@ import random
 import game
 import util
 import numpy as np
-import scipy.special import expit
+from  scipy.special import expit
+import networkx as nx
+import matplotlib.pyplot as plt
+import math
 
 class LeftTurnAgent(game.Agent):
     "An agent that turns left at every opportunity"
@@ -57,56 +60,89 @@ def scoreEvaluation(state):
 
 
 class OpenBrainAgent(Agent):
-    def __init__(self, evalFn="scoreEvaluation", num_neurons=1000 ):
-        self.num_inputs = 100 #TODO make sure corrrect.
+    def __init__(self, evalFn="scoreEvaluation", num_neurons=200 ):
+        self.num_inputs = 1 #TODO make sure corrrect.
         self.num_outputs = 4
-        total_neurons = num_neurons+num_inputs+num_outputs
-        self.W = np.random.random((total_neurons, total_neurons))
-        self.W *= 1 - np.eye((total_neurons, total_neurons)) #delete self connections
-        self.W *= 1- np.outer( (np.arange(total_neurons)>=(total_neurons-num_outputs))*1, (np.arange(total_neurons)>=(total_neurons-num_outputs))*1)
-        self.decay_const = 0.8
+        self.total_neurons = num_neurons + self.num_inputs + self.num_outputs
+        self.W = (np.random.random((self.total_neurons, self.total_neurons)) > (1 - 0.5*(1/math.sqrt(num_neurons))))*np.random.random((self.total_neurons, self.total_neurons)) 
+        self.W *= 1 - np.eye(self.total_neurons) #delete self connections
+        self.decay_const = 0.5 
 
         #Todo gaussian
-        self.rho = np.zeros((total_neurons,))
-        self.rho_naught = np.ones((total_neurons,))
-        self.rho_naught *= (np.arange(total_neurons) > )*1
-        self.R = np.ones((total_neurons,))
-        self.v = np.zeros((total_neurons,)) #Voltages
+        self.rho = np.zeros((self.total_neurons,))
+        self.rho_naught = np.ones((self.total_neurons,))*2
+        self.rho_naught *= 1- (np.arange(self.total_neurons) >= (self.total_neurons-self.num_outputs))*1
+        self.R = np.ones((self.total_neurons,))
+        self.v = np.zeros((self.total_neurons,)) #Voltages
         self.activation = expit
 
+        self.threshold =1
+
+        self.visualize()
+
     def get_outputs(self):
-        return self.v[:-self.num_outputs]
+        retr = np.copy(self.v[-self.num_outputs:])
+        self.v[-self.num_outputs:] = 0
+        return retr
+
+    def visualize(self):
+        self.G = nx.from_numpy_matrix(self.W,create_using=nx.MultiDiGraph())
+        nx.draw(self.G, cmap = plt.get_cmap('jet'))
+        plt.ion()
+        plt.show()
+
     def set_inputs(self, i):
         self.v[:self.num_inputs] = i #TODO stochastic. 
     
     def get_inputs(self, state):
-        pass
+        return 0.1
 
     def update(self,input_state):
         self.v *= self.decay_const
-        self.set_inputs(input_state))
-        delta_v = self.activation(W.dot(R*self.v))
-        self.v = self.v + delta_v - (self.v*self.R)
-        self.rho -= (1*(self.rho != 0)) - self.rho_naught*self.R
-        self.R = (self.rho == 0)*1
+        self.set_inputs(input_state)
+        delta_v = self.W.dot(self.R*self.activation(self.v))
+        self.v = self.v - (self.v*self.R)
+        self.v = self.v + delta_v 
+        self.rho = self.rho -1  + self.rho_naught*self.R
+        self.R = ((self.rho <= 0)*1) * (( self.v > self.threshold)*1)
 
     def learn(self,state):
         pass
 
+    def output_to_action(self, outputs):
+        choice = np.random.choice(np.argwhere(outputs == np.amax(outputs)).ravel())
+        if outputs[choice] >= 0.5:
+            if choice == 0:
+                return Directions.WEST
+            elif choice == 1:
+                return Directions.EAST
+            elif choice == 2:
+                return Directions.NORTH
+            else:
+                return Directions.SOUTH
+        else: 
+            return Directions.STOP
+
     def getAction(self, state):
         incoming_inputs = self.get_inputs(state)
-        self.update(self,incoming_inputs)
-        self.learn(self,state)
+        self.update(incoming_inputs)
+        self.learn(state)
+        print(self.v[-self.num_outputs:])
         out_vect = self.get_outputs()
-        output = fhoaifhas (out_vect)
-        return 
+        #get output actions from out_vect
+        action = self.output_to_action(out_vect)
+        print(action)
+        if action not in  state.getLegalPacmanActions():
+            return Directions.STOP
+        else:
+            return action
 
-        # Generate candidate actions
-        # legal = state.getLegalPacmanActions()
-        # if Directions.STOP in legal: legal.remove(Directions.STOP)
+# Generate candidate actions
+# legal = state.getLegalPacmanActions()
+# if Directions.STOP in legal: legal.remove(Directions.STOP)
 
-        # successors = [(state.generateSuccessor(0, action), action) for action in legal]
-        # scored = [(self.evaluationFunction(state), action) for state, action in successors]
-        # bestScore = max(scored)[0]
-        # bestActions = [pair[1] for pair in scored if pair[0] == bestScore]
-        # return random.choice(bestActions)
+# successors = [(state.generateSuccessor(0, action), action) for action in legal]
+# scored = [(self.evaluationFunction(state), action) for state, action in successors]
+# bestScore = max(scored)[0]
+# bestActions = [pair[1] for pair in scored if pair[0] == bestScore]
+# return random.choice(bestActions)
