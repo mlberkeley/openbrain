@@ -29,7 +29,7 @@ def scoreEvaluation(state):
 
 
 class OpenBrainAgent(Agent):
-    def __init__(self, evalFn="scoreEvaluation", num_neurons=200 ):
+    def __init__(self, evalFn="scoreEvaluation", num_neurons=10 ):
         self.num_inputs = 1 #TODO make sure corrrect.
         self.num_outputs = 4
         self.total_neurons = num_neurons + self.num_inputs + self.num_outputs
@@ -65,6 +65,7 @@ class OpenBrainAgent(Agent):
     
     def get_inputs(self, state):
         return 0.1
+
 
     def update(self,input_state):
         self.v *= self.decay_const
