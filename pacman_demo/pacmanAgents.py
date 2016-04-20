@@ -22,15 +22,91 @@ from  scipy.special import expit
 import networkx as nx
 import matplotlib.pyplot as plt
 import math
-
+import IPython
 
 def scoreEvaluation(state):
     return state.getScore()
 
+class _OpenBrainInput():
+
+    def __init__(self):
+        self.n = None
+        self.m = None
+        self.input_vec = None
+        self._last_pacman_coord = None
+        self._last_ghost_coords = None
+        self._last_foods = None
+        
+    def get_vec(self):
+        return self.input_vec.copy()
+        
+    @staticmethod
+    def _grid_to_matrix(grid):
+        n, m = grid.height, grid.width
+        matrix = np.zeros([n, m])
+        for x, y in grid.asList():
+            matrix[n-y-1][x] = 1
+        return matrix 
+        
+    def _pos_to_coord(self, pos):
+        return self.n - pos[1], pos[0]
+        
+    def _init_input_vec(self, state):
+        walls_mat = _OpenBrainInput._grid_to_matrix(state.getWalls())
+        foods_mat = _OpenBrainInput._grid_to_matrix(state.getFood())
+        
+        self.n, self.m = walls_mat.shape
+        
+        pacman_mat = np.zeros([self.n ,self.m])
+        pacman_pos = state.getPacmanPosition()
+        self._last_pacman_coord = self._pos_to_coord(pacman_pos)
+        pacman_mat[self._last_pacman_coord] = 1
+        
+        ghosts_mat = np.zeros([self.n, self.m])
+        ghost_poss = state.getGhostPositions()
+        self._last_ghost_coords = [self._pos_to_coord(pos) for pos in ghost_poss]
+        for coord in self._last_ghost_coords:
+            ghosts_mat[coord] = 1
+        
+        large_mat = np.r_[walls_mat, np.r_[foods_mat, np.r_[pacman_mat, ghosts_mat]]]
+        self.input_vec = large_mat.ravel()
+        
+        self._last_foods = state.getFood().copy()
+                    
+    def _flat_coord(self, k, coord):
+        return self.n * self.m * k + self.m * coord[0] + coord[1]
+                    
+    def update(self, state):
+        if self.input_vec is None:
+            self._init_input_vec(state)
+        else:
+            pacman_pos = state.getPacmanPosition()
+            pacman_coord = self._pos_to_coord(pacman_pos)
+            
+            #update foods 
+            if self._last_foods[pacman_pos[0]][pacman_pos[1]]:
+                self.input_vec[self._flat_coord(1, pacman_coord)] = 0
+                self._last_foods = state.getFood().copy()
+                
+            #update pacman
+            self.input_vec[self._flat_coord(2, self._last_pacman_coord)] = 0
+            self.input_vec[self._flat_coord(2, pacman_coord)] = 1
+            self._last_pacman_coord = pacman_coord
+            
+            #update ghosts
+            for ghost_coord in self._last_ghost_coords:
+                self.input_vec[self._flat_coord(3, ghost_coord)] = 0
+            self._last_ghost_coords = []
+            for ghost_pos in state.getGhostPositions():
+                coord = self._pos_to_coord(ghost_pos)
+                self._last_ghost_coords.append(coord)
+                self.input_vec[self._flat_coord(3, coord)] = 1
+
 
 class OpenBrainAgent(Agent):
+
     def __init__(self, evalFn="scoreEvaluation", num_neurons=200 ):
-        self.num_inputs = 1 #TODO make sure corrrect.
+        self.num_inputs = 880 #TODO make sure corrrect.
         self.num_outputs = 4
         self.total_neurons = num_neurons + self.num_inputs + self.num_outputs
         self.W = (np.random.random((self.total_neurons, self.total_neurons)) > (1 - 0.5*(1/math.sqrt(num_neurons))))*np.random.random((self.total_neurons, self.total_neurons)) 
@@ -47,7 +123,10 @@ class OpenBrainAgent(Agent):
 
         self.threshold =1
 
-        self.visualize()
+        #self.visualize()
+        
+        #state vars
+        self._input = _OpenBrainInput()
 
     def get_outputs(self):
         retr = np.copy(self.v[-self.num_outputs:])
@@ -64,7 +143,8 @@ class OpenBrainAgent(Agent):
         self.v[:self.num_inputs] = i #TODO stochastic. 
     
     def get_inputs(self, state):
-        return 0.1
+        self._input.update(state)
+        return self._input.get_vec()
 
     def update(self,input_state):
         self.v *= self.decay_const
@@ -76,6 +156,7 @@ class OpenBrainAgent(Agent):
         self.R = ((self.rho <= 0)*1) * (( self.v > self.threshold)*1)
 
     def learn(self,state):
+        
         pass
 
     def output_to_action(self, outputs):
