@@ -1,0 +1,25 @@
+python pacman.py
+python pacman.py --layout testMaze --pacman GoWestAgent
+python pacman.py --layout tinyMaze --pacman GoWestAgent
+python pacman.py -h
+python pacman.py -l tinyMaze -p SearchAgent -a fn=tinyMazeSearch
+python pacman.py -l tinyMaze -p SearchAgent
+python pacman.py -l mediumMaze -p SearchAgent
+python pacman.py -l bigMaze -z .5 -p SearchAgent
+python eightpuzzle.py
+python pacman.py -l mediumDottedMaze -p StayEastSearchAgent
+python pacman.py -l mediumScaryMaze -p StayWestSearchAgent
+python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic 
+python pacman.py -l mediumCorners -p AStarCornersAgent -z 0.5
+python pacman.py -l testSearch -p AStarFoodSearchAgent
+python pacman.py -l trickySearch -p AStarFoodSearchAgent
+python pacman.py -p ReflexAgent
+python pacman.py -p ReflexAgent -l testClassic
+python pacman.py -p ReflexAgent -l testClassic
+python pacman.py --frameTime 0 -p ReflexAgent -k 1
+python pacman.py --frameTime 0 -p ReflexAgent -k 2
+python pacman.py -p ReflexAgent -l openClassic -n 10 -q
+python pacman.py -p MinimaxAgent -l minimaxClassic -a depth=4
+python pacman.py -p MinimaxAgent -l trappedClassic -a depth=3
+python pacman.py -l contestClassic -p ContestAgent -g DirectionalGhost -q -n 10
+
