@@ -160,19 +160,21 @@ class OpenBrainAgent(Agent):
         pass
 
     def output_to_action(self, outputs):
-        choice = np.random.choice(np.argwhere(outputs == np.amax(outputs)).ravel())
-        if outputs[choice] >= 0.5:
-            if choice == 0:
-                return Directions.WEST
-            elif choice == 1:
-                return Directions.EAST
-            elif choice == 2:
-                return Directions.NORTH
-            else:
-                return Directions.SOUTH
-        else: 
+        satisfied_neurons = np.argwhere(outputs >= self.threshold)
+        n = len(satisfied_neurons)
+        if n == 0:
             return Directions.STOP
-
+        
+        choice = satisfied_neurons[int(np.random.rand() * n)]
+        if choice == 0:
+            return Directions.WEST
+        elif choice == 1:
+            return Directions.EAST
+        elif choice == 2:
+            return Directions.NORTH
+        else:
+            return Directions.SOUTH
+        
     def getAction(self, state):
         incoming_inputs = self.get_inputs(state)
         self.update(incoming_inputs)
