@@ -4,3 +4,6 @@
 [submodule "erlvpn"]
 	path = erlvpn
 	url = https://github.com/mlberkeley/erlvpn.git
+[submodule "docs/progress/pres1"]
+	path = docs/progress/pres1
+	url = https://git.overleaf.com/4949857cxxzqw
