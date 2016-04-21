@@ -102,31 +102,41 @@ class _OpenBrainInput():
                 self._last_ghost_coords.append(coord)
                 self.input_vec[self._flat_coord(3, coord)] = 1
 
-
+#CONSTANTS
+#TODO: PUT IN PARAM FILES
+DENSITY = 0.4
+RHO_0 = 3
+                
 class OpenBrainAgent(Agent):
 
     def __init__(self, evalFn="scoreEvaluation", num_neurons=200 ):
         self.num_inputs = 880 #TODO make sure corrrect.
         self.num_outputs = 4
         self.total_neurons = num_neurons + self.num_inputs + self.num_outputs
-        self.W = (np.random.random((self.total_neurons, self.total_neurons)) > (1 - 0.5*(1/math.sqrt(num_neurons))))*np.random.random((self.total_neurons, self.total_neurons)) 
-        self.W *= 1 - np.eye(self.total_neurons) #delete self connections
         self.decay_const = 0.5 
+        
+        #init connections
+        #make random connections
+        self.W = np.random.random((self.total_neurons, self.total_neurons)) > (1 - DENSITY/math.sqrt(num_neurons))
+        #give random values to initial weights
+        self.W = self.W*np.random.random((self.total_neurons, self.total_neurons)) 
+        self.W *= 1 - np.eye(self.total_neurons) #delete self connections
 
         #Todo gaussian
         self.rho = np.zeros((self.total_neurons,))
-        self.rho_naught = np.ones((self.total_neurons,))*2
+        self.rho_naught = np.ones((self.total_neurons,))*RHO_0
         self.rho_naught *= 1- (np.arange(self.total_neurons) >= (self.total_neurons-self.num_outputs))*1
         self.R = np.ones((self.total_neurons,))
         self.v = np.zeros((self.total_neurons,)) #Voltages
         self.activation = expit
 
         self.threshold =1
-
+        self.rho_reinforce = 10
         #self.visualize()
         
         #state vars
         self._input = _OpenBrainInput()
+        self._last_state = None
 
     def get_outputs(self):
         retr = np.copy(self.v[-self.num_outputs:])
@@ -148,17 +158,37 @@ class OpenBrainAgent(Agent):
 
     def update(self,input_state):
         self.v *= self.decay_const
+        
         self.set_inputs(input_state)
-        delta_v = self.W.dot(self.R*self.activation(self.v))
+        
+        delta_v = self.W.T.dot(self.R*self.activation(self.v))
         self.v = self.v - (self.v*self.R)
         self.v = self.v + delta_v 
         self.rho = self.rho -1  + self.rho_naught*self.R
         self.R = ((self.rho <= 0)*1) * (( self.v > self.threshold)*1)
 
-    def learn(self,state):
+    def _get_rewards(self, state):
+        rewards = {}
+        rewards['food'] = self._last_state.getNumFood() - state.getNumFood()
         
-        pass
+        return rewards
+        
+    def learn(self,state):
+        if self._last_state is None:
+            return
+        
+        rewards = self._get_rewards(state)
 
+        #if positive reward
+        #reinforce connections of all neurons that are in refractory period
+        for name, reward in rewards.items():
+            if name == 'food' and reward > 0:
+                targets = self.rho > 0
+                #need to multiply weights of all connections of all neurons in targets
+                #multiplier is (1 + inverse rho * scale)
+                multiplier = 1 + self.rho_reinforce * np.where(targets, 1./self.rho, 0)
+                self.W = self.W * multiplier.dot(multiplier.T)
+                
     def output_to_action(self, outputs):
         satisfied_neurons = np.argwhere(outputs >= self.threshold)
         n = len(satisfied_neurons)
@@ -179,8 +209,11 @@ class OpenBrainAgent(Agent):
         incoming_inputs = self.get_inputs(state)
         self.update(incoming_inputs)
         self.learn(state)
+        self._last_state = state.deepCopy()
+
         print(self.v[-self.num_outputs:])
         out_vect = self.get_outputs()
+
         #get output actions from out_vect
         action = self.output_to_action(out_vect)
         print(action)
