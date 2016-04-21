@@ -78,8 +78,9 @@
 \usepackage{tikz, calc}
 \newcommand*{\Scale}[2][4]{\scalebox{#1}{$#2$}}%
 \newcommand*{\Resize}[2]{\resizebox{#1}{!}{$#2$}}%
-
-\usetikzlibrary{decorations.pathmorphing}
+\newcommand\sep{1.9cm}
+\newcommand\height{0.9cm}
+\usetikzlibrary{decorations.pathmorphing, backgrounds}
 \tikzset{snake it/.style={decorate, decoration=snake}}
 %
 
@@ -139,7 +140,7 @@
                 \begin{itemize}
 					\item UIM incompatable:
                     \begin{equation}
-                  \Upsilon(\pi) = \sum_{\mu \in E}2^{-K(\mu)}  \mathbb{E}\left(\sum_{i=1}^\infty \right) 
+                  \Upsilon(\pi) = \sum_{\mu \in E}2^{-K(\mu)}  \mathbb{E}\left(\sum_{i=1}^\infty r_i \right) 
                   \end{equation}
                   requires meaningful "timesteps", $\pi_O$ runs asynchronously!
                 \end{itemize}
@@ -169,7 +170,7 @@
   \draw[fill=green!30] (1,-0.5) circle (0.25);
   \draw[fill=green!30] (2,-0.5) circle (0.25);
   \draw[fill=green!30] (0,0.5) circle(0.25);
-  \path[draw, ->, snake it] (0.25,0.5) -- (1.75,.5) ;
+  \path[draw, ->] (0.25,0.5) -- (1.75,.5) ;
   \path[draw, ->] (0.25, 0.5) -- (0.75,-0.5) ;
   \path[draw, ->] (1.25,-0.5) -- (1.75,.5);
    \path[draw, ->]  (1.75,-.5) -- (0.25, 0.5)  ;
@@ -213,14 +214,14 @@
           \begin{centering}
             \begin{tikzpicture}
               \foreach \a in {1,2,...,8}{
-              \path[draw, ->, snake it] (\a*360/6: 0.25cm)  -- (\a*360/12 + 220: 1.5cm-0.25cm) node[circle, fill=green!30, scale=1] {$\Scale[0.5]{N_{\a}}$};
+              \path[draw, ->] (\a*360/6: 0.25cm)  -- (\a*360/12 + 220: 1.5cm-0.25cm) node[circle, fill=red!30, scale=1] {$\Scale[0.5]{m_{\a}}$};
               
               }
-            \node[circle, style=dashed, fill=red!30] {n};
+            \node[circle, style=dashed, fill=green!30] {n};
           \end{tikzpicture} 
 
           \end{centering}
-          \caption{A neuron $n$ firing  into its posterior neurons, $P_n = \{N_1, \dots, N_8\}$}
+          \caption{A neuron $n$ firing  into its posterior neurons, $P_n = \{m_1, \dots, m_8\}$}
       \end{figure}
       
       \end{column}
@@ -228,15 +229,134 @@
     \end{frame}
 
        \begin{frame}
-    \frametitle{Theory: Continuous time }
+    \frametitle{Theory: Continuous Time Universal Intelligence}
+    \begin{itemize}
+      \item Theoretical problems evaluating our agent.
+      \item UIM defines an environment, $\mu$, as a probability measure on sequences of actions and perceptions. Typically
+      \begin{equation}
+        o_1r_1a_1o_2r_2a_2\dots o_nr_na_n          
+       \end{equation}   
+       where $r_i$ are rewards!
+       \item What does it mean to have a reward at time step $k$ when $\Delta t \to 0$? \textbf{$\pmb{r_i} \pmb{\to} \pmb{0}$ :(}
+       \item Actions become sparse as $\Delta t \to 0.$
+       \begin{equation}
+         a_1\emptyset\dots\dots\dots\emptyset a_{100000} \emptyset \dots\dots \emptyset a_{2500605}\dots
+        \end{equation} 
+    \end{itemize}
     \end{frame}
 
 
+    \begin{frame}
+
+      \frametitle{Theory: Continuous Time Universal Intelligence} 
+
+      \begin{figure}
+        \begin{tikzpicture}
+
+        % Top nodes
+        \node[circle, fill=white] (akm1) at (0,\height + 0.3cm ) {$\pmb{a_{k-1}}$} ;
+         \foreach \a in {1,2,3,4}{
+          \node[circle, fill=white] (ok\a) at (\a*\sep,\height) {$o_{k\a}$} ;
+
+          \node[circle, fill=white] (ok\a) at (\a*\sep,\height) {$o_{k\a}$} ;
+        }
+
+
+        \node[circle, fill=white] (ak) at (5*\sep,\height+0.3cm ) {$\pmb{a_{k}}$} ;
+
+
+        %Generate neurons
+        \foreach \a in {1,2,3,4}{
+          \node[ scale=0.7, fill=green!30, inner sep=1pt] (NI\a) at (\a*\sep,-0.3) {$N_I$} ;
+          \path[draw, ->] (ok\a) -- (NI\a);
+
+          \node[ scale=0.7, inner sep=1pt,] (N1\a) at (\a*\sep -0.7cm,-0.5) {$N_1$} ;
+          \node[ scale=0.7, inner sep=1pt,] (N2\a) at (\a*\sep +0.6cm,-0.8) {$N_2$} ;
+          \node[ scale=0.7, inner sep=1pt,] (N3\a) at (\a*\sep +0.5cm,-1.7) {$N_3$} ;
+          \node[ scale=0.7, inner sep=1pt,] (N4\a) at (\a*\sep +0.1cm,-1.1) {$N_4$} ;
+          \node[ scale=0.7, inner sep=1pt,] (N5\a) at (\a*\sep -0.4cm,-1.4) {$N_5$} ;
+          \node[ scale=0.7, fill=red!30, inner sep=1pt ] (NO\a) at (\a*\sep +0.68cm,-0.3) {$N_O$} ;
+
+
+
+        }
+        \node[ scale=0.7, fill=green!30, inner sep=1pt ] (NO4) at (4*\sep +0.68cm,-0.3) {$N_O$} ;
+
+
+        %WEIGHT DEQAY
+        \foreach \a in {1,2,3}{
+            \foreach \b in {1,2,3,4,5}{
+            \begin{scope}[on background layer]
+            \pgfmathsetmacro\q{int(\a + 1)}
+              \path[draw, color=gray!20, ->, snake it] (N\b\a) -- (N\b\q) ;
+              \end{scope}
+              
+            }
+        }
+
+        %NEURO FIRINGS
+        \path[draw, ->, dashed] (NI1) -- (N11);
+        \path[draw, ->] (N11) -- (N21);
+        \path[draw, ->] (N11) -- (N51);
+
+        \path[draw, ->, dashed] (NI2) -- (N12);
+        \path[draw, ->, dashed] (NI2) -- (N42);
+        \path[draw, ->] (N12) -- (N22);
+        \path[draw, ->] (N12) -- (N52);
+        \path[draw, ->] (N42) -- (N52);
+        \path[draw, ->] (N52) -- (N32);
+        \path[draw, ->] (N32) -- (N13);
+
+        \path[draw, ->, dashed] (NI3) -- (N33);
+        \path[draw, ->, dashed] (NI3) -- (N43);
+        \path[draw, ->] (N43) -- (N53);
+        \path[draw, ->] (N53) -- (N33);
+        \path[draw, ->] (N33) -- (N13);
+        \path[draw, ->] (N13) -- (N53);
+        \path[draw, ->] (N13) -- (N23);
+        \path[draw, ->] (N53) -- (N34);
+
+        \path[draw, ->, dashed] (NI4) -- (N34);
+        \path[draw, ->] (N34) -- (N14);
+        \path[draw, ->] (N14) -- (N24);
+        \path[draw, ->] (N24) -- (NO4);
+        \path[draw, -] (NO4) -- (\sep*5,0);
+
+
+
+
+        %TIME!
+                \foreach \a in {1,2,...,5} {
+          \node[circle, fill=white] (tka\a) at (\a*\sep -\sep/2,\height+0.3cm) {$t_{k\a}$} ;
+          \path[draw, -] (tka\a) -- +(0,-3); 
+        }
+        
+        
+        %a bridge.
+        \path[draw, <->] (akm1) -- +(0,-\height -0.3cm) -- (5*\sep,0)  -- (ak);
+
+      \draw [decorate,decoration={brace,amplitude=12pt},xshift=-0pt]
+      (\sep,\height+0.3cm) -- (4*\sep,\height+0.3cm) node [black,midway,yshift=.6cm] 
+      { $\pmb{o_k}$};
+
+
+
+      \end{tikzpicture} 
+        \caption{The diagram of sub-observation neural interaction for $\pi_O$.}
+      \end{figure}
+
+      \textbf{Solution: Subobservations}
+      \begin{itemize}
+        \item  Actions determine what it means to be an observation.   
+        \item A visualization of asyncronous neural activity.
+        \item More details in our paper at github. 
+      \end{itemize}
+    \end{frame}
+
 
     \begin{frame}
-    \frametitle{Theory: Progress so far}
+    \frametitle{Theory: Other progress!}
     	\begin{enumerate}
-        	\item Intelligence - making good decisions in a wide variety of environments.
             \item Hutter's AIXI
             \item Biological parallels:
            	\begin{enumerate}
@@ -246,13 +366,16 @@
             \end{enumerate}
            \item Sparse Distributed Representation
            \item LSTM Models: Rewards associated with actions taken in the world.
-           \item In the process of writing paper to be presented at NIPS conference.
+           \item In the process of writing paper to be presented at NIPS (2017) conference.
         \end{enumerate}
     \end{frame}
     \begin{frame}
    	\frametitle{Theory: Goals}
     	\begin{enumerate}
-       		\item Formalize mathematical framwork in detail
+       		\item Develop a strong representation theory for the algorithm.
+          \begin{enumerate}
+              \item What class of functions can OpenBrain approximate?         
+          \end{enumerate}
             \item Figuring out how to measure learning quantitatively
             \item Expanding framework to include specialized neurons to more closely mimic biology
             	\begin{enumerate}

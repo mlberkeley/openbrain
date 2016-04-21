@@ -23,7 +23,6 @@ In the same light the agent definition is given.
 	\end{equation}
 	the probability of the possible action $a_k$ being enacted by $\pi$ being the environment-agent interaction history.
 \end{definition}
-\todo[inline]{Include agent environment interaction picture? Would this section be clear given that the reader has explored \cite{legg2007universal}?}
 
 Having defined the basic framework, \cite{legg2007universal} gives a definition for Universal Intelligence. Let $E$ be the space of all turing complete reward environments, and $K: E \to  \mathbb{R}$ be the Kolmogorov complexity of an environment. This complexity is calculated with respect to the length of the string with which a reference machine $\mathcal{U}$ generates the environment.
 \begin{definition} \label{uim}
@@ -44,7 +43,7 @@ Despite this, the environments which we normally consider an intelligent agent t
 In order to integrate OpenBrain with this framework, we will propose a continuous time universal intelligence measure.
 
 \subsection{Continuous Time Intelligence}
-
+\input{model/ctuimdiag}
 To make a continuous time intelligence measure which is compatible with agents who act instantaneously within an environment, we will define a completed perception space.
 
 Since different agents 
@@ -57,5 +56,3 @@ Since different agents
 		\tilde{\mathcal{P}} = \bigsqcup_{k=1}^\infty \mathcal{P}^k.
 	\end{equation}
 \end{definition}
-
-

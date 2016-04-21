@@ -1,0 +1,98 @@
+%!TEX root = ../main.tex
+      \begin{figure}
+      \begin{center}
+        \begin{tikzpicture}
+
+        % Top nodes
+        \node[circle, fill=white] (akm1) at (0,\height + 0.3cm ) {$\pmb{a_{k-1}}$} ;
+         \foreach \a in {1,2,3,4}{
+          \node[circle, fill=white] (ok\a) at (\a*\sep,\height) {$o_{k\a}$} ;
+
+          \node[circle, fill=white] (ok\a) at (\a*\sep,\height) {$o_{k\a}$} ;
+        }
+
+
+        \node[circle, fill=white] (ak) at (5*\sep,\height+0.3cm ) {$\pmb{a_{k}}$} ;
+
+
+        %Generate neurons
+        \foreach \a in {1,2,3,4}{
+          \node[ scale=0.7, fill=green!30, inner sep=1pt] (NI\a) at (\a*\sep,-0.3) {$N_I$} ;
+          \path[draw, ->] (ok\a) -- (NI\a);
+
+          \node[ scale=0.7, inner sep=1pt,] (N1\a) at (\a*\sep -0.7cm,-0.5) {$N_1$} ;
+          \node[ scale=0.7, inner sep=1pt,] (N2\a) at (\a*\sep +0.6cm,-0.8) {$N_2$} ;
+          \node[ scale=0.7, inner sep=1pt,] (N3\a) at (\a*\sep +0.5cm,-1.7) {$N_3$} ;
+          \node[ scale=0.7, inner sep=1pt,] (N4\a) at (\a*\sep +0.1cm,-1.1) {$N_4$} ;
+          \node[ scale=0.7, inner sep=1pt,] (N5\a) at (\a*\sep -0.4cm,-1.4) {$N_5$} ;
+          \node[ scale=0.7, fill=red!30, inner sep=1pt ] (NO\a) at (\a*\sep +0.68cm,-0.3) {$N_O$} ;
+
+
+
+        }
+        \node[ scale=0.7, fill=green!30, inner sep=1pt ] (NO4) at (4*\sep +0.68cm,-0.3) {$N_O$} ;
+
+
+        %WEIGHT DEQAY
+        \foreach \a in {1,2,3}{
+            \foreach \b in {1,2,3,4,5}{
+            \begin{scope}[on background layer]
+            \pgfmathsetmacro\q{int(\a + 1)}
+              \path[draw, color=gray!20, ->, snake it] (N\b\a) -- (N\b\q) ;
+              \end{scope}
+              
+            }
+        }
+
+        %NEURO FIRINGS
+        \path[draw, ->, dashed] (NI1) -- (N11);
+        \path[draw, ->] (N11) -- (N21);
+        \path[draw, ->] (N11) -- (N51);
+
+        \path[draw, ->, dashed] (NI2) -- (N12);
+        \path[draw, ->, dashed] (NI2) -- (N42);
+        \path[draw, ->] (N12) -- (N22);
+        \path[draw, ->] (N12) -- (N52);
+        \path[draw, ->] (N42) -- (N52);
+        \path[draw, ->] (N52) -- (N32);
+        \path[draw, ->] (N32) -- (N13);
+
+        \path[draw, ->, dashed] (NI3) -- (N33);
+        \path[draw, ->, dashed] (NI3) -- (N43);
+        \path[draw, ->] (N43) -- (N53);
+        \path[draw, ->] (N53) -- (N33);
+        \path[draw, ->] (N33) -- (N13);
+        \path[draw, ->] (N13) -- (N53);
+        \path[draw, ->] (N13) -- (N23);
+        \path[draw, ->] (N53) -- (N34);
+
+        \path[draw, ->, dashed] (NI4) -- (N34);
+        \path[draw, ->] (N34) -- (N14);
+        \path[draw, ->] (N14) -- (N24);
+        \path[draw, ->] (N24) -- (NO4);
+        \path[draw, -] (NO4) -- (\sep*5,0);
+
+
+
+
+        %TIME!
+                \foreach \a in {1,2,...,5} {
+          \node[circle, fill=white] (tka\a) at (\a*\sep -\sep/2,\height+0.3cm) {$t_{k\a}$} ;
+          \path[draw, -] (tka\a) -- +(0,-3); 
+        }
+        
+        
+        %a bridge.
+        \path[draw, <->] (akm1) -- +(0,-\height -0.3cm) -- (5*\sep,0)  -- (ak);
+
+      \draw [decorate,decoration={brace,amplitude=12pt},xshift=-0pt]
+      (\sep,\height+0.3cm) -- (4*\sep,\height+0.3cm) node [black,midway,yshift=.6cm] 
+      { $\pmb{o_k}$};
+
+
+
+      \end{tikzpicture} 
+        \caption{The diagram of sub-observation neural interaction for $\pi_O$.}
+
+      \end{center}
+      \end{figure}
