@@ -66,9 +66,9 @@
 %	TITLE SECTION 
 %----------------------------------------------------------------------------------------
 
-\title{Your Awesome Research: ML@B  Poster Template} % Poster title
+\title{Open Brain: Massively Asynchronous Neurocomputation} % Poster title
 
-\author{William Guss} % Author(s)
+\author{William Guss, Mike Zhong, Phillip Kuznetsov, Max Johansen, Jacky Liang, Utharsh Singhal, Ananth Kumar} % Author(s)
 
 \institute{Machine Learning at Berkeley} % Institution(s)
 
@@ -96,12 +96,12 @@
 
 \begin{alertblock}{Abstract}
 
-In this project, we generalize ANNs to infinite dimensional Banach spaces by developing a
-practical analog to the feedforward propagation algorithm. Using this new class of algorithms, GANN, 
-we prove a new universal approximation theorem for bounded linear operators and show that representation
-of weights by samples from a multivariate weight polynomial can drastically reduce the dimensionality of a
-learning problem. Lastly, we give a practical implementation of the error back-propagation algorithm in this
-space for the classification of continuous data.
+In this project we introduce a new framework and philosophy for recurrent neurocomputation. By requiring that all neurons act asynchrynously and independently,
+we introduce a new metric for evaluating the universal intelligence of continuous
+time agents. We are experimenting with a set of simple learning rules in the spirt of John Conway's game of life. Finally we evaluate this framework against different intelligent agent algo-
+rithms by implementing an approximate universal intelligence measure for agents
+embedded in turing computable environments in Minecraft, BF, and a variety of
+other reference machines.
 \end{alertblock}
 
 %----------------------------------------------------------------------------------------
@@ -109,26 +109,23 @@ space for the classification of continuous data.
 %----------------------------------------------------------------------------------------
 
 \begin{block}{Introduction}
-
-Although neural networks have proven an extremely effective mechanism of machine learning [1], theoretically they remain a black-box model.  In answer to this problem [2] examined the notion of infinite hidden nodes with a network proving that such a construction becomes a Gaussian kernel. Then, [2] described a model for affine neural networks with continuous hidden layers in alignment with [1]. These authors showed effectively the viability of a "continuous" neural network, but left many similar constructions unexplored. 
-
-\cite{Smith:2012qr}.
-
+Most standard neuron network models depart from the biological neuron in a number of ways. Our asynchronous continuous-time model draws inspiration from physiological and biological principles for neuron dynamics. By modeling dynamics of the exponential decay of neuron voltage towards equilibrium, refractory periods, and numerous synaptogenesis phenomenons we aim to build a neural architecture that is both biologically inspired and computationally simple. 
 \end{block}
 
 %------------------------------------------------
 
 
- \begin{block}{Artificial Neural Networks}
-   \textbf{Definition 1.} \emph{ 
-    We say $\mathcal{N}: \mathbb{R}^n \to \mathbb{R}^m$ is a feed-forward neural network if for an input vector $\pmb{x}$,
-    \begin{equation}
-            \begin{aligned}
-        \mathcal{N}:\ & \sigma_j^{(l+1)} &= g\left(\sum_{i \in Z^{(l)}}w_{ij}^{(l)}\sigma_i^{(l)} + \beta^{(l)}\right) \\ & \sigma_j^{(1)} &= g\left(\sum_{i \in Z^{(0)}}w_{ij}^{(0)}x_i + \beta^{(0)} \right),
-        \end{aligned}
-    \end{equation}
-    where $1\leq l \leq L-1$. Furthermore we say $\{\mathcal{N}\}$ is the set of all neural networks.}
-
+ \begin{block}{Open Brain Definitions}
+ A \textbf{neuron} $n \in N$ is defined by:
+ \begin{itemize}
+ \item voltage $V_n(t)$
+ \item decay time $\tau_n$
+ \item refractory period $\rho_n$
+ \item voltaic threshold $\theta_n$
+ \end{itemize}
+  A \textbf{connection} $c \in C$ is a tuple $(n_i, n_j, w_{ij}) \in N \times N \times \mathbb{R}$
+  where $n_i$ is  the \textbf{anterior neuron}, $n_j$ is the \textbf{posterior neuron}, and $w_ij$
+  is the standard synaptic weight.
 \end{block}
 %----------------------------------------------------------------------------------------
 
@@ -146,18 +143,19 @@ Although neural networks have proven an extremely effective mechanism of machine
 %	MATERIALS
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Functional Neural Networks}
 
-  Suppose that we wish to map one functional space to another with a neural network. Consider the standard model of an ANN as the number of neural nodes for every layer becomes uncountable. The index for each node then becomes real-valued, along with the weight and input vectors.\\[1cm]
-
-  \textbf{Definition 2.} \emph{We call $\mathcal{F}: L^1(X) \to L^1(Y)$ a functional neural network if,
-  \begin{equation}
-            \begin{alignedat}{2}
-          \mathcal{F}:\ &\sigma^{(l+1)}(j) & &=  g\left(\int_{R^{(l)}} \sigma^{(l)}(i) w^{(l)}(i,j)\ di \right)  \\
-          &\sigma^{(0)}(j) & &= \xi(j). 
-          \end{alignedat}
-  \end{equation}
-  Furthermore let $\{\mathcal{F}\}$ denote the set of all functional neural networks.}
+\begin{block}{Neuronal Dynamics}
+  A neuron $n$ is said to \textbf{fire} if it is not in its refractory period and $V_n(t_{k}) = V_n[k] > \theta_n$. Then for all $m \in P_n$,
+  \begin{equation*}
+    V_m[k+1] {\ +_=\ } w_{nm} \sigma(V_n[k]); \label{eq:fire}
+  \end{equation*}
+  that is, voltage is propagated to the posterior neurons.
+  Immediately after neuron $n$ fires, it enters  a \textbf{refractory period} until time $t_{k} + \rho_n$, or iteration $k + \frac{\rho_n}{\Delta t}$. 
+  	We say that a neuron $n$ experiences \textbf{voltage decay} so that for all $k$,
+	\begin{equation}
+		V_n[k+1] \leftarrow V_n[k]e^{-\Delta t/\tau}. \label{eq:decay}
+	\end{equation}
+	so that unless it obtains voltage from anterior neurons' firing, its voltage will decay exponentially to 0.
 
 \end{block}
 
@@ -171,9 +169,7 @@ Although neural networks have proven an extremely effective mechanism of machine
 %	METHODS
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Methods}
-
-Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed laoreet accumsan mattis. Integer sapien tellus, auctor ac blandit eget, sollicitudin vitae lorem. Praesent dictum tempor pulvinar. Suspendisse potenti. Sed tincidunt varius ipsum, et porta nulla suscipit et. Etiam congue bibendum felis, ac dictum augue cursus a. \textbf{Donec} magna eros, iaculis sit amet placerat quis, laoreet id est. In ut orci purus, interdum ornare nibh. Pellentesque pulvinar, nibh ac malesuada accumsan, urna nunc convallis tortor, ac vehicula nulla tellus eget nulla. Nullam lectus tortor, \textit{consequat tempor hendrerit} quis, vestibulum in diam. Maecenas sed diam augue.
+\begin{block}{Learning}
 
 \end{block}
 
@@ -188,7 +184,7 @@ Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed laoreet ac
 %----------------------------------------------------------------------------------------
 
 \begin{alertblock}{Important Result}
-\textbf{Theorem.} \emph{Given a functional neural network $\mathcal{F}$ then some layer $l \in \mathcal{F}$, the let $K:C(R^{(l)})\to C(R^{(l)})$ be a bounded linear operator. If we denote the operation of layer $l$ on layer $l-1$ as $\sigma^{(l+1)} = g\left(\Sigma_{l+1}\sigma^{(l)}\right)$, then for every $\epsilon >0$, there exists a weight polynomial $w^{(l)}(i,j)$ such that the supremum norm over }$R^{(l)}$ \begin{equation}\left\|K\sigma^{(l)} -\Sigma_{l+1}\sigma^{(l)}\right\|_{\infty} < \epsilon\end{equation}
+\textbf{Theorem.}
 
 \end{alertblock} 
 
@@ -199,26 +195,20 @@ Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed laoreet ac
 \begin{column}{\onecolwid} % The first column within column 2 (column 2.1)
 
 %----------------------------------------------------------------------------------------
-%	MATHEMATICAL SECTION
+%	UNIVERSAL INTELLIGENCE
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Mathematical Section}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-  
-\begin{equation}
-E = mc^{2}
-\label{eqn:Einstein}
-\end{equation}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-
-\begin{equation}
-\cos^3 \theta =\frac{1}{4}\cos\theta+\frac{3}{4}\cos 3\theta
-\label{eq:refname}
-\end{equation}
-
-
+\begin{block}{Universal Intelligence Measure in Continuous Time}
+A well established\cite{}  machine intelligence measure is the Universal Intelligence Measure proposed by Legg and Hutter \cite{}, whose work developed a consise definition of the intelligence of an \emph{agent} in an \emph{environment}:
+	If $\pi$ is an agent then we say that the \textbf{universal intelligence} of $\pi$ is
+	\begin{equation} 
+		\Upsilon(\pi) = \sum_{\mu \in E}2^{-K(\mu)}V_\mu^\pi
+	\end{equation}
+	where $V_\mu^\pi$ is the expected reward of the agent in $\mu$,
+	\begin{equation}
+		V_\mu^\pi = \mathbb{E}\left(\sum_{i=1}^\infty r_i\right) \leq 1.
+	\end{equation}
+To make a continuous time intelligence measure which is compatible with agents who act instantaneously within an environment, we ??
 
 \end{block}
 
@@ -232,7 +222,7 @@ Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sol
 %	RESULTS
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Results}
+\begin{block}{Project Status}
 
 \begin{figure}
 \includegraphics[width=0.8\linewidth]{placeholder.jpg}
@@ -260,9 +250,7 @@ Nunc tempus venenatis facilisis. Curabitur suscipit consequat eros non porttitor
 %	CONCLUSION
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Conclusion}
-
-Nunc tempus venenatis facilisis. \textbf{Curabitur suscipit} consequat eros non porttitor. Sed a massa dolor, id ornare enim. Fusce quis massa dictum tortor \textbf{tincidunt mattis}. Donec quam est, lobortis quis pretium at, laoreet scelerisque lacus. Nam quis odio enim, in molestie libero. Vivamus cursus mi at \textit{nulla elementum sollicitudin}.
+\begin{block}{Conclusion and Goals}
 
 \end{block}
 
@@ -272,12 +260,6 @@ Nunc tempus venenatis facilisis. \textbf{Curabitur suscipit} consequat eros non 
 
 \begin{block}{Additional Information}
 
-Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius dictum. 
-\begin{itemize}
-\item Curabitur pellentesque dignissim
-\item Eu facilisis est tempus quis
-\item Duis porta consequat lorem
-\end{itemize}
 
 \end{block}
 
