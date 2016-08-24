@@ -4,7 +4,7 @@
 In alignment with the philosophy which predicates OpenBrain, we wish to extend the evaluation of our algorithm well beyond its performance in supervised learning tasks; that is, what can be said about the intelligence of OpenBrain as an agent in an environment? A metric more condusive to implementing general intelligence is needed. The answer will motivate an important discussion of representation theory annd learning rules.
 \subsection{Universal Intelligence}
 A well established\cite{legg2008machine, mnih2015human, rathmanner2011philosophical}  machine intelligence measure is the Universal Intelligence Measure proposed by Legg and Hutter \cite{legg2007universal}. Drawing from a large amount of disparate literature on the subject they develop a consise definition of the intelligence of an \emph{agent} in an \emph{environment}. 
-\todo[inline]{The following exposition may be unnecessary, and we should consider just stating the result of Legg and Hutter.}
+%\todo[inline]{The following exposition may be unnecessary, and we should consider just stating the result of Legg and Hutter.}
 
 Environment-agent interaction is defined with respect to an observation space, $\mathcal{O}$, and an action space, $\mathcal{A}$, both of which consist of abstract symbols. The perception space, $\mathcal{P} \subset \mathcal{O} \times \mathbb{R}$, is the combination of observations and rewards.
 \begin{definition}
@@ -38,7 +38,7 @@ Having defined the basic framework, \cite{legg2007universal} gives a definition 
 
 The definition is satisfactory for agents which act synchronously with their environments; that is, the environment waits for the agent to act before giving a new observation. Therefore in Hutter's sense, the framework of \cite{legg2007universal} describes an agent $\pi$ embedded in $\mu$.
 
-Despite this, the environments which we normally consider an intelligent agent to 'act well' in are often chaotic and operate with noise which is temporally independent from the agent-environment interaction itself. \todo{Why!?} For example, a real time game does not wait for a player to press a key, and yet the player still receives perceptual information. The intelligence measure proposed fails to encompass agent-environment interactions where the agent has some delay in acting as the environment continues; modeling such delays as $a_k = \emptyset$ is no more enlightening.
+Despite this, the environments which we normally consider an intelligent agent to 'act well' in are often chaotic and operate with noise which is temporally independent from the agent-environment interaction itself. %\todo{Why!?} For example, a real time game does not wait for a player to press a key, and yet the player still receives perceptual information. The intelligence measure proposed fails to encompass agent-environment interactions where the agent has some delay in acting as the environment continues; modeling such delays as $a_k = \emptyset$ is no more enlightening.
 
 In order to integrate OpenBrain with this framework, we will propose a continuous time universal intelligence measure.
 

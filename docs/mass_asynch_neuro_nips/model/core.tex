@@ -1,14 +1,8 @@
 %!TEX root = ../main.tex
 \subsection{The Core Framework}
 
-\todo[inline]{This section needs an actuall discussion. For now here are the working definitions of Openbrain.}
-
-Most standard neural network models depart from the biological neuron in a number of ways. Our asynchronous continuous-time model draws inspiration from physiological and biological principles for neuron dynamics.
-
-In a biological neuron, there are leak Na+ and K+ current channels that constantly push the neuron's voltage towards its equilibrium voltage. We have included an exponential decay term to model this homeostatic tendency towards equilibrium. Likewise, we have also loosely modelled the refractory period, the period immediately after an action period in which a neuron cannot send a signal, instead of having resetting the voltage of a neuron immediately back to zero.
-
-There are many features of a biological neuron that we have chosen not to implement (most notably the dynamics of a neuron's voltage during a action potential, by implementing a Hodgkins-Huxley model (see wikipedia)) in that there is a trade-off between having a model that is more biological realisticity and one that is mathematically and computationally simple. There are projects like BlueBrain that aim for the most biologically realistic model, and a plethora of projects (deep learning, etc.) that are vaguely biologically inspired but have been massively implemented and successful at a small class of tasks. Our hope is by striving for a balance between the two ideals by implementing a system that is both biologically inspired and computationally simple, we would be able to make a massive implementation that succeeds in a wide variety of tasks that require both creativity and intelligence.
-
+%%\todo[inline]{This section needs an actuall discussion. For now here are the working definitions of Openbrain.}
+We begin by giving basic abstractions on neurons.
 
 \begin{definition}\label{neuron}
 	A \textbf{neuron} $n \in N$ is defined by
@@ -25,7 +19,7 @@ There are many features of a biological neuron that we have chosen not to implem
 	is the standard synaptic weight.
 \end{definition}
 
-\todo[inline]{Make connection diagram.}
+%\todo[inline]{Make connection diagram.}
 
 
 For a neuron $n$, we denote the set of anterior neurons $A_n$ and the dendritic connections, $C_{n}^a$. In the same light we will use the notations $P_n$ and $C_n^p$ to denote the sets of posterior neurons and posterior connections for $n$ respectively.

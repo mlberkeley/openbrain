@@ -1,3 +1,11 @@
 %!TEX root = main.tex
-\section{Conwaynian Learning Rules}
+\section{Asynchronous Signal Error Backpropagation}
 
+In this section we introduce an asynchronous signal error backpropagation method,
+as a general framework for updating parameters using the policy gradient. In traditional
+supervised learning, neural networks propagate an error gradient to almost every neuron on every layer.
+This method is adventageous since it it is easily optimized using GPUs and tensor multiplication, but measures must be 
+taken to introduce sparsity and prevent overfitting such as dropout and ReLU activations. 
+
+Our framework immediately requires sparsity of both neuronal connections and neuronal firings and therefore would suffer 
+by such methods. Fortunately our framework can take advantage of chain rule as a graph transition process as follows.
