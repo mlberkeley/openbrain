@@ -8,4 +8,15 @@ This method is adventageous since it it is easily optimized using GPUs and tenso
 taken to introduce sparsity and prevent overfitting such as dropout and ReLU activations. 
 
 Our framework immediately requires sparsity of both neuronal connections and neuronal firings and therefore would suffer 
-by such methods. Fortunately our framework can take advantage of chain rule as a graph transition process as follows.
+by such methods. Fortunately our framework can take advantage of chain rule as a graph transition process. Consider the following situation.
+
+\begin{definition}
+	Select subsets of neurons $N_I, N_O$ to denote the input and output neurons for an openbrain $O.$ Then given a dataset $D$ of datapairs $(x,y)$ where $x \in \mathbb{R}^{|N_I|}, y \in \mathbb{R}^{|N_O|}$, we define the error or loss of $O$ on $D$ as 
+	\begin{equation}
+		E_{t}= \frac{1}{2}\sum_{(x,y) \in D} \|N_O - y\|^2
+	\end{equation}
+	where $N_I := x$ for each $N_O.$
+\end{definition}
+
+Suppose we have a neuron $n$ as in \todo{Insert neuron figure here} that has just been activated at $t = t_0.$ This leads to a series of activations tagged with the activation of $n$ at $t_0$ 
+
