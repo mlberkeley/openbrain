@@ -7,16 +7,22 @@ supervised learning, neural networks propagate an error gradient to almost every
 This method is adventageous since it it is easily optimized using GPUs and tensor multiplication, but measures must be 
 taken to introduce sparsity and prevent overfitting such as dropout and ReLU activations. 
 
-Our framework immediately requires sparsity of both neuronal connections and neuronal firings and therefore would suffer 
+Our framework immediately invokes sparsity of both neuronal connections and neuronal firings and therefore would perform suboptimally 
 by such methods. Fortunately our framework can take advantage of chain rule as a graph transition process. Consider the following situation.
 
 \begin{definition}
-	Select subsets of neurons $N_I, N_O$ to denote the input and output neurons for an openbrain $O.$ Then given a dataset $D$ of datapairs $(x,y)$ where $x \in \mathbb{R}^{|N_I|}, y \in \mathbb{R}^{|N_O|}$, we define the error or loss of $O$ on $D$ as 
+	Select subsets of neurons $N_I, N_O$ to denote the i\textbf{nput and output neuron}s for an openbrain $O.$ Then given a dataset $D$ of datapairs $(x,y)$ where $x \in \mathbb{R}^{|N_I|}, y \in \mathbb{R}^{|N_O|}$, we define the \textbf{error or loss} of $O$ on $D$ as 
 	\begin{equation}
-		E_{t}= \frac{1}{2}\sum_{(x,y) \in D} \|N_O - y\|^2
+		\begin{aligned}
+			V(n,t) &\leftarrow x, &n \in N_I \\
+			E(t+t_e) &= \frac{1}{2} \|V(m,t+t_e) - y\|^2, &m \in N_O
+		\end{aligned}
 	\end{equation}
-	where $N_I := x$ for each $N_O.$
+	where $(x,y) \in D$ and $[t,t+t_e]$ is the \textbf{evaluation interval}.
 \end{definition}
+
+Learning is then defined as the optimization of the error function over the evaluation interval with respect to the connection parameters which lead to the final behaviour. One might optimize learning so that the most optimal behaviour minimizes the evaluation interval by letting $t_e \to 0$ as $t \to \infty,$ but we hold $t_e$ constant in the initial formulation.
+
 
 Suppose we have a neuron $n$ as in \todo{Insert neuron figure here} that has just been activated at $t = t_0.$ This leads to a series of activations tagged with the activation of $n$ at $t_0$ 
 
