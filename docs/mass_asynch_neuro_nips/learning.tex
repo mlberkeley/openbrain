@@ -8,21 +8,128 @@ This method is adventageous since it it is easily optimized using GPUs and tenso
 taken to introduce sparsity and prevent overfitting such as dropout and ReLU activations. 
 
 Our framework immediately invokes sparsity of both neuronal connections and neuronal firings and therefore would perform suboptimally 
-by such methods. Fortunately our framework can take advantage of chain rule as a graph transition process. Consider the following situation.
+by such methods. Fortunately our framework can take advantage of chain rule as a graph transition process. Furthermore we wish to optimize the networks
+ability to produce an output a vector $y$ at time $t_0+t_e$ given that at time $t_0$ the network was fed some $x$.
+
+As is standard with recurrent neural networks we define a method to unroll the neural activity of an OpenBrain between two points in time.
 
 \begin{definition}
-	Select subsets of neurons $N_I, N_O$ to denote the i\textbf{nput and output neuron}s for an openbrain $O.$ Then given a dataset $D$ of datapairs $(x,y)$ where $x \in \mathbb{R}^{|N_I|}, y \in \mathbb{R}^{|N_O|}$, we define the \textbf{error or loss} of $O$ on $D$ as 
-	\begin{equation}
-		\begin{aligned}
-			V(n,t) &\leftarrow x, &n \in N_I \\
-			E(t+t_e) &= \frac{1}{2} \|V(m,t+t_e) - y\|^2, &m \in N_O
-		\end{aligned}
-	\end{equation}
-	where $(x,y) \in D$ and $[t,t+t_e]$ is the \textbf{evaluation interval}.
+	We say that neural activity of an openbrain $O$ over time can be \textbf{unrolled} as a function $\mathfrak{U}_O(a,b)$ so that the following diagram commutes
+
+	\begin{center}
+		\begin{tikzcd}[row sep=1.3em]
+			&C(a)
+				\arrow{r}{V_{N}(a)}
+			&\mathbb{R}^{|N|}
+				\arrow[snake it]{d}{D_{N}(a)}\\
+			\displaystyle{\bigtimes_{t \in [a,b]_{\Delta t}}} C(t) 
+				\arrow{ru}{\pi_a}
+				\arrow[dotted]{r}{\pi_{\dots}}
+				\arrow{rd}{\pi_b}
+				\arrow[bend right, looseness=1.2]{drrr}[swap]{\mathfrak{U}_O(a,b)}
+			&\vdots
+				\arrow[dotted]{r}{V_N(\,\dots)}
+			&\vdots
+				\arrow[snake it]{d}{D_N(b - \Delta t)} \\
+			&C(b)
+				\arrow{r}{V_{N}(b)}
+			&\mathbb{R}^{|N|} \arrow{r}{\pi_{N_O}}
+			&\mathbb{R}^{|N_O|}
+		\end{tikzcd}
+	\end{center} 
+		where $C(t)$ is the set of connections at time $t$, $D_N(t-\Delta t): \mathbb{R}^{|N|} \to \mathbb{R}^{|N|}$ is the voltage decay from one timestep to the next, and $\pi_t$ is the cannonical projection.
+		We will sometimes use the shorthand $\mathfrak{U}_O(I).$
 \end{definition}
 
-Learning is then defined as the optimization of the error function over the evaluation interval with respect to the connection parameters which lead to the final behaviour. One might optimize learning so that the most optimal behaviour minimizes the evaluation interval by letting $t_e \to 0$ as $t \to \infty,$ but we hold $t_e$ constant in the initial formulation.
+Lastly, we must define a lost function to validate the activity of the openbrain agent against some desired output.
+\begin{definition}
+	Select the some neurons $N_I, N_O$ for an openbrain $O.$ Then given a dataset $D$ of datapairs $(x,y)$ where $x \in \mathbb{R}^{|N_I|}, y \in \mathbb{R}^{|N_O|}$, we define the \textbf{loss} of $O$ on $D$ as 
+	\begin{equation}
+		\begin{aligned}
+			V_{N_I}(t_0) &:= x \\
+			E(\tau, y) &:= \frac{1}{2}\left\|\mathfrak{U}_O(I)\big|_\tau - y\right \|^2 \\
+			J(I) &=  \int_I E(\tau, y)e^{\frac{-(\tau - t_0)^2}{|I|^2}}\  d\tau
+		\end{aligned}
+	\end{equation}
+	where $(x,y) \in D$ and $[t_0,t_0+t_e] = I$ is the \textbf{evaluation interval}.
+\end{definition}
+
+Learning is then defined as the optimization of the error function over the evaluation interval with respect to the connection parameters which lead to the final behaviour. One might optimize learning so that the most optimal behaviour minimizes the evaluation interval by letting $t_e \to 0$ as $t_0 \to \infty,$ but we hold $t_e$ constant in the initial formulation.
+
+\subsection{Signal Derivation}
+
+Observing Figure 1, it is intuitive that neural dynamics are sparse and moreover that error signals should be backpropagated along the very transitions that lead to the actions themselves. Not surprisingly the derivation of the gradient with respect to connection strength at a fixed time $\tau$ is similar to that of standard feed forward networks with a few caveats. 
+
+The gradient of $J$ integrated over time is simply
+
+\begin{equation}
+D_{c_{nm}} [J] = \int_I D_{c_{nm}}E(\tau, y)\cdot e^{\frac{-(t-t_0)^2}{|I|^2}}\ d\tau.
+\end{equation}
+
+For simplicity we will just calculuate the Frechet derivative of $E$ w.r.t $c_{nm}$ at a timestep $\tau$ and then worry about integration later. Using the unrolled commutative diagram for $\mathfrak{U}_O$ we get the following equivalent diagram by the universal property of tensor products
+\begin{center}
+		\begin{tikzcd}
+			C(\tau)
+				\arrow{r}{\pi_{nm}}
+				\arrow[bend left]{rrr}{\mathfrak{U}_O(I)\Big|_\tau}
+			&\mathbb{R}
+				\arrow[hook]{r}{V_{N_O}^\gamma(\tau)}
+			&\displaystyle{\bigotimes_{
+				\substack{
+					k = (k_1, \dots, k_q)\\
+					k \in \text{path}(\gamma)
+				}
+			} \mathbb{R}^{|N_O|}}
+				\arrow{r}{T}
+			& \mathbb{R}^{|N_O|}
+				\arrow{r}{J'(\tau)}
+			& \mathbb{R}
+		\end{tikzcd}
+	\end{center} 
+	where $T$ is a linear map, $\text{path}(\gamma)$ is the path $c_{nm}(\tau) \to n \in N_O$ through the neural activity diagram, and $V_{N_O}^\gamma$ is a function which parameterizes the voltage of the output neurons at time $t_0 + t_e$ with respect to $c_{nm}(\tau)$. 
+
+	This formulation then lets us differentiate the diagram to calculate $D_{c_{nm}(\tau)}\left[\mathfrak{U}_O(t_0,t_0+t_e)\right]$ as a linear combination over $\text{path}(\gamma).$
+
+	\begin{center}
+		\begin{tikzcd}
+			C(\tau)
+				\arrow{r}{D\pi_{nm}}
+				\arrow[bend left]{rrr}{D_{c_{nm}} \mathfrak{U}_O(I)\Big|_\tau}
+			&\mathbb{R}
+				\arrow[hook]{r}{DV_{N_O}^\gamma(\tau)}
+			&\displaystyle{\bigotimes_{
+				\substack{
+					k = (k_1, \dots, k_q)\\
+					k \in \text{path}(\gamma)
+				}
+			} \mathbb{R}^{|N_O|}}
+				\arrow{r}{DT}
+			& \mathbb{R}^{|N_O|}
+				\arrow{r}{DE}
+			& \mathbb{R}
+		\end{tikzcd}
+	\end{center}
+
+	Therefore $\frac{\partial E}{\partial c_{nm}(\tau)} = DE \circ DT \circ DV_{N_O}^\gamma(\tau) \circ D\pi_{nm}$. Using the voltage definition and the fact that derivative of $T$ is just a linear map $\bigotimes \mathbb{R}^{|N_O|} \to \mathbb{R}^{|N_O|}$,
+	\begin{equation}
+		\begin{aligned}
+			D\pi_{nm} &= \frac{\partial V_m[\tau]}{\partial c_{nm}} = \chi_{n \in A_m'} \sigma(V_n[\tau-\Delta t]). \\
+			DT\circ DV^{\gamma}_{N_O}(\tau)
+				&= \sum_{
+					\substack{
+						k = (k_1, \dots, k_q)\\
+						k \in \text{path}(\gamma)
+					}} 
+				\prod_{j=2}^{q}
+				 	\frac{\partial V_{k_j}[t_{k_j}]}{\partial V_{k_{j-1}}[t_{k_{j-1}}]} \\
+				 	DE &= \left\langle\ V_{N_O}[t_0 + t_e] - y, \cdot \right\rangle. 
+		\end{aligned}
+	\end{equation}
+
+	This path formulation essentially only requires that at every timestep we calculate the affect of an anterior neuron on its posterior and the affect of all anterior connections on the voltage of the neuron.  Then when weight update occurs, every neuron would pass its error signal to its anterior neurons to be aggregated and finally updated. However, this process immediately gives infinite gradients if indeed there are cycles and requires that weigh updates occur synchronously, even before integrating over $\tau.$
+
+\subsection{Towards Decentralized Gradient Descent}
+	Given our exposition into supervised learning for $O$, it would seem that such a task is not suited to current optimization methods. However, recalling methods from quantum physics $DT \circ DV^\gamma_{N_O}$ appears analygous to the Feynman path integral. We conjecture that there is actually a reasonable space-time path distribution for the gradient over $\text{path}(\gamma)$ which can be renormalized. If such a distribution exists we conjecture that it suffices to draw a discrete set of paths in the calculation of the gradient.
 
 
-Suppose we have a neuron $n$ as in \todo{Insert neuron figure here} that has just been activated at $t = t_0.$ This leads to a series of activations tagged with the activation of $n$ at $t_0$ 
 

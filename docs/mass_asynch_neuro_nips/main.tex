@@ -2,6 +2,7 @@
 
 \documentclass{article} % For LaTeX2e
 \usepackage{nips15submit_e,times}
+\usepackage{xparse}
 
 \usepackage{hyperref}
 \usepackage{url}
@@ -14,6 +15,7 @@
 
 % tikz and associated macros
 \usepackage{tikz}
+\usepackage{tikz-cd}
 
 \usepackage{pgfplots}
 \newcommand\sep{1.9cm}
@@ -28,6 +30,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathabx}
+
 \newcommand{\BlackBox}{\rule{1.5ex}{1.5ex}}  % end of proof
 \newtheorem{example}{Example} 
 \newtheorem{theorem}{Theorem}
@@ -45,8 +48,16 @@
 \DeclareSymbolFont{cmlargesymbols}{OMX}{cmex}{m}{n}
 \let\sumop\relax
 \DeclareMathSymbol{\sumop}{\mathop}{cmlargesymbols}{"50}
-
-%
+\NewDocumentCommand{\tens}{t_}
+ {%
+  \IfBooleanTF{#1}
+   {\tensop}
+   {\otimes}%
+ }
+\NewDocumentCommand{\tensop}{m}
+ {%
+  \mathbin{\mathop{\otimes}\displaylimits_{#1}}%
+ }
 
 %% todo[inline] NOTES. To remove for camera ready version.
 \usepackage{todonotes}
