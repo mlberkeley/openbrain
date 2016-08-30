@@ -18,7 +18,7 @@ class Brain(object):
         :param num_hidden: The number of hidden neurons.
         """
         self.initialize_graph(num_input,num_hidden, num_output,  density=0.5)
-        # self.visualize()
+        self.visualize()
 
 
     def initialize_graph(self, num_input, num_hidden,  num_output,density):
@@ -128,5 +128,10 @@ if __name__ == '__main__':
 
         b.C += 0.01*dEdC
         print(i, v.as_numpy_array()[b.output_neurons])
+
+        for n, volt in enumerate(v):
+            b.ubi.set_properties({
+                "size": str(volt)
+                }, [n])
 
 

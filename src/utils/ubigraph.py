@@ -85,7 +85,8 @@ class Ubigraph:
     def set_properties(self, props, nodes):
         for node in nodes:
             for prop, val in props.items():
-                self.G.set_vertex_attribute(self.nodes[node], prop, val)
+                try: self.G.set_vertex_attribute(self.nodes[node], prop, val)
+                except: pass
 
 
 
