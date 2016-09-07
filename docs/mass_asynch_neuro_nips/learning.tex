@@ -7,8 +7,10 @@ supervised learning, neural networks propagate an error gradient to almost every
 This method is adventageous since it it is easily optimized using GPUs and tensor multiplication, but measures must be 
 taken to introduce sparsity and prevent overfitting such as dropout and ReLU activations. 
 
-Furthermore, methods for the standard feed forward neural network have been proposed to decouple the gradient for each layer and recently with the advent of synthetic gradients, truly asynchronous networks in the context of supervised learning are possible. In particular the synthetic gradient method attempts to approximate the gradient signal from the output neurons to a particular layer by learning a function from the input of a layer to that gradient signal. We claim, however, that this is not a true decoupling of the network from its dependence on a path to its output. In the synthetic gradient method, the synthetic gradients still must be updated with respect to the true gradient, even though such an update happens independently (in time) from the update of the connection strength. That is, there is still an amortized, central dependence on the error gradient at the output and the diagramatic path thereto. Therefore, we will propose a decentralized method for learning in the context of reinforcement learning.
+Furthermore, methods for the standard feed forward neural network have been proposed to decouple the gradient for each layer and recently with the advent of synthetic gradients\todo{cite}, truly asynchronous networks in the context of supervised learning are possible. In particular the synthetic gradient method attempts to approximate the gradient signal from the output neurons to a particular layer by learning a function from the input of a layer to that gradient signal. We claim, however, that this is not a true decoupling of the network from its dependence on a path to its output. In the synthetic gradient method, the synthetic gradients still must be updated with respect to the true gradient, even though such an update happens independently (in time) from the update of the connection strength. That is, there is still an amortized, central dependence on the error gradient at the output and the diagramatic path thereto. Therefore, we will propose a decentralized method for learning in the context of reinforcement learning.
 
+
+\subsection{Signal Derivation}
 
 Our framework immediately invokes sparsity of both neuronal connections and neuronal firings and therefore would perform suboptimally 
 by such methods. Fortunately our framework can take advantage of chain rule as a graph transition process. Furthermore we wish to optimize the networks
@@ -59,7 +61,6 @@ Lastly, we must define a lost function to validate the activity of the openbrain
 
 Learning is then defined as the optimization of the error function over the evaluation interval with respect to the connection parameters which lead to the final behaviour. One might optimize learning so that the most optimal behaviour minimizes the evaluation interval by letting $t_e \to 0$ as $t_0 \to \infty,$ but we hold $t_e$ constant in the initial formulation.
 
-\subsection{Signal Derivation}
 
 Observing Figure 1, it is intuitive that neural dynamics are sparse and moreover that error signals should be backpropagated along the very transitions that lead to the actions themselves. Not surprisingly the derivation of the gradient with respect to connection strength at a fixed time $\tau$ is similar to that of standard feed forward networks with a few caveats. 
 
@@ -131,9 +132,16 @@ For simplicity we will just calculuate the Frechet derivative of $E$ w.r.t $c_{n
 
 	This path formulation essentially only requires that at every timestep we calculate the affect of an anterior neuron on its posterior and the affect of all anterior connections on the voltage of the neuron.  Then when weight update occurs, every neuron would pass its error signal to its anterior neurons to be aggregated and finally updated. However, this process immediately gives infinite gradients if indeed there are cycles and requires that weigh updates occur synchronously, even before integrating over $\tau.$
 
-\subsection{Towards Decentralized Policy Gradient Reinforcement Learning}
+\subsection{Towards Asynchronous Policy Gradient Reinforcement Learning}
 
-	Given our exposition into supervised learning for $O$, it would seem that such a task is not suited to current optimization methods. However, recalling methods from quantum physics $DT \circ DV^\gamma_{N_O}$ appears analygous to the Feynman path integral. We conjecture that there is actually a reasonable space-time path distribution for the gradient over $\text{path}(\gamma)$ which can be renormalized. If such a distribution exists we conjecture that it suffices to draw a discrete set of paths in the calculation of the gradient.
+	Gradient descent on a true error function for the desired policy in intractible for the following two reasons: the desired policy is unaccessible and (possibly) uncomputable, and the path formulation for signal error backpropagation potentially leads to infinite gradients. Therefore we take inspiration from biology to propose a decentralized policy gradient method.
 
+	In the brain, common to all neurons, is an interaction with the limbic system. \todo{cite?} Certain chemical compounds are released which signal the brain's performance to all of its neurons. Each neuron then might chemically anticipate a certain signal given its current somatic potential and ion channel "conductance."  \todo{Validate if there is something like this biologically}. This system is robust to failure of neuronal connections and does not exhibit any backpropoagation behavior as in standard ANNs and synthetic gradient ANNs. We draw analogy to the limbic system in the following way. 
 
+	\begin{definition}
+		For a neuron $n$ in an OpenBrain $O$, we say that $Q_n$ is the expected reward for $n$ such that
+		\begin{equation}
+			Q_n(V_{A_n}[t]), V_n[t]) = r_t	
+		\end{equation}
+	\end{definition}
 

@@ -2,6 +2,7 @@ import numpy as np
 import networkx
 import time
 import utils.gnumpy as gpu
+import gym
 
 from utils.ubigraph import Ubigraph
 
@@ -37,7 +38,7 @@ class Brain(object):
 
         for i, adjacent in enumerate(adjacency_list):
             for node in adjacent:
-                self.C[i, node] = np.random.rand(1)
+                self.C[i, node] = np.random.rand(1)*0.9
 
         self.C = gpu.garray(self.C)
 
@@ -77,6 +78,16 @@ class Brain(object):
                 if out in adjacency_list[inp]: adjacency_list[inp].remove(out)
                 if inp in adjacency_list[out]: adjacency_list[out].remove(inp)
 
+
+        for i, adjacent in enumerate(adjacency_list):
+            if i not in self.input_neurons and i not in self.output_neurons:
+                for n in adjacent:
+                    if i in adjacency_list[n]:
+                        if np.random.rand(1)>0.5:
+                            adjacent.remove(n)
+                        else:
+                            adjacency_list[n].remove(i)
+
         # Let nothing enter the input neurons
         for inp in self.input_neurons:
             adjacency_list[inp] = []
@@ -99,39 +110,39 @@ def get_random_input(b):
     return gpu.garray(np.array([np.random.rand(1) * 2 - 1.0 if i in b.input_neurons else 0.0 for i in range(b.num_neurons)],
              dtype=np.float32))
 
+    
 if __name__ == '__main__':
-    b = Brain(2,10,1, 0.2)
-    print(0)
-
+    b = Brain(2,120,1, 0.2)
     v =get_random_input(b)
     i =0
 
     grad = list()
-    while True:
-        while len(grad) > 200:
-            grad.pop(0)
 
-        i+=1
-        x = get_random_input(b)
-        net = b.C.dot(v + x)
-        dsigma = gpu.diagflat(gpu.tanh(net)*(1 - gpu.tanh(net)))
-        dnet = gpu.garray(np.multiply.outer(np.identity(v.shape[0]), v.as_numpy_array()))
-        dsigmadv = gpu.tensordot(dsigma, gpu.diagflat(v))
-        grad.append(dsigmadv)
-        v = gpu.tanh(net)
-
-        diff = gpu.garray (v.as_numpy_array()[b.output_neurons] - np.array([0.2]))
-        dsigmadC = gpu.tensordot(dsigma, dnet, 1)
-        dpidC = gpu.garray(dsigmadC.as_numpy_array()[b.output_neurons,:,:])
-
-        dEdC = gpu.tensordot(diff, dpidC,1)
-
-        b.C += 0.01*dEdC
-        print(i, v.as_numpy_array()[b.output_neurons])
-
-        for n, volt in enumerate(v):
-            b.ubi.set_properties({
-                "size": str(volt)
-                }, [n])
+    for i_episode in range(500):
+            for t in range(100):
+                
 
 
+                x = get_random_input(b)
+                net = b.C.dot(v*0.9 + x)
+                #dsigma = gpu.diagflat(gpu.tanh(net)*(1 - gpu.tanh(net)))
+                #dnet = gpu.garray(np.multiply.outer(np.identity(v.shape[0]), v.as_numpy_array()))
+                #dsigmadv = gpu.tensordot(dsigma, gpu.diagflat(v))
+                #grad.append(dsigmadv)
+                v = gpu.tanh(net)
+
+                #diff = gpu.garray (v.as_numpy_array()[b.output_neurons] - np.array([0.2]))
+                #dsigmadC = gpu.tensordot(dsigma, dnet, 1)
+                #dpidC = gpu.garray(dsigmadC.as_numpy_array()[b.output_neurons,:,:])
+
+                #dEdC = gpu.tensordot(diff, dpidC,1)
+
+                #b.C += 0.01*dEdC
+                #print(i, v.as_numpy_array()[b.output_neurons])
+
+                for n, volt in enumerate(v):
+                    if not( n in b.input_neurons or n in b.output_neurons):
+                        b.ubi.set_properties({
+                            "size": str(abs(volt)*2),
+                            "color": "#FF0000"
+                            }, [n])
