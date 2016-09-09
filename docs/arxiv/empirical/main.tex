@@ -206,6 +206,28 @@ In deterministic policy gradient methods, we define an actor $\mu: \scripts \to 
 
 \subsection{Towards Neurocomputational Decomposition of $Q^\mu$}
 
+In order to decompose the $Q^\mu$ algorithm we will abstractly define a neurocomputational agent in terms of an operator on voltages with no restrictions on the topology of the network, and then relate the action-value function of the whole agent to those which are dfined for each individual neuron in the network.
+
+If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational agent} is a tuple $\scriptn = (\mu, \epsilon, \delta, K, \Theta, \sigma, V)$ such that: 
+\begin{itemize}
+	\item $\epsilon : \scripts \times \to N_I \subset \scriptv$ encodes the state into the voltages of \emph{input neurons}, a subspace $N_I$ of the voltages $\scriptv\subset \mathbb{R}^N$ of every neuron in the network. Specifically $\epsilon(s_t) = \mathrm{proj}_{N_I}(s_t)$.
+	\item $\delta: \scriptv \to \scripta$ decodes the voltages of the \emph{output neurons }$N_O \subset V$ into an action.
+	\item $K: \scriptv \to \scriptv$ is the linear voltage graph transition function of the graph representing the topolopy of $\scriptn$, parameterized by $\theta$.
+	\item $\Theta: \scriptv \to \scriptv$ is a nonlinear inhibition function.
+	\item $\sigma: \scriptv \to \scriptv$ is the elementwise application of some activation function to the voltage vector.
+	\item $V: \mathbb{N} \to \scriptv$ is the voltage of $\scriptn$ at a discrete timestep $\tau$ such that
+	\begin{equation}
+		\begin{aligned}
+			V(\tau+1) \defeq \sigma\left(K\Theta[V(\tau)]\right) + I(\tau),&\;\;\;\;\;\;\;\;\;\;\;&	V(0) \defeq 0.
+		\end{aligned}
+	\end{equation}
+	where $I(\tau)$ is some input function.
+	\item $\mu: \scripts \to \scripta$ is the deterministic policy for $\scriptn$. 
+For some agents, the internal time $\tau$ is not in sync with $t$. For example if $\scriptn$ standard $\ell$ layer DNN, then the policy decodes a voltage after a $\ell$ step delay; that is, $\mu(s_t) = V(\tau +\ell)$, and $I(\tau) = \epsilon(s_t)$, but $I(\tau +n) =0$ when $n \leq \ell$.
+\end{itemize}
+It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other neurocomputation paradigms such as the leaky integrattor are neurocomputational agents. (See appendix.)
+
+
 \todo[inline]{Build up definitions required }
  
 \todo[inline]{Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper} 
@@ -218,7 +240,7 @@ In deterministic policy gradient methods, we define an actor $\mu: \scripts \to 
 \todo[inline]{Therefore we propose the following learning rule in aims to evidence the reverse, training $\mu$ using simultaneous optimization on all $Q_n$ w.r.t $\pi_n$'s weights.
 } 
 
-\section{Decentralized Deep Determinstic Policy Gradient}
+\section{Decentralized Deep Determinstic Policy Gradient Learning}
 \todo[inline]{Proposal of the rule. Linear approximation of the $Q$ function for every neuron is good enough, (experimentally).} 
 
 \todo[inline]{Implications of the rule to DDPG}
