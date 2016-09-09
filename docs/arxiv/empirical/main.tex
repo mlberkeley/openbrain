@@ -59,7 +59,7 @@
   \mathbin{\mathop{\otimes}\displaylimits_{#1}}%
  }
 
-%% todo[inline] NOTES. To remove for camera ready version.
+%\todo[inline]v %NOTES. To remove for camera ready version.
 \usepackage{todonotes}
 \usepackage{regexpatch}
 %end to notes
@@ -98,47 +98,46 @@ Berkeley CA, 94720 \\
 \maketitle
 
 \begin{abstract}
-	In this paper we conjecture that an agent, envirionment pair $(\pi, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q$ can be decomposed
-	into a number of sub-agent, sub-environment pairs  $(\pi_n, E_n)$ ranging over every neuron in $\mu$; that is, we show empircially that treating each neuron  $a$ as an agent $\pi_n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q_n$ with respect to the weights of $\pi_n$ is dual to optimizing $Q$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\pi_n$ without error backpropogation achieving state of the art results across a variety of OpenAI Gym environments.
+	In this paper we conjecture that an agent, envirionment pair $(\pi, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q$ can be decomposed into a number of sub-agent, sub-environment pairs  $(\pi_n, E_n)$ ranging over every neuron in $\mu$; that is, we show empircially that treating each neuron  $a$ as an agent $\pi_n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q_n$ with respect to the weights of $\pi_n$ is dual to optimizing $Q$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\pi_n$ without error backpropogation achieving state of the art results across a variety of OpenAI Gym environments.
 \end{abstract}
+\listoftodos
+
 
 \section{Introduction}
-Introduction to DDPG and recent advances in deep RL. \\[2cm]
+\todo[inline]{Introduction to DDPG and recent advances in deep RL. } 
 
-Biological diffusion of dopamine in the brain$\implies$ error backpropagation is not biologically feasible. \\[2cm]
+\todo[inline]{Biological diffusion of dopamine in the brain$\implies$ error backpropagation is not biologically feasible.} 
 
-Synthetic gradients are a step in the right direction, but still require eventual back propogation. \\[2cm]
+\todo[inline]{Synthetic gradients are a step in the right direction, but still require eventual back propogation.} 
 
-Therefore it is feasible that each neuron is maximizing the expectation on his future dopamine intake, and so we propose the following theorem.  \\[2cm]
+\todo[inline]{Therefore it is feasible that each neuron is maximizing the expectation on his future dopamine intake, and so we propose the following theorem.  } 
 
-\section{Agent-Environment Decomposition}
+\section{Agent-Environment Value Decomposition}
 
-Start out with background, define the symbols and $math$. \\[2cm]
+\todo[inline]{Start out with background, define the symbols and $math$.} 
 
-Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper \\[2cm] 
+\todo[inline]{Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper} 
 
-Emperical justification of the iff using the following experiment (s).\\
-1. Training a network on Atari using DDPG and plotting average critic functions for neurons using window. \\[2cm]
-2. Possibly others. \\[2cm]
+\todo[inline]{Emperical justification of the iff using the following experiment (s).} 
+\todo[inline]{1. Training a network on Atari using DDPG and plotting average critic functions for neurons using window.} 
+\todo[inline]{2. Possibly others.} 
 
 
-Therefore we propose the following learning rule in aims to evidence the reverse, training $\mu$ using simultaneous optimization on all $Q_n$ w.r.t $\pi_n$'s weights.
-
+\todo[inline]{Therefore we propose the following learning rule in aims to evidence the reverse, training $\mu$ using simultaneous optimization on all $Q_n$ w.r.t $\pi_n$'s weights.
+} 
 
 \section{Decentralized Deep Determinstic Policy Gradient}
-Proposal of the rule. Linear approximation of the $Q$ function for every neuron is good enough, (experimentally). \\[2cm] 
+\todo[inline]{Proposal of the rule. Linear approximation of the $Q$ function for every neuron is good enough, (experimentally).} 
 
-Implications of the rule to DDPG\\[2cm]
+\todo[inline]{Implications of the rule to DDPG}
 
-Implications of the rule to entirely recurrent networks (infinite time horizion and NO unrolling since the environment
-the local actions of the neuron which globally recurr to that neuron again are \emph{encoded} into $Q_n$; large time horizion
-probably implies that better regresser needed for $Q_n$.)\\[2cm]
+\todo[inline]{Implications of the rule to entirely recurrent networks (infinite time horizion and NO unrolling since the environment the local actions of the neuron which globally recurr to that neuron again are \emph{encoded} into $Q_n$; large time horizion probably implies that better regresser needed for $Q_n$.)} 
 
-Parallelism, no error backprop, and only 2x operations, but no locking on GPU, so all can be run sumultaneously if we cache!\\[2cm]
+\todo[inline]{Parallelism, no error backprop, and only 2x operations, but no locking on GPU, so all can be run sumultaneously if we cache!} 
 
 
 \section{Results}
-To validate the new learning rule we throw a fuck ton of experiments together on the following list (or better using OpenAI Gym).
+\todo[inline]{To validate the new learning rule we throw a fuck ton of experiments together on the following list (or better using OpenAI Gym).} 
 \begin{verbatim}
 blockworld1 1.156 1.511 0.466 1.299 -0.080 1.260
 blockworld3da 0.340 0.705 0.889 2.225 -0.139 0.658
@@ -167,17 +166,17 @@ reacher3daRandomTarget 0.467 0.739 0.374 0.735 -0.046 0.158
 reacherSingle 0.981 1.102 1.000 1.083 1.010 1.083
 walker2d 0.705 1.573 0.944 1.476 0.393 1.397
 \end{verbatim}
-1. Show that training decentralized policy gradient $\implies$ total policy optimization \\[2cm]
+\todo[inline]{1. Show that training decentralized policy gradient $\implies$ total policy optimization }
 
-2. Show speed improvements on update step through parallelism (samples per second vs DDPG).  \\[2cm]
+\todo[inline]{2. Show speed improvements on update step through parallelism (samples per second vs DDPG). }
 
-3. Show results are comparable with the state of the art.
+\todo[inline]{3. Show results are comparable with the state of the art.}
 
 \section{Conclusion}
-We wrecked deep reinforcement learning using biological inspiration. \\[2cm]
+\todo[inline]{We wrecked deep reinforcement learning using biological inspiration. }
 \subsection{Future Work}
-Would like to try the method with full recurrent networks and purely asynchronous implementation of leaky integration networks.\\[2cm]
-Would like to prove the conjecture. List possible methods of proof.\\[2cm]
+\todo[inline]{Would like to try the method with full recurrent networks and purely asynchronous implementation of leaky integration networks.}
+\todo[inline]{Would like to prove the conjecture. List possible methods of proof.}
 
 %\listoftodos
 
