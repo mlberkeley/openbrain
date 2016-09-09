@@ -1,0 +1,188 @@
+% In your .tex file
+
+\documentclass{article} % For LaTeX2e
+\usepackage{nips15submit_e,times}
+\usepackage{xparse}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage[toc,page]{appendix}
+
+%citation
+%\usepackage[backend=bibtex]{biblatex}
+\bibliography{openbrain}
+%
+
+% tikz and associated macros
+\usepackage{tikz}
+\usepackage{tikz-cd}
+
+\usepackage{pgfplots}
+\newcommand\sep{1.9cm}
+\newcommand\height{0.9cm}
+\usetikzlibrary{decorations.pathmorphing, backgrounds}
+\tikzset{snake it/.style={decorate, decoration=snake}}
+%
+%
+
+% math
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathabx}
+
+\newcommand{\BlackBox}{\rule{1.5ex}{1.5ex}}  % end of proof
+\newtheorem{example}{Example} 
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma} 
+\newtheorem{proposition}[theorem]{Proposition} 
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{axiom}[theorem]{Axiom}
+
+\numberwithin{equation}{subsection}
+\numberwithin{theorem}{subsection}
+
+\DeclareSymbolFont{cmlargesymbols}{OMX}{cmex}{m}{n}
+\let\sumop\relax
+\DeclareMathSymbol{\sumop}{\mathop}{cmlargesymbols}{"50}
+\NewDocumentCommand{\tens}{t_}
+ {%
+  \IfBooleanTF{#1}
+   {\tensop}
+   {\otimes}%
+ }
+\NewDocumentCommand{\tensop}{m}
+ {%
+  \mathbin{\mathop{\otimes}\displaylimits_{#1}}%
+ }
+
+%% todo[inline] NOTES. To remove for camera ready version.
+\usepackage{todonotes}
+\usepackage{regexpatch}
+%end to notes
+
+\title{Backpropagation-Free Parallel Deep Reinforcement Learning}
+
+\author{
+William H.~Guss \\
+Machine Learning at Berkeley\\
+2650 Durant Ave, Berkeley CA, 94720 \\
+\texttt{wguss@ml.berkeley.edu} \\
+\And
+Mike Zhong \\
+Machine Learning at Berkeley \\
+Berkeley CA, 94720 \\
+\texttt{lol@gmail.com} \\
+\And
+Utkarsh S \\
+Machine Learning at Berkeley \\
+Berkeley CA, 94720 \\
+\texttt{philkuz@ml.berkeley.edu}
+\And
+Max Johansen \\
+Machine Learning at Berkeley \\
+Berkeley CA, 94720 \\
+\texttt{max@ml.berkeley.edu}
+}
+
+
+
+\nipsfinalcopy % Uncomment for camera-ready version
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+	In this paper we conjecture that an agent, envirionment pair $(\pi, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q$ can be decomposed
+	into a number of sub-agent, sub-environment pairs  $(\pi_n, E_n)$ ranging over every neuron in $\mu$; that is, we show empircially that treating each neuron  $a$ as an agent $\pi_n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q_n$ with respect to the weights of $\pi_n$ is dual to optimizing $Q$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\pi_n$ without error backpropogation achieving state of the art results across a variety of OpenAI Gym environments.
+\end{abstract}
+
+\section{Introduction}
+Introduction to DDPG and recent advances in deep RL. \\[2cm]
+
+Biological diffusion of dopamine in the brain$\implies$ error backpropagation is not biologically feasible. \\[2cm]
+
+Synthetic gradients are a step in the right direction, but still require eventual back propogation. \\[2cm]
+
+Therefore it is feasible that each neuron is maximizing the expectation on his future dopamine intake, and so we propose the following theorem.  \\[2cm]
+
+\section{Agent-Environment Decomposition}
+
+Start out with background, define the symbols and $math$. \\[2cm]
+
+Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper \\[2cm] 
+
+Emperical justification of the iff using the following experiment (s).\\
+1. Training a network on Atari using DDPG and plotting average critic functions for neurons using window. \\[2cm]
+2. Possibly others. \\[2cm]
+
+
+Therefore we propose the following learning rule in aims to evidence the reverse, training $\mu$ using simultaneous optimization on all $Q_n$ w.r.t $\pi_n$'s weights.
+
+
+\section{Decentralized Deep Determinstic Policy Gradient}
+Proposal of the rule. Linear approximation of the $Q$ function for every neuron is good enough, (experimentally). \\[2cm] 
+
+Implications of the rule to DDPG\\[2cm]
+
+Implications of the rule to entirely recurrent networks (infinite time horizion and NO unrolling since the environment
+the local actions of the neuron which globally recurr to that neuron again are \emph{encoded} into $Q_n$; large time horizion
+probably implies that better regresser needed for $Q_n$.)\\[2cm]
+
+Parallelism, no error backprop, and only 2x operations, but no locking on GPU, so all can be run sumultaneously if we cache!\\[2cm]
+
+
+\section{Results}
+To validate the new learning rule we throw a fuck ton of experiments together on the following list (or better using OpenAI Gym).
+\begin{verbatim}
+blockworld1 1.156 1.511 0.466 1.299 -0.080 1.260
+blockworld3da 0.340 0.705 0.889 2.225 -0.139 0.658
+canada 0.303 1.735 0.176 0.688 0.125 1.157
+canada2d 0.400 0.978 -0.285 0.119 -0.045 0.701
+cart 0.938 1.336 1.096 1.258 0.343 1.216
+cartpole 0.844 1.115 0.482 1.138 0.244 0.755
+cartpoleBalance 0.951 1.000 0.335 0.996 -0.468 0.528
+cartpoleParallelDouble 0.549 0.900 0.188 0.323 0.197 0.572
+cartpoleSerialDouble 0.272 0.719 0.195 0.642 0.143 0.701
+cartpoleSerialTriple 0.736 0.946 0.412 0.427 0.583 0.942
+cheetah 0.903 1.206 0.457 0.792 -0.008 0.425
+fixedReacher 0.849 1.021 0.693 0.981 0.259 0.927
+fixedReacherDouble 0.924 0.996 0.872 0.943 0.290 0.995
+fixedReacherSingle 0.954 1.000 0.827 0.995 0.620 0.999
+gripper 0.655 0.972 0.406 0.790 0.461 0.816
+gripperRandom 0.618 0.937 0.082 0.791 0.557 0.808
+hardCheetah 1.311 1.990 1.204 1.431 -0.031 1.411
+hopper 0.676 0.936 0.112 0.924 0.078 0.917
+hyq 0.416 0.722 0.234 0.672 0.198 0.618
+movingGripper 0.474 0.936 0.480 0.644 0.416 0.805
+pendulum 0.946 1.021 0.663 1.055 0.099 0.951
+reacher 0.720 0.987 0.194 0.878 0.231 0.953
+reacher3daFixedTarget 0.585 0.943 0.453 0.922 0.204 0.631
+reacher3daRandomTarget 0.467 0.739 0.374 0.735 -0.046 0.158
+reacherSingle 0.981 1.102 1.000 1.083 1.010 1.083
+walker2d 0.705 1.573 0.944 1.476 0.393 1.397
+\end{verbatim}
+1. Show that training decentralized policy gradient $\implies$ total policy optimization \\[2cm]
+
+2. Show speed improvements on update step through parallelism (samples per second vs DDPG).  \\[2cm]
+
+3. Show results are comparable with the state of the art.
+
+\section{Conclusion}
+We wrecked deep reinforcement learning using biological inspiration. \\[2cm]
+\subsection{Future Work}
+Would like to try the method with full recurrent networks and purely asynchronous implementation of leaky integration networks.\\[2cm]
+Would like to prove the conjecture. List possible methods of proof.\\[2cm]
+
+%\listoftodos
+
+%\printbibliography
+
+%\input{appendices}
+
+\end{document}	

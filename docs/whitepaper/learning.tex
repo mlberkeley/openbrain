@@ -141,7 +141,9 @@ For simplicity we will just calculuate the Frechet derivative of $E$ w.r.t $c_{n
 	\begin{definition}
 		For a neuron $n$ in an OpenBrain $O$, we say that $Q_n$ is the expected reward for $n$ such that
 		\begin{equation}
-			Q_n(V_{A_n}[t]), V_n[t]) = r_t	
+			Q_n(V_{A_n}[t]), V_n[t]) = r_t + \gamma Q_n(V_{A_n}[t+\Delta t]), V_n[t + \Delta t]).
 		\end{equation}
 	\end{definition}
+	We claim that in fact the $Q_n$ is locally linear in $V_{A_n}$ and $V_n$ as $\Delta t \to 0.$
+
 
