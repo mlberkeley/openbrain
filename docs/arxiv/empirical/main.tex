@@ -210,12 +210,12 @@ In order to decompose the $Q^\mu$ algorithm we will abstractly define a neurocom
 
 If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational agent} is a tuple $\scriptn = (\mu, \epsilon, \delta, K, \Theta, \sigma, V)$ such that: 
 \begin{itemize}
-	\item $\epsilon : \scripts \times \to N_I \subset \scriptv$ encodes the state into the voltages of \emph{input neurons}, a subspace $N_I$ of the voltages $\scriptv\subset \mathbb{R}^N$ of every neuron in the network. Specifically $\epsilon(s_t) = \mathrm{proj}_{N_I}(s_t)$.
+	\item $\epsilon : \scripts  \to N_I \subset \scriptv$ encodes the state into the voltages of \emph{input neurons}, a subspace $N_I$ of the voltages $\scriptv\subset \mathbb{R}^N$ of every neuron in the network. Specifically $\epsilon(s_t) = \mathrm{proj}_{N_I}(s_t)$.
 	\item $\delta: \scriptv \to \scripta$ decodes the voltages of the \emph{output neurons }$N_O \subset V$ into an action.
 	\item $K: \scriptv \to \scriptv$ is the linear voltage graph transition function of the graph representing the topolopy of $\scriptn$, parameterized by $\theta$.
 	\item $\Theta: \scriptv \to \scriptv$ is a nonlinear inhibition function.
 	\item $\sigma: \scriptv \to \scriptv$ is the elementwise application of some activation function to the voltage vector.
-	\item $V: \mathbb{N} \to \scriptv$ is the voltage of $\scriptn$ at a discrete timestep $\tau$ such that
+	\item $V: \mathbb{N} \to \scriptv$ is the voltage of $\scriptn$ at a discrete internal timestep $\tau$ such that
 	\begin{equation}
 		\begin{aligned}
 			V(\tau+1) \defeq \sigma\left(K\Theta[V(\tau)]\right) + I(\tau),&\;\;\;\;\;\;\;\;\;\;\;&	V(0) \defeq 0.
@@ -223,11 +223,13 @@ If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational
 	\end{equation}
 	where $I(\tau)$ is some input function.
 	\item $\mu: \scripts \to \scripta$ is the deterministic policy for $\scriptn$. 
-For some agents, the internal time $\tau$ is not in sync with $t$. For example if $\scriptn$ standard $\ell$ layer DNN, then the policy decodes a voltage after a $\ell$ step delay; that is, $\mu(s_t) = V(\tau +\ell)$, and $I(\tau) = \epsilon(s_t)$, but $I(\tau +n) =0$ when $n \leq \ell$.
+For some agents, the internal time $\tau$ is not in sync with $t$. For example if $\scriptn$ standard $\ell$ layer DNN, then the policy decodes a voltage after an $\ell$ step delay; that is, if $s_t$ observed at $\tau$, then $\mu(s_t) = V(\tau +\ell)$, and $I(\tau) = \epsilon(s_t)$, but $I(\tau +n) =0$ when $n \leq \ell$.
 \end{itemize}
-It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other neurocomputation paradigms such as the leaky integrattor are neurocomputational agents. (See appendix.)
+It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other paradigms such as the leaky integrattor are neurocomputational agents. (See appendix.)
 
+Now let $E$ and $\scriptn$ be defined as above. If $n$ is some neuron in $\scriptn$ with input and output subspaces $X,Y \subset \mathcal{V}$, then define the a deterministic \emph{sub-environment} $E^n = (\scriptv, \mathbb{R}, \scriptr, T^n, r^n)$. In this case the transition describes how the voltage of $n$ affects the voltage of $\scriptn$ that is, $T\left(V' \suchthat V(\tau) \in \scriptv, a_\tau\right) = 1$ where $V'$ is the voltage of $\scriptn$ at the next time step if $V(\tau)_n \defeq a_\tau$ (disregardin ghe defintion of $V(\tau)$. The reward function is $r(V(\tau +\ell), a_{\ell + n}) = r_t(s_t, \mu(s_t))$ if $s_t$ presented at $\tau$ and $\mu(s_t)$ decodes $\scriptn$ at time $\tau + n$, otherwise $r(v,a) = 0.$
 
+Finally define an agent $\mu^n$ 
 \todo[inline]{Build up definitions required }
  
 \todo[inline]{Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper} 
@@ -245,7 +247,7 @@ It is not hard to see that this definition encompasses any DQN or DDPG network w
 
 \todo[inline]{Implications of the rule to DDPG}
 
-\todo[inline]{Implications of the rule to entirely recurrent networks (infinite time horizion and NO unrolling since the environment the local actions of the neuron which globally recurr to that neuron again are \emph{encoded} into $Q_n$; large time horizion probably implies that better regresser needed for $Q_n$.)} 
+\todo[inline]{Implications of the rule to entirely recurrent networks (infinite time horizion and NO unrolling since the environment the local actions of the neuron which globally recur to that neuron again are \emph{encoded} into $Q_n$; large time horizion probably implies that better regresser needed for $Q_n$.)} 
 
 \todo[inline]{Parallelism, no error backprop, and only 2x operations, but no locking on GPU, so all can be run sumultaneously if we cache!} 
 
