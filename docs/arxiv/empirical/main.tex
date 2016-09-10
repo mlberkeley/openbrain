@@ -227,12 +227,26 @@ For some agents, the internal time $\tau$ is not in sync with $t$. For example i
 \end{itemize}
 It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other paradigms such as the leaky integrattor are neurocomputational agents. (See appendix.)
 
-Now let $E$ and $\scriptn$ be defined as above. If $n$ is some neuron in $\scriptn$ with input and output subspaces $X,Y \subset \mathcal{V}$, then define the a deterministic \emph{sub-environment} $E^n = (\scriptv, \mathbb{R}, \scriptr, T^n, r^n)$. In this case the transition describes how the voltage of $n$ affects the voltage of $\scriptn$ that is, $T\left(V' \suchthat V(\tau) \in \scriptv, a_\tau\right) = 1$ where $V'$ is the voltage of $\scriptn$ at the next time step if $V(\tau)_n \defeq a_\tau$ (disregardin ghe defintion of $V(\tau)$. The reward function is $r(V(\tau +\ell), a_{\ell + n}) = r_t(s_t, \mu(s_t))$ if $s_t$ presented at $\tau$ and $\mu(s_t)$ decodes $\scriptn$ at time $\tau + n$, otherwise $r(v,a) = 0.$
+Now let $E$ and $\scriptn$ be defined as above. If $n$ is some neuron in $\scriptn$, assume that the voltage of $n$ is a function of $\scriptv$.Then define the a deterministic \emph{sub-environment} $E^n = (\scriptv, \mathbb{R}, \scriptr, T^n, r^n)$. In this case the transition describes how the voltage of $n$ affects the voltage of $\scriptn$ that is, 
+\begin{equation}
+	T\left(V(\tau+1) \suchthat V(\tau) \in \scriptv,   V(\tau+1)_n = a^n_\tau  \in \mathbb{R}\right) = 1.
+\end{equation}
+In other words the voltage of the neuron $n$ at time step $\tau +1$ is a function of $V(\tau)$ and the new state presented is $V(\tau+1)$ such that the new voltage of $n$ is $a^n_\tau$.
+ The reward function is $r^n(V(\tau +\ell), a_{\ell + \tau}) = r_t(s_t, \mu(s_t))$ if $s_t$ presented at $\tau$ and $\mu(s_t)$ decodes $\scriptn$ at time $\tau + \ell$, otherwise $r^n(v,a) = 0.$
 
-Finally define an agent $\mu^n$ 
-\todo[inline]{Build up definitions required }
+Now define an \emph{neuromorphically local agent} $\mu^n: \scriptv \to \mathbb{R}$ so that $V(\tau) \mapsto\langle \sigma(K\Theta[V(\tau)]) + I(\tau), e_n\rangle$ where $e_n$ is the basis vector for the $n^{th}$ neuron's voltage. Immediately we can extend the action-value function to this sub-environment and agent,
+\begin{equation}
+	Q^{\mu^n}(v_\tau, a_\tau^n) = \expect_{V(\tau+1)\ \sim E^n}\left[r(v_\tau, a_\tau^n) + \gamma Q^{\mu^n}(V(\tau+1), \mu^n(V(\tau+1)))\right].
+\end{equation}
+
+Provided with the previous definitions, the following question arises: does deterministic policy gradient learning on $\scriptn$, specifically $\mu$ on $E$, \emph{commute} with performing the same operation simultaneously on every neuromorphically local agent $\mu^n$ comprising $\scriptn$ and their respective sub-environments $E^n$? Supposing that we have the true $Q^\mu$ function and $\mu$ is optimal with respect to $Q^\mu$, then it is intuitive, but not obvious, that every $\mu^n$ should behave optimally with respect to an infinite time horizion, but will reverse hold? In answer to this question, we propose the following conjecture.
+
+\todo[inline]{\textbf{ IN PROGRESS: }Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper} 
+\begin{conjecture}
+
+\end{conjecture}
+
  
-\todo[inline]{Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper} 
 
 \todo[inline]{Emperical justification of the iff using the following experiment (s).} 
 \todo[inline]{1. Training a network on Atari using DDPG and plotting average critic functions for neurons using window.} 
@@ -295,6 +309,8 @@ walker2d 0.705 1.573 0.944 1.476 0.393 1.397
 \todo[inline]{Would like to prove the conjecture. List possible methods of proof.}
 
 %\listoftodos
+
+
 
 %\printbibliography
 
