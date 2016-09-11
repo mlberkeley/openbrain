@@ -1,0 +1,61 @@
+          \begin{tikzcd} %THe diagram for Q function decomposition.
+                           &            &           & \scripts 
+                                                          \times
+                                                          \scripta 
+                                                      \arrow{rdd}
+                                                        {Q^\mu}
+                                                      \arrow{d}[swap]
+                                                        {\pi_\scripta}
+                                                      \arrow{llld}[swap]
+                                                        {\pi_\scripts}\\
+%-------------------------------------------------------------------------------------%
+             \scripts
+             \arrow{rrr}
+               {\mu}  
+             \arrow{d}
+               {\epsilon}  &             &            & \scripta                 \\
+%-------------------------------------------------------------------------------------%%
+             \scriptv
+             \arrow{r}     
+               {V(\tau+1)}
+             \arrow{rd}
+               {\mu^n}     & \scriptv
+                             \arrow{r}
+                             {V(\tau+2)} 
+                             \arrow{d}
+                             {\pi_n}
+                             \arrow{rd}
+                             {\mu^n}       & \dots
+                                            \arrow{r}
+                                            {V(\tau 
+                                            + \ell -1)}
+                                            \arrow{d}[swap]
+                                              {\pi_n}
+                                              \arrow{rd}
+                                              {\mu^n}     &  \scriptv
+                                                             \arrow{u}{\delta}
+                                                             \arrow{d}[swap]
+                                                               {\pi_n}      &\mathbb{R}       \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			 & \reals & \reals & \reals \\
+		     && \tens_{k=\tau}^{\tau + \ell} \left(\scriptv \otimes \mathbb{R}\right)
+		         \arrow{ur}{\pi_\mathbb{R}}
+		         \arrow[uu, bend right, swap,"\pi_\scriptv"]
+		         \arrow{u}{\pi_\reals}
+		         \arrow{uul}[swap]{\pi_\scriptv}
+		         \arrow{ul}[swap]{\pi_\reals}
+		         \arrow[uull, bend left,"\pi_\scriptv"]
+		         \arrow[uurr, bend right, swap, "Q_{AGG}^n"]
+
+            % \scriptv \times \reals 
+            % \arrow{u}{\pi_\scriptv}
+            % \arrow{r}{\pi_\reals}&\reals &\scriptv \times \reals
+            % \arrow{u}{\pi_\scriptv}
+            % \arrow{r}{\pi_\reals}
+            %                        &\reals & \scriptv \times \reals
+            %                        \arrow{u}{\pi_\scriptv}
+            %                        \arrow{r}{\pi_\reals}&\reals
+            %   
+
+
+         \end{tikzcd} 
