@@ -300,14 +300,25 @@ Provided with the previous definitions, the following question arises: does dete
 \end{proof}
 
 \todo[inline]{\textbf{ IN PROGRESS: }Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper} 
-\begin{conjecture} The following diagram commutes
-\end{conjecture}
 
  
 
 \todo[inline]{Emperical justification of the iff using the following experiment (s).} 
-\todo[inline]{1. Training a network on Atari using DDPG and plotting average critic functions for neurons using window.} 
-\todo[inline]{2. Possibly others.} 
+
+
+
+\noindent 3. Plot the output of both $Q^\mu$ and $Qn$ using TENSORFLOW summaries.
+\todo[inline]{1. Training a network on Atari using DDPG and plotting average critic functions for neurons using window.
+} 
+
+\textbf{EXPERIMENT 1 SPECIFICATION.}
+\noindent 1. Set up a standard DDPG to play the set of atari games in OpenAi Gym using TENSORFLOW (this will be mac,linux, or windows bash only). If on Windows bash install Xming (its an X server) and run all OpenAI Gym commands with \verb|DISPLAY=localhost:0.0 python3 src/experiment1/some__script_in_src.py|. This will pipe the visual output fo the OpenAI Gym simulators to the display. If you cannot get this to work on your screen, do not do env.render. We can also stop using the atari games, since this works for a fact on the basic Box2d versions. \textbf{We are going to write all of this in Python3, make sure to install gym in python3.}\\
+\noindent 2. DDPG has a $Q^\mu$ network which we use to optimize $\mu(s_t\:|\: \theta)$ with respect to $\theta$. The goal of this experiment is to train a standard DDPG network to play one of these OpenAI Gym simulations, whislt concurrently estimating and viewing the $Q$ functions for every single neuron. THEREFORE, we need to select a subset of neurons in the fully connected layers (for example) of the $\mu$ network (actor) and concurrently train a network $Q^n(s,a)$ to estimate the $Q$ function of the neuron based on its inputs $s$ and its SINGLE output voltage $s$. This can be a 3 layer fully connected network with $|s| + 1$ inputs (one for each input the neuron $n$ and 1 for the voltage of the neuron after receiving that output.) Tensorflow is a dataflow language so the output of a layer looks like $O2 = \sigma(W*O1).$ Therefore you just need to make another "network" whose dataflow could be like $Qn = \sigma(W^n_3*\sigma(W^n_2*\sigma(W^n_1*\mathrm{concat}(O1, O2[i]))))$ where n is the $i$th neuron on layer $O2$. And $O1, O2, O3$ are the outputs of the neurons on those layers in the network. Then as in standard DQN you tain $Qn$ with a lag network $W(Qn') = W(Qn)(1-\tau) + \tau W(Qn)$ where $W$ denotes the weights of $Qn$, say $W^n_3, W^n_2, W^n_1, \dots$. And then actually do gradient decent on the weights of $Qn$ not $Qn'$ by minimizing the following bellman equation
+\begin{equation*}
+  L(s_t, a_t, r_t, s_{t+1}, a_{t+1}) = (Qn(O1(s_t),O2[i](s_t)) - r_t - Qn'(O1(s_{t+1}),O2[i](s_{t+1})))^2
+\end{equation*}
+with respect to the parameters $W(Qn)$. Note I didn't actually use $a_t$ above since really the $Qn$ function takes in the input of the previous layer (to $n$) as its input, say $O1(s_t)$ and the action for that same time step which is just the output of the neuron $n$, say $O2(s_t)[i]$.  The same goes for $Qn'$ but at the next time step.
+
 
 
 \todo[inline]{Therefore we propose the following learning rule in aims to evidence the reverse, training $\mu$ using simultaneous optimization on all $Q_n$ w.r.t $\pi_n$'s weights.
@@ -353,11 +364,11 @@ reacher3daRandomTarget 0.467 0.739 0.374 0.735 -0.046 0.158
 reacherSingle 0.981 1.102 1.000 1.083 1.010 1.083
 walker2d 0.705 1.573 0.944 1.476 0.393 1.397
 \end{verbatim}
-\todo[inline]{1. Show that training decentralized policy gradient $\implies$ total policy optimization }
+\todo[inline]{2. Show that training decentralized policy gradient $\implies$ total policy optimization }
 
-\todo[inline]{2. Show speed improvements on update step through parallelism (samples per second vs DDPG). }
+\todo[inline]{3. Show speed improvements on update step through parallelism (samples per second vs DDPG). }
 
-\todo[inline]{3. Show results are comparable with the state of the art.}
+\todo[inline]{4. Show results are comparable with the state of the art.}
 
 \section{Conclusion}
 \todo[inline]{We wrecked deep reinforcement learning using biological inspiration. }
