@@ -182,8 +182,9 @@ Berkeley CA, 94720 \\
 
 \todo[inline]{A high level description of the section.}
 
+\todo[inline]{Fix the time thing. Remove $\ell$.}
 \subsection{Background}
-Recall the standard reinforcement learning setup. We say $E$ is an \emph{environment} if $E \defeq (\scripts, \scripta, \scriptr, T, r)$ where $T$ describes transition probability measure $T\left(s_{t+1}\suchthat s_t, a_t\right)$ and $r: \scripts \times \scripta \to \scriptr$ is a reward function. Furthermore $\scripts$, $\scripta$, $\scriptr$ are the \emph{state space, action space, and reward space} respectively. We restrict $\scriptr$ to a compact subset of $\mathbb{R}$ and action space and state space to finite dimensional real vector spaces. As in DDPG we assume that the environment $E$ is \emph{fully observed}; that is, at any time step the state $s_t$ is fully described by the observation presented, $x_t$, and not by the history $(x_1, a_1, \dots, a_{t-1}).$ 
+Recall the standard reinforcement learning setup. We say $E$ is an \emph{environment} if $E \defeq (\scripts, \scripta, \scriptr, T, r)$ where $T$ describes transition probability measure $T\left(s_{t+1}\suchthat s_t, a_t\right)$ and $r: \scripts \times \scripta \to \scriptr$ is a reward function. Furthermore $\scripts$, $\scripta$, $\scriptr$ are the \emph{state space, action space, and reward space} respectively. We restrict $\scriptr$ to a compact subset of $\mathbb{R}$ and action space and state space to finite dimensional real vector spaces. As in DDPG we assume that the environment $E$ is \emph{fully observed}\todo[inline]{FIX THIS WHEN FIXING $\ell$. The environment is NOT fully observed.}; that is, at any time step the state $s_t$ is fully described by the observation presented, $x_t$, and not by the history $(x_1, a_1, \dots, a_{t-1}).$ 
 
 We define the policy for an agent to be $\pi: \scriptp(\scripta) \times \scripts \to [0,1]$. In general the policy is a probability measure on some $\sigma$-algebra $\scriptm \subset \scriptp(\scripta)$ conditioned on $\scripts$ so that $\pi\left(\scripta \suchthat s \in \scripts\right) = 1$. However, we will deal only with \emph{deterministic} policies where for every $s_t$ there is unique $a_t$ so that $\pi\left(\set{a_t} \suchthat s = s_t\right) = 1$ and the measure is $0$ otherwise. Thus we will abuse notation and define a \emph{deterministic agent} by a policy function $\pi: \scripts \to \scripta$. Additionally we denote the state-space trajectories of $\pi $ by 
 \begin{equation}
@@ -299,7 +300,17 @@ Provided with the previous definitions, the following question arises: does dete
 
 \end{proof}
 
-\todo[inline]{\textbf{ IN PROGRESS: }Write conjecture on decomposition which is free of neural configuration. Subject to change in later versions of ArXiv paper} 
+
+\begin{theorem}
+    If $\scriptn$ is a nuerocomputational agent in $E$ and for every $n \in \scriptn$ there is a nueromorphically local agent $\mu^n$ in sub-environment $E^n$, then policy gradient for $\mu$ agrees with the simultaneous policy gradients of every neuromorphically local agent; that is
+    \begin{equation}
+        \prod_{n=1}^N \nabla_{K^n} Q^{\mu^n}(v,a)\Big|_{v=v_t,a=\mu^n(v_t)} =\nabla_{K} Q^{\mu}(s,a)\Big|_{s=s_t,a=\mu(s_t)}
+    \end{equation}
+    for every time step $t.$
+\end{theorem}
+\begin{proof}
+  \todo[inline]{Prove the Decomposition}
+\end{proof}
 
  
 
