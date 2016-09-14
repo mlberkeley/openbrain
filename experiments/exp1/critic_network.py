@@ -1,5 +1,5 @@
 
-import tensorflow as tf 
+import tensorflow as tf
 import numpy as np
 import math
 
@@ -29,10 +29,11 @@ class CriticNetwork:
 
 		self.create_training_method()
 
-		# initialization 
+		# initialization
 		self.sess.run(tf.initialize_all_variables())
-			
+
 		self.update_target()
+
 
 	def create_training_method(self):
 		# Define training optimizer
@@ -123,4 +124,3 @@ class CriticNetwork:
 		print 'save critic-network...',time_step
 		self.saver.save(self.sess, 'saved_critic_networks/' + 'critic-network', global_step = time_step)
 '''
-		
