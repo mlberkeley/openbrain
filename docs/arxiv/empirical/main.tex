@@ -221,28 +221,20 @@ If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational
     \begin{equation}
     	\begin{aligned}
     		v_{t+1} &=  D(v_t) + \epsilon(s_t) \\
-                &=  D(v_t-1, \epsilon(s_t)) \\
+                &=  D(v_{t-1}, \epsilon(s_t)) \\
         \mu(s_t) &= \delta(v_t)
     	\end{aligned}
     \end{equation}
 \end{itemize}
 It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other paradigms such as the leaky integrattor are neurocomputational agents. (See appendix.)
 
- If $n$ is some neuron in $\scriptn$, we say $E^n = (\scripts^n, \scripta^n, \scriptr^n, T^n, r^n)$
-
- $(\scriptv, \mathbb{R}, \scriptr, T^n, r^n)$ is deterministic \emph{sub-environment} of $E$ with respect to $\scriptn$ if it has the following properties:
+ If $n$ is some neuron in $\scriptn$, we say $E^n = (\scripts^n, \scripta^n, \scriptr^n, T^n, r^n)$ is deterministic \emph{sub-environment} of $E$ with respect to $\scriptn$ if it has the following properties:
 
 \begin{itemize}
-  \item $\scripts ^n = \scriptv$, in that the environment that neuron n sees is the voltages of all other neurons. We assume that the graph is fully connected so that all neurons are connected to all other neurons. Realistically, each neuron only sees the voltages of a subset of all neurons. We will deal with this in a further iteration of the paper.
-  \item $\scripta ^n = \reals$ denotes the output voltage of neuron n.
-  \item $\scriptr ^n = \reals$ denotes the reward that neuron n receives. It is the same as the reward that the entire agent sees.
-  \item $T^n : \scripts ^n \times \scripta ^n \to \scripts ^n $
-  \item a discrete time step $\tau$ not necessarily one-to-one with the time $t$ of $E$;
-  \item an input function $I(\tau) = \epsilon(s_t)$ if $s_t$ presented at time $\tau$ and $0$ otherwise; \todo{NECESSARY? now that $l = 1$ ?}
-  \item a transition function $T^n$ such that $v_\tau \in \scriptv$,  $\alpha_\tau \in \mathbb{R}$, and $v_{\tau+1}^j = f(v_\tau, I(\tau)) \langle D(v_\tau, I(\tau)), e_j \rangle$ for all $j \neq n$ and $v_{\tau+1}^n = \alpha_\tau$, then
-    \begin{equation}
-      T^n\left(v_{\tau+1} \suchthat v_\tau, \alpha_\tau\right) = 1;
-    \end{equation}
+  \item an environment $\scripts ^n = \scriptv$, in that the environment that neuron n sees is the voltages of all other neurons. We assume that the graph is fully connected so that all neurons are connected to all other neurons. Realistically, each neuron only sees the voltages of a subset of all neurons. We will deal with this in a further iteration of the paper.
+  \item an action $\scripta ^n = \reals$ denotes the output voltage of neuron n one time step later, i.e. $\alpha_t^n = v_{t+1}^n$.
+  \item a reward $\scriptr ^n = \scriptr$, denoting the reward that neuron n receives. It is the same as the reward that the entire agent sees.
+  \item a transition function $T^n : \scripts ^n \times \scripta ^n \to \scripts ^n$ such that $T^n(v_t, \alpha_t^n) = (I - \delta_{n,n}) D(v_t, \epsilon(s_t)) + e_n \alpha_t^n$
   \item and a reward function $r^n(v_{\tau}, \alpha) = r(s_t, \mu(s_t))$ if $I(\tau) \neq 0$ and $0$ otherwise. Essentially the state space of $E^n$ at time step $\tau +1$ is just the normal dynamics of $\scriptn$ applied to the previous state along with a possible encoded input state $\epsilon(s_t)$ from $E$ except for at neuron $n$. Lastly an agent  $\mu^n: \scriptv \to \mathbb{R}$  is called \emph{neuromorphically local} to $\scriptn$ if $v_\tau \mapsto \langle D(v_\tau), e_n \rangle$.
 \end{itemize}
 We now can think of every neuron in $\scriptn$ as an agent in its own environment, acting on its inputs, and we can extend the action-value definition to $\mu^n$ as follows
