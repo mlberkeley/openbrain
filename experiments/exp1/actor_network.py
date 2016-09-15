@@ -2,9 +2,11 @@ import tensorflow as tf
 import numpy as np
 import math
 from critic_network import CriticNetwork
+from replay_buffer import ReplayBuffer
 
 
 # Hyper Parameters
+REPLAY_BUFFER_SIZE = 1000000
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300
 LEARNING_RATE = 1e-4
@@ -22,6 +24,7 @@ class ActorNetwork:
 		self.has_subcritics = has_subcritics
 		if has_subcritics:
 			self.subcritics = []
+			# self.subcritics_replay_buffers = ReplayBuffer(REPLAY_BUFFER_SIZE)
 
 		# create actor network
 		self.state_input,self.action_output,self.net = self.create_network(state_dim,action_dim)
@@ -56,7 +59,6 @@ class ActorNetwork:
 		W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
 		b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
 
-		## TODO do stuff on matmul
 		layer1 = tf.nn.relu(tf.matmul(state_input,W1) + b1)
 
 		self.create_subcritic_network(state_dim, layer1_size, layer1)
@@ -76,7 +78,36 @@ class ActorNetwork:
 		"""
 		# TODO MAYBE incorporate layer into CriticNetwork
 		if self.has_subcritics:
-			self.subcritics.append((layer, CriticNetwork(self.sess, in_dim, out_dim)))
+			sc_replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
+			self.subcritics.append((CriticNetwork(self.sess, in_dim, out_dim), layer, sc_replay_buffer, ()))
+
+
+	#### Accessor methods for the subcritic network ####
+	def get_sc_replay_buffer(self, subcritic_net):
+		return subcritic_net[2]
+
+	def get_sc_network(self, subcritic_net):
+		return subcritic_net[0]
+
+	def get_sc_layer(self, subcritic_net):
+		return subcritic_net[1]
+	def get_sc_state_action(self, subcritic_net):
+		return subcritic_net[3]
+
+	def update_sc_state_action(self, subcritic_net, new_state, new_action):
+		""" Updates the last state/action for the sc network"""
+		return (subcritic_net[0], subcritic_net[1], subcritic_net[2], (new_state, new_action))
+
+	def subcritics_perceive(self, reward, next_state, done):
+		"""
+		Add another perception to the subcritic network
+		"""
+		if self.has_subcritics:
+			## TODO FIGURE OUT NEXT STATE
+
+			for sc in self.subcritics:
+				state, action = self.get_sc_state_action(sc)
+				self.subcritics_replay_buffer.add(state,action,reward,next_state,done)
 
 
 	def create_target_network(self,state_dim,action_dim,net):
@@ -93,10 +124,9 @@ class ActorNetwork:
 	def update_target(self):
 		self.sess.run(self.target_update)
 		if self.has_subcritics:
-			pass
-			# TODO
-			# for sc in self.subcritics:
-				# sc.update_target()
+			# TODO evaluate whether this is right
+			for sc in self.subcritics:
+				sc.update_target()
 
 	def train(self,q_gradient_batch,state_batch):
 
@@ -104,6 +134,12 @@ class ActorNetwork:
 			self.q_gradient_input:q_gradient_batch,
 			self.state_input:state_batch
 			})
+		minibatch = self.replay_buffer.get_batch(BATCH_SIZE)
+		state_batch = np.asarray([data[0] for data in minibatch])
+		action_batch = np.asarray([data[1] for data in minibatch])
+		reward_batch = np.asarray([data[2] for data in minibatch])
+		next_state_batch = np.asarray([data[3] for data in minibatch])
+		done_batch = np.asarray([data[4] for data in minibatch])
 		# TODO add training for the subnets
 		# for sc in self.subcritics
 
@@ -118,27 +154,55 @@ class ActorNetwork:
 		if self.has_subcritics:
 			#TODO fix this up for new state and action batches
 			pass
-			# subcritic_gradients = [sc.gradients(state_batch, action_batch) for sc in self.subcritics]
+			subcritic_gradients = [sc.gradients(state_batch, action_batch) for sc in self.subcritics]
 
 		return action_batch
 
 	def action(self,state):
-		return self.sess.run(self.action_output,feed_dict={
+		""" Performs an action by propogating through the net"""
+		action_output = self.sess.run(self.action_output,feed_dict={
 			self.state_input:[state]
 			})[0]
-
-
-	def target_actions(self,state_batch,action_batch=None):
+		self.save_sc_state_action()
+		return action_output
+	def save_sc_state_action(self):
+		""" Save the state and action of the subcritic network """
 		if self.has_subcritics:
-			pass
-			# TODO fix up for proper state_batch and action_bath
-			# assert action_batch != None, "You need to pass in an action_batch if you have subcritics"
-			# for sc in self.subcritics:
-				# self.critic_network.target_q(next_state_batch,next_action_batch)
+			for i,sc in enumerate(self.subcritics):
+				layer = self.get_sc_layer(sc)
+				state = layer.input
+				action = layer.output
+				self.subcritics[i] = self.update_sc_state_action(sc, state, action)
+	def update_sc_replay_buffers(self):
+		if self.has_subcritics:
+			for sc in self.subcritics:
+				# grab the input of the layer
+				# grab the output of the layer
+				pass
 
-		return self.sess.run(self.target_action_output,feed_dict={
+
+
+
+	def target_actions(self,state_batch):
+		""" Lag actor network """
+
+		next_action_batch = self.sess.run(self.target_action_output,feed_dict={
 			self.target_state_input:state_batch
 			})
+		# get the state/action for each layer on the network
+		if self.has_subcritics:
+			pass
+		# 	self.minibatch = self.replay_buffer.get_batch(BATCH_SIZE)
+		# 	state_batch = np.asarray([data[0] for data in minibatch])
+		# 	action_batch = np.asarray([data[1] for data in minibatch])
+		# 	reward_batch = np.asarray([data[2] for data in minibatch])
+		# 	next_state_batch = np.asarray([data[3] for data in minibatch])
+		# 	done_batch = np.asarray([data[4] for data in minibatch])
+		# 	# TODO fix up for proper state_batch and action_batch
+		# 	for sc in self.subcritics:
+		# 		#Get the action batch and state batch
+		# 		self.critic_network.target_q(next_state_batch,next_action_batch)
+		return next_action_batch
 
 	# f fan-in size
 	def variable(self,shape,f):

@@ -50,13 +50,14 @@ class DDPG:
         next_state_batch = np.asarray([data[3] for data in minibatch])
         done_batch = np.asarray([data[4] for data in minibatch])
 
+
         # for action_dim = 1
         action_batch = np.resize(action_batch,[BATCH_SIZE,self.action_dim])
 
         # Calculate y_batch
 
-        next_action_batch = self.actor_network.target_actions(next_state_batch, next_action_batch)
-        q_value_batch = self.critic_network.target_q(next_state_batch,next_action_batch)
+        next_action_batch = self.actor_network.target_actions(next_state_batch)
+        q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
         y_batch = []
         for i in range(len(minibatch)):
             if done_batch[i]:
@@ -89,7 +90,7 @@ class DDPG:
     def perceive(self,state,action,reward,next_state,done):
         # Store transition (s_t,a_t,r_t,s_{t+1}) in replay buffer
         self.replay_buffer.add(state,action,reward,next_state,done)
-
+        self.actor_network.subcritics_perceive(reward, next_state, done)
         # Store transitions to replay start size then start training
         if self.replay_buffer.count() >  REPLAY_START_SIZE:
             self.train()
