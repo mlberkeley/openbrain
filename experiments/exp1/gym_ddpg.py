@@ -16,6 +16,7 @@ def main():
         state = env.reset()
         #print "episode:",episode
         # Train
+
         for step in xrange(env.spec.timestep_limit):
             action = agent.noise_action(state)
             next_state,reward,done,_ = env.step(action)

@@ -56,7 +56,7 @@ class DDPG:
 
         # Calculate y_batch
 
-        next_action_batch = self.actor_network.target_actions(next_state_batch)
+        next_action_batch = self.actor_network.target_actions(next_state_batch, reward_batch, done_batch)
         q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
         y_batch = []
         for i in range(len(minibatch)):
@@ -65,13 +65,14 @@ class DDPG:
             else :
                 y_batch.append(reward_batch[i] + GAMMA * q_value_batch[i])
         y_batch = np.resize(y_batch,[BATCH_SIZE,1])
+
         # Update critic by minimizing the loss L
         self.critic_network.train(y_batch,state_batch,action_batch)
         # Update the actor policy using the sampled gradient:
         action_batch_for_gradients = self.actor_network.actions(state_batch)
         q_gradient_batch = self.critic_network.gradients(state_batch,action_batch_for_gradients)
 
-        ## TODO Figure out how to do this with the subncritics
+        ## TODO Figure out how to do this with the subcritics
         self.actor_network.train(q_gradient_batch,state_batch)
 
         # Update the target networks
@@ -91,10 +92,7 @@ class DDPG:
         # Store transition (s_t,a_t,r_t,s_{t+1}) in replay buffer
         self.replay_buffer.add(state,action,reward,next_state,done)
 
-        self.actor_network.subcritics_perceive(next_state, reward, next_state, done)
-
-
-
+        self.actor_network.subcritics_perceive(next_state, reward, done)
         # Store transitions to replay start size then start training
         if self.replay_buffer.count() >  REPLAY_START_SIZE:
             self.train()

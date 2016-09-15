@@ -12,6 +12,7 @@ LAYER2_SIZE = 300
 LEARNING_RATE = 1e-4
 TAU = 0.001
 BATCH_SIZE = 64
+GAMMA = 0.99
 
 class ActorNetwork:
 	"""docstring for ActorNetwork"""
@@ -108,8 +109,10 @@ class ActorNetwork:
 			for sc in self.subcritics:
 				state, action = self.get_sc_state_action(sc)
 				self.action(env_next_state)
-				next_state, _ = self.get_sc_state_action(sc)
-				self.subcritics_replay_buffer.add(state,action,reward,next_state,done)
+				# TODO save next_action
+				next_state, next_action = self.get_sc_state_action(sc)
+				replay_buffer = self.get_sc_replay_buffer(sc)
+				replay_buffer.add(state,action,reward,next_state,done)
 
 
 	def create_target_network(self,state_dim,action_dim,net):
@@ -136,16 +139,11 @@ class ActorNetwork:
 			self.q_gradient_input:q_gradient_batch,
 			self.state_input:state_batch
 			})
-		minibatch = self.replay_buffer.get_batch(BATCH_SIZE)
-		state_batch = np.asarray([data[0] for data in minibatch])
-		action_batch = np.asarray([data[1] for data in minibatch])
-		reward_batch = np.asarray([data[2] for data in minibatch])
-		next_state_batch = np.asarray([data[3] for data in minibatch])
-		done_batch = np.asarray([data[4] for data in minibatch])
+
 		# TODO add training for the subnets
 		# for sc in self.subcritics
 
-	def actions(self,state_batch):
+	def actions(self,state_batch, reward_batch, done_batch):
 		"""
 		"""
 		action_batch = self.sess.run(self.action_output,feed_dict={
@@ -154,7 +152,31 @@ class ActorNetwork:
 
 		# TODO do something with the gradients
 		if self.has_subcritics:
+			# Sample a random minibatch of N transitions from replay buffer
+
+
+
 			#TODO fix this up for new state and action batches
+			for sc in self.subcritics:
+				replay_buffer = self.get_sc_replay_buffer(sc)
+				minibatch = replay_buffer.get_batch(BATCH_SIZE)
+				state_batch = np.asarray([data[0] for data in minibatch])
+				action_batch = np.asarray([data[1] for data in minibatch])
+				next_state_batch = np.asarray([data[3] for data in minibatch])
+
+				## TODO figure out way to save the action batches from the call that makes next_state in perceive()
+				next_action_batch = magic
+				net = self.get_sc_network(sc)
+
+				q_value_batch = net.target_q(next_state_batch, next_action_batch)
+
+				y_batch = []
+				for i in range(BATCH_SIZE):
+					if done_batch[i]:
+						y_batch.append(reward_batch[i])
+					else:
+						y_batch.append(reward_batch[i] + GAMMA * q_value_batch[i])
+				y_batch = np.resize(y_batch, [BATCH_SIZE, 1])
 			pass
 			subcritic_gradients = [sc.gradients(state_batch, action_batch) for sc in self.subcritics]
 
@@ -172,11 +194,12 @@ class ActorNetwork:
 		if self.has_subcritics:
 			for i,sc in enumerate(self.subcritics):
 				layer = self.get_sc_layer(sc)
+				## TODO this is still magic
 				state = layer.input
 				action = layer.output
 				self.update_sc_state_action(sc, state, action)
 	def update_sc_replay_buffers(self):
-		#TODO
+		#TODO finish this
 		if self.has_subcritics:
 			for sc in self.subcritics:
 				# grab the input of the layer
@@ -196,12 +219,6 @@ class ActorNetwork:
 		# state will be the next_state. action will be the next_action
 		if self.has_subcritics:
 			pass
-		# 	self.minibatch = self.replay_buffer.get_batch(BATCH_SIZE)
-		# 	state_batch = np.asarray([data[0] for data in minibatch])
-		# 	action_batch = np.asarray([data[1] for data in minibatch])
-		# 	reward_batch = np.asarray([data[2] for data in minibatch])
-		# 	next_state_batch = np.asarray([data[3] for data in minibatch])
-		# 	done_batch = np.asarray([data[4] for data in minibatch])
 		# 	# TODO fix up for proper state_batch and action_batch
 		# 	for sc in self.subcritics:
 		# 		#Get the action batch and state batch
