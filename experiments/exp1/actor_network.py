@@ -156,13 +156,15 @@ class ActorNetwork:
 
 
 
-			#TODO fix this up for new state and action batches
 			for sc in self.subcritics:
+				# TODO get the subcritic state/action value from the actor level action_batch
 				replay_buffer = self.get_sc_replay_buffer(sc)
 				minibatch = replay_buffer.get_batch(BATCH_SIZE)
 				state_batch = np.asarray([data[0] for data in minibatch])
 				action_batch = np.asarray([data[1] for data in minibatch])
 				next_state_batch = np.asarray([data[3] for data in minibatch])
+				# for action_dim = 1
+		        action_batch = np.resize(action_batch,[BATCH_SIZE,self.action_dim])
 
 				## TODO figure out way to save the action batches from the call that makes next_state in perceive()
 				next_action_batch = magic
@@ -176,11 +178,9 @@ class ActorNetwork:
 						y_batch.append(reward_batch[i])
 					else:
 						y_batch.append(reward_batch[i] + GAMMA * q_value_batch[i])
-				y_batch = np.resize(y_batch, [BATCH_SIZE, 1])
-			pass
-			subcritic_gradients = [sc.gradients(state_batch, action_batch) for sc in self.subcritics]
-
-		return action_batch
+                    y_batch = np.resize(y_batch, [BATCH_SIZE, 1])
+                net.train(y_batch, state_batch, action_batch)
+            return action_batch
 
 	def action(self,state):
 		""" Performs an action by propogating through the net"""

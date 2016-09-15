@@ -56,7 +56,7 @@ class DDPG:
 
         # Calculate y_batch
 
-        next_action_batch = self.actor_network.target_actions(next_state_batch, reward_batch, done_batch)
+        next_action_batch = self.actor_network.target_actions(next_state_batch)
         q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
         y_batch = []
         for i in range(len(minibatch)):
@@ -69,10 +69,9 @@ class DDPG:
         # Update critic by minimizing the loss L
         self.critic_network.train(y_batch,state_batch,action_batch)
         # Update the actor policy using the sampled gradient:
-        action_batch_for_gradients = self.actor_network.actions(state_batch)
-        q_gradient_batch = self.critic_network.gradients(state_batch,action_batch_for_gradients)
+        action_batch_for_gradients = self.actor_network.actions(state_batch, reward_batch, done_batch)
+        q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
 
-        ## TODO Figure out how to do this with the subcritics
         self.actor_network.train(q_gradient_batch,state_batch)
 
         # Update the target networks
