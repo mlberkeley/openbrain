@@ -164,7 +164,7 @@ class ActorNetwork:
 				action_batch = np.asarray([data[1] for data in minibatch])
 				next_state_batch = np.asarray([data[3] for data in minibatch])
 				# for action_dim = 1
-		        action_batch = np.resize(action_batch,[BATCH_SIZE,self.action_dim])
+				action_batch = np.resize(action_batch,[BATCH_SIZE,self.action_dim])
 
 				## TODO figure out way to save the action batches from the call that makes next_state in perceive()
 				next_action_batch = magic
@@ -178,9 +178,10 @@ class ActorNetwork:
 						y_batch.append(reward_batch[i])
 					else:
 						y_batch.append(reward_batch[i] + GAMMA * q_value_batch[i])
-                    y_batch = np.resize(y_batch, [BATCH_SIZE, 1])
-                net.train(y_batch, state_batch, action_batch)
-            return action_batch
+
+				y_batch = np.resize(y_batch, [BATCH_SIZE, 1])
+			net.train(y_batch, state_batch, action_batch)
+		return action_batch
 
 	def action(self,state):
 		""" Performs an action by propogating through the net"""
@@ -219,10 +220,10 @@ class ActorNetwork:
 		# state will be the next_state. action will be the next_action
 		if self.has_subcritics:
 			pass
-		# 	# TODO fix up for proper state_batch and action_batch
-		# 	for sc in self.subcritics:
-		# 		#Get the action batch and state batch
-		# 		self.critic_network.target_q(next_state_batch,next_action_batch)
+		#	 # TODO fix up for proper state_batch and action_batch
+		#	 for sc in self.subcritics:
+		#		 #Get the action batch and state batch
+		#		 self.critic_network.target_q(next_state_batch,next_action_batch)
 		return next_action_batch
 
 	# f fan-in size
