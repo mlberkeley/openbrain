@@ -79,7 +79,7 @@ class ActorNetwork:
 		# TODO MAYBE incorporate layer into CriticNetwork
 		if self.has_subcritics:
 			sc_replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
-			self.subcritics.append((CriticNetwork(self.sess, in_dim, out_dim), layer, sc_replay_buffer, ()))
+			self.subcritics.append([CriticNetwork(self.sess, in_dim, out_dim), layer, sc_replay_buffer, ()])
 
 
 	#### Accessor methods for the subcritic network ####
@@ -96,9 +96,9 @@ class ActorNetwork:
 
 	def update_sc_state_action(self, subcritic_net, new_state, new_action):
 		""" Updates the last state/action for the sc network"""
-		return (subcritic_net[0], subcritic_net[1], subcritic_net[2], (new_state, new_action))
+		subcritic_net[3] = (new_state, new_action)
 
-	def subcritics_perceive(self, reward, next_state, done):
+	def subcritics_perceive(self, env_next_state, reward, done):
 		"""
 		Add another perception to the subcritic network
 		"""
@@ -107,6 +107,8 @@ class ActorNetwork:
 
 			for sc in self.subcritics:
 				state, action = self.get_sc_state_action(sc)
+				self.action(env_next_state)
+				next_state, _ = self.get_sc_state_action(sc)
 				self.subcritics_replay_buffer.add(state,action,reward,next_state,done)
 
 
@@ -172,8 +174,9 @@ class ActorNetwork:
 				layer = self.get_sc_layer(sc)
 				state = layer.input
 				action = layer.output
-				self.subcritics[i] = self.update_sc_state_action(sc, state, action)
+				self.update_sc_state_action(sc, state, action)
 	def update_sc_replay_buffers(self):
+		#TODO
 		if self.has_subcritics:
 			for sc in self.subcritics:
 				# grab the input of the layer
@@ -189,7 +192,8 @@ class ActorNetwork:
 		next_action_batch = self.sess.run(self.target_action_output,feed_dict={
 			self.target_state_input:state_batch
 			})
-		# get the state/action for each layer on the network
+		# TODO get the next_action for each subcritic on the network .
+		# state will be the next_state. action will be the next_action
 		if self.has_subcritics:
 			pass
 		# 	self.minibatch = self.replay_buffer.get_batch(BATCH_SIZE)
