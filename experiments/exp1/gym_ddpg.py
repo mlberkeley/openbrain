@@ -18,9 +18,10 @@ def main():
 		# Train
 
 		for step in range(env.spec.timestep_limit):
-			action = agent.noise_action(state)
+			action, voltage = agent.noise_action_voltage(state)
 			next_state,reward,done,_ = env.step(action)
-			agent.perceive(state,action,reward,next_state,done)
+			env.render()
+			agent.perceive(state,voltage,action,reward,next_state,done)
 			state = next_state
 			if done:
 				break
