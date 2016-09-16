@@ -50,7 +50,8 @@ from functools import reduce
 _useGpu = _os.environ.get('GNUMPY_USE_GPU', 'auto')
 assert _useGpu in ('auto', 'yes', 'no'), "environment variable GNUMPY_USE_GPU, if present, should be one of 'auto', 'yes', 'no'."
 if _useGpu == 'auto':
-    import cudamat as _cudamat; _useGpu = 'yes'
+  try: import cudamat as _cudamat; _useGpu = 'yes'
+  except: import utils.npmat as _cudamat
 if _useGpu == 'yes':
  import cudamat as _cudamat
 elif _useGpu == 'no':

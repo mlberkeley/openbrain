@@ -62,7 +62,7 @@ class Ubigraph:
         except: pass
         for prop, val in node_property.items():
             try: self.G.set_vertex_attribute(n, prop, val)
-            except: pass
+            except: return make_node(node_property)
         return n
 
     def make_edge(self, a, b):
@@ -73,19 +73,20 @@ class Ubigraph:
         :return:
         """
         try: e = self.G.new_edge(a, b)
-        except: pass
+        except: return self.G.new_edge(a,b)
 
         try: self.G.set_edge_attribute(e, "arrow", "true")
-        except: pass
+        except: return self.G.new_edge(a,b)
 
         try: self.G.set_edge_attribute(e, "spline", "false")
-        except: pass
+        except: return self.G.new_edge(a,b)
         return e
 
     def set_properties(self, props, nodes):
         for node in nodes:
             for prop, val in props.items():
-                self.G.set_vertex_attribute(self.nodes[node], prop, val)
+                try: self.G.set_vertex_attribute(self.nodes[node], prop, val)
+                except: pass
 
 
 
