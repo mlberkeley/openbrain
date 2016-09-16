@@ -8,24 +8,24 @@ EPISODES = 100000
 TEST = 10
 
 def main():
-    env = filter_env.makeFilteredEnv(gym.make(ENV_NAME))
-    agent = DDPG(env)
-    env.monitor.start('experiments/' + ENV_NAME,force=True)
+	env = filter_env.makeFilteredEnv(gym.make(ENV_NAME))
+	agent = DDPG(env)
+	env.monitor.start('experiments/' + ENV_NAME,force=True)
 
-    for episode in xrange(EPISODES):
-        state = env.reset()
-        #print "episode:",episode
-        # Train
+	for episode in xrange(EPISODES):
+		state = env.reset()
+		#print "episode:",episode
+		# Train
 
-        for step in xrange(env.spec.timestep_limit):
-            action = agent.noise_action(state)
-            next_state,reward,done,_ = env.step(action)
-            agent.perceive(state,action,reward,next_state,done)
-            state = next_state
-            if done:
-                break
-        # Testing:
-        if episode % 100 == 0 and episode > 100:
+		for step in xrange(env.spec.timestep_limit):
+			action = agent.noise_action(state)
+			next_state,reward,done,_ = env.step(action)
+			agent.perceive(state,action,reward,next_state,done)
+			state = next_state
+			if done:
+				break
+		# Testing:
+		if episode % 100 == 0 and episode > 100:
 			total_reward = 0
 			for i in xrange(TEST):
 				state = env.reset()
@@ -37,8 +37,8 @@ def main():
 					if done:
 						break
 			ave_reward = total_reward/TEST
-			print 'episode: ',episode,'Evaluation Average Reward:',ave_reward
-    env.monitor.close()
+			print ('episode: ',episode,'Evaluation Average Reward:',ave_reward)
+	env.monitor.close()
 
 if __name__ == '__main__':
-    main()
+	main()
