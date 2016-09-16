@@ -10,7 +10,7 @@ def default_node_props():
 
 class Ubigraph:
     def __init__(self, adjacency,
-                 server_url='http://127.0.0.1:20738/RPC2',
+                 server_url='http://192.168.168.33:20738/RPC2',
                  node_prop=default_node_props()):
         """
         Initializes the Ubigraph connection.

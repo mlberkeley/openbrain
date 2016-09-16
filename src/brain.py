@@ -18,7 +18,7 @@ class Brain(object):
         :param num_hidden: The number of hidden neurons.
         """
         self.initialize_graph(num_input,num_hidden, num_output,  density=0.5)
-        # self.visualize()
+        self.visualize()
 
 
     def initialize_graph(self, num_input, num_hidden,  num_output,density):
@@ -111,6 +111,11 @@ if __name__ == '__main__':
         while len(grad) > 200:
             grad.pop(0)
 
+        for i,x in enumerate(v.as_numpy_array()):
+            b.ubi.set_properties({
+                "size": str(x)
+                }, [i])
+        dsigma = None
         i+=1
         x = get_random_input(b)
         net = b.C.dot(v + x)
@@ -126,7 +131,7 @@ if __name__ == '__main__':
 
         dEdC = gpu.tensordot(diff, dpidC,1)
 
-        b.C += 0.01*dEdC
+        b.C += 0.1*dEdC
         print(i, v.as_numpy_array()[b.output_neurons])
 
 
