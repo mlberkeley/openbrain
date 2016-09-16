@@ -65,7 +65,7 @@ class ActorNetwork:
 		self.create_subcritic_network(state_dim, layer1_size, layer1)
 
 		layer2 = tf.nn.relu(tf.matmul(layer1,W2) + b2)
-		print "layer2 shape", layer2.get_shape(), layer1.get_shape()
+		print("layer2 shape", layer2.get_shape(), layer1.get_shape())
 		self.create_subcritic_network(layer1_size, layer2_size, layer2)
 
 		action_output = tf.tanh(tf.matmul(layer2,W3) + b3)
@@ -178,10 +178,9 @@ class ActorNetwork:
 						y_batch.append(reward_batch[i])
 					else:
 						y_batch.append(reward_batch[i] + GAMMA * q_value_batch[i])
-
-				y_batch = np.resize(y_batch, [BATCH_SIZE, 1])
-			net.train(y_batch, state_batch, action_batch)
-		return action_batch
+					y_batch = np.resize(y_batch, [BATCH_SIZE, 1])
+				net.train(y_batch, state_batch, action_batch)
+			return action_batch
 
 	def action(self,state):
 		""" Performs an action by propogating through the net"""
