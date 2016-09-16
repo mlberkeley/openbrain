@@ -45,7 +45,7 @@ class ActorNetwork:
 	def create_training_method(self):
 		self.q_gradient_input = tf.placeholder("float",[None,self.action_dim])
 		self.parameters_gradients = tf.gradients(self.action_output,self.net,-self.q_gradient_input)
-		self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(zip(self.parameters_gradients,self.net))
+		self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(list(zip(self.parameters_gradients,self.net)))
 
 	def create_network(self,state_dim,action_dim):
 		layer1_size = LAYER1_SIZE
@@ -65,7 +65,7 @@ class ActorNetwork:
 		self.create_subcritic_network(state_dim, layer1_size, state_input, layer1)
 
 		layer2 = tf.nn.relu(tf.matmul(layer1,W2) + b2)
-		print("layer2 shape", layer2.get_shape(), layer1.get_shape())
+		print(("layer2 shape", layer2.get_shape(), layer1.get_shape()))
 		self.create_subcritic_network(layer1_size, layer2_size, layer1, layer2)
 
 		action_output = tf.tanh(tf.matmul(layer2,W3) + b3)

@@ -35,7 +35,7 @@ class ActorNetwork:
 	def create_training_method(self):
 		self.q_gradient_input = tf.placeholder("float",[None,self.action_dim])
 		self.parameters_gradients = tf.gradients(self.action_output,self.net,-self.q_gradient_input)
-		self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(zip(self.parameters_gradients,self.net))
+		self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(list(zip(self.parameters_gradients,self.net)))
 
 	def create_network(self,state_dim,action_dim):
 		layer1_size = LAYER1_SIZE
