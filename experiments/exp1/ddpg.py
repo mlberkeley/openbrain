@@ -57,18 +57,19 @@ class DDPG:
 		# Calculate y_batch
 		next_action_batch = self.actor_network.target_actions(next_state_batch)		
 		# TODO: need to figure out how to do this for each individual subcritics.
-		if actor_network.has_subcritics():
-			q_value_batch = []
-			for sc in actor_network.subcritics:
-				subcritic_net = actor_network.get_sc_network(sc)
-				# TODO: double check this shit
-				subcritic_layer = actor_network.get_sc_layer(sc)	
-				layer_weights = tf.get_collection(tf.GraphKeys.WEIGHTS, subcritic_layer)
-				q_batch = sc.target_q(layer_weights, next_action_batch)
-				q_value_batch.append(q_batch)
+		# if self.actor_network.has_subcritics():
+		# 	# q_value_batch = []
+		# 	for sc in self.actor_network.subcritics:
+		# 		subcritic_net = self.actor_network.get_sc_network(sc)
+		# 		# TODO: double check this shit
+		# 		subcritic_layer = self.actor_network.get_sc_output_tensor(sc)
+		# 		layer_weights = tf.get_collection(tf.GraphKeys.WEIGHTS, subcritic_layer)
+		# 		q_batch = subcritic_net.target_q(layer_weights, next_action_batch)
+				# q_value_batch.append(q_batch)
 
-		if not actor_network.has_subcritics():
-			q_value_batch = self.critic_network.target_q(variable, next_action_batch)
+		# if not self.actor_network.has_subcritics(): # add this back when we implement actual gradient
+		# stuff with q shit
+		q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
 
 		y_batch = []
 		for i in range(len(minibatch)):
@@ -81,6 +82,7 @@ class DDPG:
 		# Update critic by minimizing the loss L
 		self.critic_network.train(y_batch,state_batch,action_batch)
 		# Update the actor policy using the sampled gradient:
+		print(action_batch)
 		action_batch_for_gradients = self.actor_network.actions(state_batch, reward_batch, done_batch)
 		q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
 

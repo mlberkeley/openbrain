@@ -32,3 +32,11 @@ class ReplayBuffer(object):
     def erase(self):
         self.buffer = deque()
         self.num_experiences = 0
+class SubCriticReplayBuffer(ReplayBuffer):
+    def add(self, state, action, reward, new_state, new_action, done):
+        experience = (state, action, reward, new_state, new_action, done)
+        if self.num_experiences < self.buffer_size:
+            self.buffer.append(experience)
+            self.num_experiences += 1
+        else:
+            self.buffer.popleft()

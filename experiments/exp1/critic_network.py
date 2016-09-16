@@ -15,6 +15,8 @@ class CriticNetwork:
 	def __init__(self,sess,state_dim,action_dim):
 		self.time_step = 0
 		self.sess = sess
+		self.state_dim = state_dim
+		self.action_dim = action_dim
 		# create q network
 		self.state_input,\
 		self.action_input,\
