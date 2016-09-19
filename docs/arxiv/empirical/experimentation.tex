@@ -1,2 +1,6 @@
 \section{Experimentation}
 \subsection{Experiment 1: Learning Q functions on components of the Actor network.}
+
+
+After [number of iterations], each $Q^n(s,a)$  networks effectively learned the same cost function as $Q^{\mu}(s,a)$.
+\todo[inline]{Incorporate metrics regarding the performance $Q_n$ w.r.t $Q^{\mu}$'s weights}. Furthermore, the $Q^n$ plots of \todo[inline]{function name} correlate directly with the same plot for $Q^{\mu}$. This confirms that we are able teach the $Q^n$ model on the level of subcomponents of $\mu$ supporting the argument that we can use $Q^n$ nets to approximate $Q^\mu$. We can now use each $Q^n$ to calculate the gradient of the specific neuron component that the $Q^n$ is critiquing. We proceed with this in Experiment 2.
