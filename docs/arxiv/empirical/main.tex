@@ -350,7 +350,7 @@ although (assuming we get a weak experimental result), we propose that it is due
   L(s_t, a_t, r_t, s_{t+1}, a_{t+1}) = (Qn(O1(s_t),O2[i](s_t)) - r_t - Qn'(O1(s_{t+1}),O2[i](s_{t+1})))^2
 \end{equation*}
 with respect to the parameters $W(Qn)$. Note I didn't actually use $a_t$ above since really the $Qn$ function takes in the input of the previous layer (to $n$) as its input, say $O1(s_t)$ and the action for that same time step which is just the output of the neuron $n$, say $O2(s_t)[i]$.  The same goes for $Qn'$ but at the next time step.
-
+\input{experimentation}
 
 
 \todo[inline]{Therefore we propose the following learning rule in aims to evidence the reverse, training $\mu$ using simultaneous optimization on all $Q_n$ w.r.t $\pi_n$'s weights.
