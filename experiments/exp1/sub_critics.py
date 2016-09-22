@@ -7,6 +7,11 @@ import gym
 import tensorflow as tf
 import numpy as np
 from ou_noise import OUNoise
-from critic_network import CriticNetwork
-from actor_network import ActorNetwork
-from replay_buffer import ReplayBuffer
+from ddpg import DDPG
+from common.critic_network import CriticNetwork
+from common.actor_network import ActorNetwork
+from common.replay_buffer import ReplayBuffer
+
+
+class SubCritics:
+	def __init__(self, ddpg_agent : DDPG, )
