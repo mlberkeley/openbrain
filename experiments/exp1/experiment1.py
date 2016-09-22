@@ -14,9 +14,9 @@ import gc
 gc.enable()
 
 
-import filter_env
-import reward_env
-import multi_ddpg
+import common.filter_env
+from ddpg import DDPG
+from sub_critics import SubCritics
 
 ########################################
 # All of this warrants a class :)
@@ -50,10 +50,13 @@ def record_data(cur_data, state, action, activations, reward, done,
 
 
 	if done:
-		new_episode_data(cur_dat)
+		new_episode_data(cur_data)
 ################
 
 def test(env, agent, test):
+	"""
+	Tests the agent.
+	"""
 	total_reward = 0
 	for i in range(TEST):
 		state = env.reset()
@@ -69,7 +72,10 @@ def test(env, agent, test):
 
 
 def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10):
-	env = filter_env.makeFilteredEnv(gym.make(ENV_NAME))
+	"""
+	Runs the experiment on the target en
+	"""
+	env = common.filter_env.makeFilteredEnv(gym.make(ENV_NAME))
 	cur_data = {}
 
 	# Create the standard DDPG agent.
@@ -78,7 +84,7 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 
 	for episode in range(EPISODES):
 		state = env.reset()
-		print("Episode: ", episode, endn="")
+		print("Episode: ", episode, end="")
 		r_tot = 0
 
 		for step in range(env.spec.timestep_limit):
@@ -91,21 +97,21 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 			env.render()
 
 			# Train subcrticis
-			subcritics.perceive(activations, reward, done)
+			sub_critics.perceive(activations, reward, done)
 
 			# Train DDPG
 			agent.perceive(state,action,reward,next_state,done)
 
 			record_data(
 				cur_data, state, action, activations, reward, done, 
-				agent, subcritics)
+				agent, sub_critics)
 			# plot_data(cur_data)
 
 			if done:
 				break
 			# Move on to next frame.
 			state = next_state
-		print(rtot)
+		print(" ", r_tot)
 
 		# Testing:
 		if episode % 100 == 0 and episode > 100:

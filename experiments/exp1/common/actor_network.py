@@ -1,8 +1,6 @@
 import tensorflow as tf
 import numpy as np
 import math
-from critic_network import CriticNetwork
-
 
 # Hyper Parameters
 REPLAY_BUFFER_SIZE = 1000000
@@ -22,8 +20,6 @@ class ActorNetwork:
 		self.state_dim = state_dim
 		self.action_dim = action_dim
 		self.has_subcritics = has_subcritics
-		if has_subcritics:
-			self.subcritics = []
 		self.layers = []
 		self.target_layers = []
 		# create actor network
@@ -65,25 +61,14 @@ class ActorNetwork:
 
 		layer1 = tf.nn.relu(tf.matmul(state_input,W1) + b1)
 		self.layers += [layer1]
-		self.create_subcritic_network(state_dim, layer1_size)
 
 		layer2 = tf.nn.relu(tf.matmul(layer1,W2) + b2)
 		self.layers += [layer2]
-		self.create_subcritic_network(layer1_size, layer2_size)
 
 		action_output = tf.tanh(tf.matmul(layer2,W3) + b3)
 		self.layers += [action_output]
-		self.create_subcritic_network(layer2_size, int(action_output.get_shape()[1]))
 
 		return state_input,action_output,[W1,b1,W2,b2,W3,b3]
-
-	def create_subcritic_network(self, in_dim, out_dim):
-		"""
-		Create a subcritic network for the layer
-		"""
-		if self.has_subcritics:
-			self.subcritics.append(CriticNetwork(self.sess, in_dim, out_dim))
-
 
 
 	def create_target_network(self,state_dim,action_dim,net):
@@ -127,15 +112,15 @@ class ActorNetwork:
 		return action_output
 
 
-	def action_voltage(self, state):
+	def action_activations(self, state):
 		""" Gets a pair of action, [state, layer1, layer2, ...] """
 		output = self.sess.run([self.action_output,
 			self.layers],feed_dict={
 			self.state_input:[state]
 			})
 		action = output[0][0]
-		voltages = [volt[0] for volt in output[1]]
-		return action, voltages
+		activations = [activation[0] for activation in output[1]]
+		return action, activations
 
 
 	def target_actions(self,state_batch):
@@ -146,7 +131,7 @@ class ActorNetwork:
 			})
 		return next_action_batch
 
-	def target_action_voltages(self, state_batch):
+	def target_action_activations(self, state_batch):
 		next_action_batch = self.sess.run(
 			[self.target_action_output,self.target_layers],feed_dict={
 			self.target_state_input:state_batch
@@ -155,17 +140,3 @@ class ActorNetwork:
 	# f fan-in size
 	def variable(self,shape,f):
 		return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))
-'''
-	def load_network(self):
-		self.saver = tf.train.Saver()
-		checkpoint = tf.train.get_checkpoint_state("saved_actor_networks")
-		if checkpoint and checkpoint.model_checkpoint_path:
-			self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
-			print "Successfully loaded:", checkpoint.model_checkpoint_path
-		else:
-			print "Could not find old network weights"
-	def save_network(self,time_step):
-		print 'save actor-network...',time_step
-		self.saver.save(self.sess, 'saved_actor_networks/' + 'actor-network', global_step = time_step)
-
-'''
