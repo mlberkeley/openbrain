@@ -1,16 +1,32 @@
+################################################################
+# EXPERIMENT 1:
+#
+# In this experiment we will train an actor according to a critic
+# and then simultaneously learn and plot the resulting 
+################################################################
+
+import matplotlib.pyplot as plt
+from IPython import display
+from itertools import chain
+import importlib
+
 import filter_env
-from ddpg import *
+import reward_env
+import multi_ddpg
+import gym
+import numpy as np
+importlib.reload(multi_ddpg)
 import gc
+import tensorflow as tf
 gc.enable()
 
-ENV_NAME = 'MountainCarContinuous-v0'
-EPISODES = 100000
-TEST = 10
 
-def main():
+
+def main(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10):
 	env = filter_env.makeFilteredEnv(gym.make(ENV_NAME))
+
+	# Create the standard DDPG agent.
 	agent = DDPG(env)
-	env.monitor.start('experiments/' + ENV_NAME,force=True)
 
 	for episode in range(EPISODES):
 		state = env.reset()

@@ -8,7 +8,6 @@ import tensorflow as tf
 import numpy as np
 from ou_noise import OUNoise
 from critic_network import CriticNetwork
-from sub_critics import create_sub_critics
 from actor_network import ActorNetwork
 from replay_buffer import ReplayBuffer
 
@@ -20,7 +19,7 @@ BATCH_SIZE = 64
 GAMMA = 0.99
 
 
-class MultiCriticDDPG:
+class DDPG:
 	"""docstring for DDPG"""
 	def __init__(self, env):
 		self.name = 'DDPG' # name for uploading results
@@ -32,11 +31,10 @@ class MultiCriticDDPG:
 
 		self.sess = tf.InteractiveSession()
 
-		self.actor_network = ActorNetwork(self.sess,self.state_dim,self.action_dim)
-		self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim)
-
-		# Create subcritics
-		self.sub_critics = create_sub_critics(self.actor_network)
+		with tf.variable_scope("Actor"):
+			self.actor_network = ActorNetwork(self.sess,self.state_dim,self.action_dim)
+		with tf.variable_scope("Critic"):
+			self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim)
 
 		# initialize replay buffer
 		self.replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
@@ -49,11 +47,10 @@ class MultiCriticDDPG:
 		# Sample a random minibatch of N transitions from replay buffer
 		minibatch = self.replay_buffer.get_batch(BATCH_SIZE)
 		state_batch = np.asarray([data[0] for data in minibatch])
-		voltage_batch = np.asarray([data[1] for data in minibatch])
-		action_batch = np.asarray([data[2] for data in minibatch])
-		reward_batch = np.asarray([data[3] for data in minibatch])
-		next_state_batch = np.asarray([data[4] for data in minibatch])
-		done_batch = np.asarray([data[5] for data in minibatch])
+		action_batch = np.asarray([data[1] for data in minibatch])
+		reward_batch = np.asarray([data[2] for data in minibatch])
+		next_state_batch = np.asarray([data[3] for data in minibatch])
+		done_batch = np.asarray([data[4] for data in minibatch])
 
 		######################
 		# Do NORMAL Q LEARNING
@@ -62,7 +59,7 @@ class MultiCriticDDPG:
 		action_batch = np.resize(action_batch,[BATCH_SIZE,self.action_dim])
 
 		# Calculate y_batch
-		next_action_batch, next_voltage_batch = self.actor_network.target_actions(next_state_batch)		
+		next_action_batch, _ = self.actor_network.target_actions(next_state_batch)		
 		q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
 
 		y_batch = []
@@ -77,15 +74,6 @@ class MultiCriticDDPG:
 		self.critic_network.train(y_batch,state_batch,action_batch)
 		######################
 
-		############################
-		# SUB CRITIC Q LEARNING
-		#########################
-		for cn in enumerate(self.sub_critics):
-			cn.train(minibatch)
-		#########################
-
-
-
 		# Update the actor policy using the sampled gradient:
 		action_batch_for_gradients = self.actor_network.actions(state_batch, reward_batch, done_batch)
 		q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
@@ -96,24 +84,24 @@ class MultiCriticDDPG:
 		self.actor_network.update_target()
 		self.critic_network.update_target()
 
-	def noise_action_voltage(self,state):
+	def noise_action_activations(self,state):
 		# Select action a_t according to the current policy and exploration noise
-		action, voltage = self.actor_network.action_voltage(state)
+		action, activations = self.actor_network.action_activations(state)
 		action += self.exploration_noise.noise()
-		return action, voltage
+		return action, activations
 
 	def action(self,state):
 		action = self.actor_network.action(state)
 		return action
 
-	def action_voltage(self, state):
-		action, voltage = self.actor_network.action_voltage(state)
-		return action, voltage
+	def action_activations(self, state):
+		action, activations = self.actor_network.action_activations(state)
+		return action, activations
 
-	def perceive(self,state, voltage, action,reward,next_state, done):
+	def perceive(self,state, action,reward,next_state, done):
 		# Store transition (s_t,v_t,a_t,r_t,s_{t+1}) in replay buffer
 		self.replay_buffer.add(
-			state,voltage,action,reward,next_state, done)
+			state,action,reward,next_state, done)
 
 		# Store transitions to replay start size then start training
 		if self.replay_buffer.count() >  REPLAY_START_SIZE:
