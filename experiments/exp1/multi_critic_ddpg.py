@@ -8,6 +8,7 @@ import tensorflow as tf
 import numpy as np
 from ou_noise import OUNoise
 from critic_network import CriticNetwork
+from sub_critics import create_sub_critics
 from actor_network import ActorNetwork
 from replay_buffer import ReplayBuffer
 
@@ -19,7 +20,7 @@ BATCH_SIZE = 64
 GAMMA = 0.99
 
 
-class DDPG:
+class MultiCriticDDPG:
 	"""docstring for DDPG"""
 	def __init__(self, env):
 		self.name = 'DDPG' # name for uploading results
@@ -31,8 +32,11 @@ class DDPG:
 
 		self.sess = tf.InteractiveSession()
 
-		self.actor_network = ActorNetwork(self.sess,self.state_dim,self.action_dim, True)
+		self.actor_network = ActorNetwork(self.sess,self.state_dim,self.action_dim)
 		self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim)
+
+		# Create subcritics
+		self.sub_critics = create_sub_critics(self.actor_network)
 
 		# initialize replay buffer
 		self.replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
@@ -76,23 +80,8 @@ class DDPG:
 		############################
 		# SUB CRITIC Q LEARNING
 		#########################
-		for i, cn in enumerate(self.actor_network.subcritics):
-			next_sub_state_batch = next_voltage_batch[i]
-			next_sub_action_batch = next_voltage_batch[i+1]
-			sub_q_value_batch = cn.target_q(next_sub_state_batch, next_sub_action_batch)
-
-			y_batch = []
-			for i in range(len(minibatch)):
-				if done_batch[i]:
-					y_batch.append(reward_batch[i])
-				else :
-					y_batch.append(reward_batch[i] + GAMMA * sub_q_value_batch[i])
-			y_batch = np.resize(y_batch,[BATCH_SIZE,1])
-
-			sub_state_batch = voltage_batch[:,i]
-			sub_action_batch = voltage_batch[:,i+1]
-
-			cn.train(y_batch, sub_state_batch, sub_action_batch)
+		for cn in enumerate(self.sub_critics):
+			cn.train(minibatch)
 		#########################
 
 
@@ -106,7 +95,6 @@ class DDPG:
 		# Update the target networks
 		self.actor_network.update_target()
 		self.critic_network.update_target()
-		for cn in self.actor_network.subcritics: cn.update_target()
 
 	def noise_action_voltage(self,state):
 		# Select action a_t according to the current policy and exploration noise
@@ -130,10 +118,6 @@ class DDPG:
 		# Store transitions to replay start size then start training
 		if self.replay_buffer.count() >  REPLAY_START_SIZE:
 			self.train()
-
-		#if self.time_step % 10000 == 0:
-			#self.actor_network.save_network(self.time_step)
-			#self.critic_network.save_network(self.time_step)
 
 		# Re-iniitialize the random process when an episode ends
 		if done:
