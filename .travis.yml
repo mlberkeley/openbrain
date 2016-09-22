@@ -1,6 +1,6 @@
 before_install:
 - sudo apt-get update && sudo apt-get install -y texlive-full texlive-fonts-recommended
-  texlive-latex-extra texlive-fonts-extra texlive-latex-recommended dvipng
+  texlive-latex-extra texlive-fonts-extra texlive-latex-recommended dvipng texlive-pictures
 script:
 - mkdir _build
 - cd docs/backprop_free_dpg && pdflatex -output-directory ../../_build main.tex
