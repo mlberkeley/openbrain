@@ -6,10 +6,11 @@
 import gym
 import tensorflow as tf
 import numpy as np
-from ou_noise import OUNoise
-from critic_network import CriticNetwork
-from actor_network import ActorNetwork
-from replay_buffer import ReplayBuffer
+from common.ou_noise import OUNoise
+from common.critic_network import CriticNetwork
+from common.actor_network import ActorNetwork
+from common.replay_buffer import ReplayBuffer
+
 
 # Hyper Parameters:
 
@@ -31,8 +32,10 @@ class DDPG:
 
 		self.sess = tf.InteractiveSession()
 
-		self.actor_network = ActorNetwork(self.sess,self.state_dim,self.action_dim, True)
-		self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim)
+		with tf.variable_scope("Actor"):
+			self.actor_network = ActorNetwork(self.sess,self.state_dim,self.action_dim)
+		with tf.variable_scope("Critic"):
+			self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim)
 
 		# initialize replay buffer
 		self.replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
@@ -45,11 +48,10 @@ class DDPG:
 		# Sample a random minibatch of N transitions from replay buffer
 		minibatch = self.replay_buffer.get_batch(BATCH_SIZE)
 		state_batch = np.asarray([data[0] for data in minibatch])
-		voltage_batch = np.asarray([data[1] for data in minibatch])
-		action_batch = np.asarray([data[2] for data in minibatch])
-		reward_batch = np.asarray([data[3] for data in minibatch])
-		next_state_batch = np.asarray([data[4] for data in minibatch])
-		done_batch = np.asarray([data[5] for data in minibatch])
+		action_batch = np.asarray([data[1] for data in minibatch])
+		reward_batch = np.asarray([data[2] for data in minibatch])
+		next_state_batch = np.asarray([data[3] for data in minibatch])
+		done_batch = np.asarray([data[4] for data in minibatch])
 
 		######################
 		# Do NORMAL Q LEARNING
@@ -58,7 +60,7 @@ class DDPG:
 		action_batch = np.resize(action_batch,[BATCH_SIZE,self.action_dim])
 
 		# Calculate y_batch
-		next_action_batch, next_voltage_batch = self.actor_network.target_actions(next_state_batch)		
+		next_action_batch = self.actor_network.target_actions(next_state_batch)		
 		q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
 
 		y_batch = []
@@ -73,32 +75,8 @@ class DDPG:
 		self.critic_network.train(y_batch,state_batch,action_batch)
 		######################
 
-		############################
-		# SUB CRITIC Q LEARNING
-		#########################
-		for i, cn in enumerate(self.actor_network.subcritics):
-			next_sub_state_batch = next_voltage_batch[i]
-			next_sub_action_batch = next_voltage_batch[i+1]
-			sub_q_value_batch = cn.target_q(next_sub_state_batch, next_sub_action_batch)
-
-			y_batch = []
-			for i in range(len(minibatch)):
-				if done_batch[i]:
-					y_batch.append(reward_batch[i])
-				else :
-					y_batch.append(reward_batch[i] + GAMMA * sub_q_value_batch[i])
-			y_batch = np.resize(y_batch,[BATCH_SIZE,1])
-
-			sub_state_batch = voltage_batch[:,i]
-			sub_action_batch = voltage_batch[:,i+1]
-
-			cn.train(y_batch, sub_state_batch, sub_action_batch)
-		#########################
-
-
-
 		# Update the actor policy using the sampled gradient:
-		action_batch_for_gradients = self.actor_network.actions(state_batch, reward_batch, done_batch)
+		action_batch_for_gradients = self.actor_network.actions(state_batch)
 		q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
 
 		self.actor_network.train(q_gradient_batch,state_batch)
@@ -106,34 +84,29 @@ class DDPG:
 		# Update the target networks
 		self.actor_network.update_target()
 		self.critic_network.update_target()
-		for cn in self.actor_network.subcritics: cn.update_target()
 
-	def noise_action_voltage(self,state):
+	def noise_action_activations(self,state):
 		# Select action a_t according to the current policy and exploration noise
-		action, voltage = self.actor_network.action_voltage(state)
+		action, activations = self.actor_network.action_activations(state)
 		action += self.exploration_noise.noise()
-		return action, voltage
+		return action, activations
 
 	def action(self,state):
 		action = self.actor_network.action(state)
 		return action
 
-	def action_voltage(self, state):
-		action, voltage = self.actor_network.action_voltage(state)
-		return action, voltage
+	def action_activations(self, state):
+		action, activations = self.actor_network.action_activations(state)
+		return action, activations
 
-	def perceive(self,state, voltage, action,reward,next_state, done):
+	def perceive(self,state, action,reward,next_state, done):
 		# Store transition (s_t,v_t,a_t,r_t,s_{t+1}) in replay buffer
 		self.replay_buffer.add(
-			state,voltage,action,reward,next_state, done)
+			state,action,reward,next_state, done)
 
 		# Store transitions to replay start size then start training
 		if self.replay_buffer.count() >  REPLAY_START_SIZE:
 			self.train()
-
-		#if self.time_step % 10000 == 0:
-			#self.actor_network.save_network(self.time_step)
-			#self.critic_network.save_network(self.time_step)
 
 		# Re-iniitialize the random process when an episode ends
 		if done:

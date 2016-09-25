@@ -1,0 +1,16 @@
+before_install:
+- wget https://github.com/scottkosty/install-tl-ubuntu/raw/master/install-tl-ubuntu
+- chmod +x ./install-tl-ubuntu
+- sudo ./install-tl-ubuntu
+script:
+- mkdir _build
+- cd docs/backprop_free_dpg && pdflatex -output-directory ../../_build main.tex
+deploy:
+  provider: releases
+  api_key:
+    secure: FBELeg1aHDO5a3jTLfSHHUytCEu3yDldfO4TjoMIdG0dpkIMiaWo+TL6X2aBYg46i4YxkSIU4TH02gw7VJlHrgMsbkFetHTs5V/2Ght/jIjMBcDj/x25u7GfRPGD+wuYkpk7kzIJpBkxzYkrDp9ebShGrFGW2dKgvFh5wOVtxuVl4X0VX+1HGCRCeCHCNbOPYOaCCqNtiNz0vHYFrZboQ1fRJ3Wq/CSYTzw9kvOaRHB/FrAcYm7yHVVFwFZP0lYsWYQseHBWjsLiTAFidtJ5Pwk0BzC9qw+TOOCDT2tHA+bPazhTVNnGRDbB2V9f23oQfQ30UtM7GxwW94+tBEi5gxxK5SbztkaTWVam+w36Hp31kziwOPkzIHGAUd2Vfg/ro45CxgtwGzo4tFVTfuN4xv2Qvc937oNJ29BKVpecKuYqRRU+/zkolosVey8+xPraBf+m3wnlHPQBOcUNa+qxKrGkMSpMnkYBZbBffsphXDk1LqRrm6D2/3i9ztiQu+FZ9cPwlxAopdcK51uQsFaXx84NnLBPu2Sj4hqYh0zEUKLBnqEUUSpPxtJclwYw5s5E8FgItXCv0Ip/fiA60Q1l1SXe6XcA/71j8VsnlcUD8xr0uP6TSzOg7kPGLqtoMdZ1U2byhQNwr/OtyhgoTc17g0jsQimRF8qsXIvPaqfmZHk=
+  file: _build/main.pdf
+  on:
+    repo: mlberkeley/openbrain
+    branch: master
+    tag: true
