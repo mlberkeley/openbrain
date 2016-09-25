@@ -53,12 +53,12 @@ def record_data(cur_data, state, action, activations, reward, done,
 		new_episode_data(cur_data, sub_critics.count)
 ################
 
-def test(env, agent, test):
+def test(env, agent, num_tests):
 	"""
 	Tests the agent.
 	"""
 	total_reward = 0
-	for i in range(TEST):
+	for i in range(num_tests):
 		state = env.reset()
 		for j in range(env.spec.timestep_limit):
 			#env.render()
@@ -67,8 +67,8 @@ def test(env, agent, test):
 			total_reward += reward
 			if done:
 				break
-		ave_reward = total_reward/TEST
-	return test
+    avg_reward = total_reward/num_tests
+	return avg_reward
 
 
 def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10):
@@ -115,8 +115,8 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 
 		# Testing:
 		if episode % 100 == 0 and episode > 100:
-			test(env, agent, TEST)
-			print(('episode: ',episode,'Evaluation Average Reward:',ave_reward))
+			avg_reward = test(env, agent, TEST)
+			print(('episode: ',episode,'Evaluation Average Reward:',avg_reward))
 
 if __name__ == '__main__':
     run_experiment()
