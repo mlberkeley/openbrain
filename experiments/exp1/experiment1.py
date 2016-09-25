@@ -2,7 +2,7 @@
 # EXPERIMENT 1:
 #
 # In this experiment we will train an actor according to a critic
-# and then simultaneously learn and plot the resulting 
+# and then simultaneously learn and plot the resulting
 ################################################################
 import gym
 import numpy as np
@@ -38,7 +38,7 @@ def new_episode_data(cur_data, n_sub_critics):
 	cur_data["sub_critics"] +=  [[[]] for cn in range(n_sub_critics.count)]
 	cur_data["critic"] += [[]]
 
-def record_data(cur_data, state, action, activations, reward, done, 
+def record_data(cur_data, state, action, activations, reward, done,
 				agent, sub_critics):
 	if not cur_data:
 		init_data(cur_data, sub_critics.count)
@@ -103,7 +103,7 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 			agent.perceive(state,action,reward,next_state,done)
 
 			record_data(
-				cur_data, state, action, activations, reward, done, 
+				cur_data, state, action, activations, reward, done,
 				agent, sub_critics)
 			# plot_data(cur_data)
 
@@ -117,3 +117,6 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 		if episode % 100 == 0 and episode > 100:
 			test(env, agent, TEST)
 			print(('episode: ',episode,'Evaluation Average Reward:',ave_reward))
+
+if __name__ == '__main__':
+    run_experiment()
