@@ -35,7 +35,7 @@ def new_episode_data(cur_data, n_sub_critics):
 	"""
 	cur_data["episode"] += 1
 	cur_data["rewards"] += [[]]
-	cur_data["sub_critics"] +=  [[[]] for cn in range(n_sub_critics.count)]
+	cur_data["sub_critics"] +=  [[[]] for cn in range(n_sub_critics)]
 	cur_data["critic"] += [[]]
 
 def record_data(cur_data, state, action, activations, reward, done,
@@ -50,7 +50,7 @@ def record_data(cur_data, state, action, activations, reward, done,
 
 
 	if done:
-		new_episode_data(cur_data)
+		new_episode_data(cur_data, sub_critics.count)
 ################
 
 def test(env, agent, test):

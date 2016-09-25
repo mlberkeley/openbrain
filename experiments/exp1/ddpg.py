@@ -60,7 +60,7 @@ class DDPG:
 		action_batch = np.resize(action_batch,[BATCH_SIZE,self.action_dim])
 
 		# Calculate y_batch
-		next_action_batch, _ = self.actor_network.target_actions(next_state_batch)		
+		next_action_batch = self.actor_network.target_actions(next_state_batch)		
 		q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
 
 		y_batch = []
@@ -76,7 +76,7 @@ class DDPG:
 		######################
 
 		# Update the actor policy using the sampled gradient:
-		action_batch_for_gradients = self.actor_network.actions(state_batch, reward_batch, done_batch)
+		action_batch_for_gradients = self.actor_network.actions(state_batch)
 		q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
 
 		self.actor_network.train(q_gradient_batch,state_batch)
