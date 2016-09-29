@@ -11,7 +11,7 @@ TAU = 0.001
 L2 = 0.01
 
 class PolynomialCritic:
-	def __init__(self,sess,state_dim,action_dim):
+	def __init__(self,sess,state_dim,action_dim=1):
 		"""
 			Creates a polynomial critic
 			action-dim is always [1] considering that we are doing
@@ -49,25 +49,39 @@ class PolynomialCritic:
 		self.action_gradients = tf.gradients(self.q_value_output,self.action_input)
 
 	def create_poly_q(self,state_dim,action_dim):
-		state_input = tf.placeholder("float",[None,state_dim]) #The none is for batches!
+        layer1_size = 1
+
+        state_input = tf.placeholder("float",[None,state_dim]) #The none is for batches!
 		action_input = tf.placeholder("float",[None,action_dim])
 
-		x = tf.concat(state_input, action_input) # Verify I am concating on the right dimensions
+        # TODO Verify I am concating on the right dimensions
+		concat_input = tf.concat(state_input, action_input)
 		# Here is an example for order 1
-		W1 = self.variable([state_dim+action_dim,1 ],state_dim)
-		b1 = self.variable([layer1_size],state_dim)
-		
-		q_value_output = tf.identity(tf.matmul(x1,W1) + b1)
+        # TODO generalize this for order n
+		W1 = self.variable([state_dim + action_dim, layer1_size],state_dim)
+		b1 = self.variable([layer1_size], state_dim)
+
+		q_value_output = tf.identity(tf.matmul(concat_input, W1) + b1)
 
 		return state_input,action_input,q_value_output,[W1,b1]
 
 	def create_target_q_network(self,state_dim,action_dim,net):
 		# Implement
-		pass
+        state_input = tf.placeholder("float",[None,state_dim])
+		action_input = tf.placeholder("float",[None,action_dim])
+        # TODO Verify I am concating on the right dimensions
+        concat_input = tf.concat(state_input, action_input)
+
+        ema = tf.train.ExponentialMovingAverage(decay=1 - TAU)
+        target_udpate = ema.apply(net)
+        target_net = [ema.average(x) for x in net]
+        # Here is an example for order 1
+        # TODO generalize this for order n
+        q_value_output = tf.identity(tf.matmul(concat_input, target_net[0]) + target_net[1])
+        return state_input, action_input, q_value_output, target_update
 
 	def update_target(self):
-		# Implement
-		pass
+		self.sess.run(self.target_update)
 
 	def train(self,y_batch,state_batch,action_batch):
 		self.sess.run(self.optimizer,feed_dict={
