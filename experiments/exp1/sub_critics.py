@@ -19,38 +19,54 @@ class SubCritics:
 		ORDER is currently unused.
 		"""
 		self.agent = ddpg_agent
+        self.sess = ddpg_agent.sess
 		self.actor = ddpg_agent.actor_network
 		self.count = 1
-		self.sc = []
+		self.critics = []
 
 		#TODO Build the rest of the subcritic system.
 		# actor.layers = [state, output_layer1, output_layer2, output_layer3, ..., action = output_layer[-1]]
-		
-		# Make a PolynomialCritic of order ORDER for every neuron.
-		#    Enumerate over every layer, l, in actor.layers[:-1]
-		#    actor.layers[l] is the state for the polynomial critic
+
+        # Make a PolynomialCritic of order ORDER for every neuron.
+        #    Enumerate over every layer, l, in actor.layers[:-1]
+        for layer in self.actor.layers:
+            # TODO fix this place holder
+            neuron_count = layer.output_size
 		#    for every neuron n in actor.layers[l+1], actor.layers[l+1][n] is
 		#        the action for that polynomial critic.
+            for _ in range(neuron_count):
+                # TODO fix this is place holder
+                #   and a placeholder for action of size actor.layers[l+1][n].shape ([1]).
+                state_dim = layer.input_size
+                action_dim = 1
+                self.critics.append(PolynomialCritic(self.sess, state_dim, action_dim, order ))
+
+
+		#    actor.layers[l] is the state for the polynomial critic
+
 
 		#   To make a polynomial critic, make a placeholder for the state of size actor.layers[l].shape
-		#   and a placeholder for action of size actor.layers[l+1][n].shape ([1]).
-		#   then let x =tf.concat(state_placeholder, action_placeholder) and the output of this polynomial
-		#   critic will be Qn = x^TWx if order=2, or Qn = xW, if order =1, etc...
+
+
 
 		pass
 
 
 	def perceive(self, activations, reward, done):
 
-		# In here do exactly the same method as ddpg for training its critic except do it 
+		# In here do exactly the same method as ddpg for training its critic except do it
 		# for all critics.
 
 		# Activations is the output of [state, output_layer1, output_layer2, output_layer3, ..., action = output_layer[-1]]
-		
+
 		# We need to make a replay buffer for the subcritics be a window of the last N time steps.
 		# So do not use the replay buffer used for normal DDPG
 		pass
 
 	def q(self, activations):
-		# Return the target Q of every single subcritic for plotting :)
-		pass
+		"""
+        Return the Q of every single subcritic for plotting
+        """
+        # alternative if we need target output in addtion to q_value 
+        # return [(sc.q_value_output, sc.target_q_value_output) for sc in self.critics]
+		return [sc.q_value_output for sc in self.critics]

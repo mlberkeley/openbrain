@@ -11,7 +11,7 @@ TAU = 0.001
 L2 = 0.01
 
 class PolynomialCritic:
-	def __init__(self,sess,state_dim,action_dim=1):
+	def __init__(self,sess,state_dim,action_dim=1, order=1):
 		"""
 			Creates a polynomial critic
 			action-dim is always [1] considering that we are doing
@@ -61,8 +61,10 @@ class PolynomialCritic:
 		W1 = self.variable([state_dim + action_dim, layer1_size],state_dim)
 		b1 = self.variable([layer1_size], state_dim)
 
+        # TODO generalize this for order n
 		q_value_output = tf.identity(tf.matmul(concat_input, W1) + b1)
-
+        #   then let x =tf.concat(state_placeholder, action_placeholder) and the output of this polynomial
+		#   critic will be Qn = x^TWx if order=2, or Qn = xW, if order =1, etc...
 		return state_input,action_input,q_value_output,[W1,b1]
 
 	def create_target_q_network(self,state_dim,action_dim,net):
@@ -78,6 +80,8 @@ class PolynomialCritic:
         # Here is an example for order 1
         # TODO generalize this for order n
         q_value_output = tf.identity(tf.matmul(concat_input, target_net[0]) + target_net[1])
+        #   then let x =tf.concat(state_placeholder, action_placeholder) and the output of this polynomial
+		#   critic will be Qn = x^TWx if order=2, or Qn = xW, if order =1, etc...
         return state_input, action_input, q_value_output, target_update
 
 	def update_target(self):
