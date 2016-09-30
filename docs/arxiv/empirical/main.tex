@@ -206,7 +206,7 @@ In order to decompose the $Q^\mu$ algorithm we will abstractly define a neurocom
 If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational agent} is a tuple $\scriptn = (\mu, \epsilon, \delta, K, \Theta, \sigma, D)$ such that:
 \begin{itemize}
     \item $\epsilon : \scripts  \to \scriptv$ encodes the state into the voltages. Realistically, only a subset of all neurons are input neurons, denoted as $N_I \subset \scriptv$, so $\epsilon(s_t) = proj_{N_I}(\epsilon(s_t))$.
-    \item $\delta: \scriptv \to \scripta$ decodes the voltages of the \emph{output neurons } $N_O \subset V$ into an action, so that $\delta(v_t) = $\delta(proj_{N_O}(v_t))$.
+    \item $\delta: \scriptv \to \scripta$ decodes the voltages of the \emph{output neurons } $N_O \subset V$ into an action, so that $\delta(v_t) = \delta(proj_{N_O}(v_t))$.
     \item $K: \scriptv \to \scriptv$ is the linear voltage graph transition function of the graph representing the topolopy of $\scriptn$, parameterized by $\theta$.
     \item $\Theta: \scriptv \to \scriptv$ is a nonlinear inhibition function.
     \item $\sigma: \scriptv \to \scriptv$ is the elementwise application of some activation function to the voltage vector.
