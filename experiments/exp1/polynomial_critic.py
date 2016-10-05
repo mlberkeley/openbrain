@@ -55,7 +55,6 @@ class PolynomialCritic:
         state_input = tf.placeholder("float",[None,state_dim]) #The none is for batches!
         action_input = tf.placeholder("float",[None,action_dim])
 
-
         # Here is an example for order 1
         # TODO generalize this for order n
         W1 = self.variable([state_dim + action_dim, layer1_size],state_dim)
