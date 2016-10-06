@@ -176,6 +176,10 @@ Berkeley CA, 94720 \\
 
 \todo[inline]{Synthetic gradients are a step in the right direction, but still require eventual back propogation.}
 
+Recent work has attempted to address the issue of decoupling connections between layers in the network using decoupled neural interfaces \cite{jaderberg2016syngrad}. The initial coupling is due to the reliance on the forwards and backwards computations to compute the backpropagated error gradient for a given layer. Synthetic gradient modules model the error gradient using only local information, allowing immediate feedback that is later corrected when the backpropogated error is finally computed. This method has had success in both feedforward and recurrent architectures, where the network is able to model much greater time horizons.
+
+Although synthetic gradients decouple the network modules to some degree, this technique still relies on synchronous backpropagation to learn the local regressors. In addition, they model at a lower granularity, learning layer-level gradients instead of those of the individual neurons.
+
 \todo[inline]{Therefore it is feasible that each neuron is maximizing the expectation on his future dopamine intake, and so we propose the following theorem.  }
 
 \section{Agent-Environment Value Decomposition}
