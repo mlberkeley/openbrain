@@ -53,12 +53,14 @@ class PolynomialCritic:
         """ Initialize the polynomial critic network"""
         state_input = tf.placeholder("float",[None,state_dim]) #The none is for batches!
         action_input = tf.placeholder("float",[None,action_dim])
+
         linear = self.order <= 1
         layer_size = state_dim + action_dim if not linear else 1
         # TODO: ensure no conflict between dimension objects and ints
         W1 = self.variable([state_dim.value + action_dim, layer_size],state_dim.value)
         # might not want to hardcode the 1 if we want something like x^T (Wx + b)
         b1 = self.variable([1], state_dim.value)
+
         net = [W1, b1]
         q_value_output, net = self.setup_graph(state_input, action_input, net, linear)
 
@@ -66,7 +68,7 @@ class PolynomialCritic:
         #   critic will be Qn = x^TWx if order=2, or Qn = xW, if order =1, etc...
         return state_input,action_input,q_value_output, net
 
-        
+
     def setup_graph(self, state_input, action_input, net, linear):
         """
         Sets up the network graph.
@@ -149,5 +151,5 @@ class PolynomialCritic:
         a random uniform distribution in 0 +/- 1/sqrt(f)
         """
         #TODO: fix this. currently shape is a [Dimension, int] object
-        
+
         return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))
