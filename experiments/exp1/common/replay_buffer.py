@@ -18,7 +18,7 @@ class ReplayBuffer(object):
         inds[inds > len(self.buffer)] = len(self.buffer)
         # start from the end of the deque
         inds = -inds
-        return [self.buffer[-int(i)] for i in inds]
+        return [self.buffer[int(i)] for i in inds]
 
     def size(self):
         return self.buffer_size
