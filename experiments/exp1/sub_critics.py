@@ -13,6 +13,8 @@ from common.replay_buffer import ReplayBuffer
 
 from polynomial_critic import PolynomialCritic
 
+LEARNING_RATE=1e-3
+
 class SubCritics:
     def __init__(self, ddpg_agent : DDPG, order=1, verbose=False):
         """
@@ -23,45 +25,66 @@ class SubCritics:
         self.sess = ddpg_agent.sess
         self.actor = ddpg_agent.actor_network
         self.critics = []
-        self.state_inputs = []
-        self.action_inputs = []
-        self.t_state_inputs = []
-        self.t_action_inputs = []
+        self.activation_inputs = []
+        self.t_activation_inputs = []
+
+        self.reward_input =  tf.placeholder("float",[None], name="reward") 
 
         self.verbose = verbose
 
         #TODO Build the rest of the subcritic system.
         # actor.layers = [state, output_layer1, output_layer2, output_layer3, ..., action = output_layer[-1]]
         for l, layer in enumerate(self.actor.layers[:-1]):
-            state_dim = layer.get_shape()[1] # Only works for 1d
-            action_dim = self.actor.layers[l+1].get_shape()[1]
+            # This could be cleaned up.
+            # Make the placeholders
 
-            # Make a true and target placeholders (This is an optimization)
-            state_input = tf.placeholder("float",[None,state_dim], name="subcritic_state_{}".format(l)) 
-            action_input = tf.placeholder("float",[None,action_dim], name="subcritic_action_{}".format(l))
-            t_state_input = tf.placeholder("float",[None,state_dim], name="subcritic_t_state_{}".format(l)) 
-            t_action_input = tf.placeholder("float",[None,action_dim], name="subcritic_t_action_{}".format(l))
+            action_dim = self.actor.layers[l+1].get_shape()[1] # Only works for 1d
+            state_dim = layer.get_shape()[1]
+            if not self.activation_inputs:
+                self.activation_inputs = [
+                    tf.placeholder("float",[None,state_dim], name="activ_{}".format(l))]
+            state_input = self.activation_inputs[-1] 
+            action_input = tf.placeholder("float",[None,action_dim], name="activ_{}".format(l+1))
 
-            self.state_inputs += [state_input]
-            self.action_inputs += [action_input]
-            self.t_state_inputs += [t_state_input]
-            self.t_action_inputs += [t_action_input]
-            b_size = tf.shape(state_input)[0]
-            #Create critics for each input
-            for j in range(action_dim):
-                with tf.variable_scope("subcritic_l{}_n{}".format(l,j)):
-                    self.critics.append(
-                        PolynomialCritic(
-                            self.sess,
-                            state_input, tf.reshape(action_input[:,j], tf.pack([b_size, 1])),
-                            t_state_input, tf.reshape(t_action_input[:,j], tf.pack([b_size, 1])),
-                            order))
 
-            # Create optimizer on all critics
-            with tf.variable_scope("subcritic_training"):
-                pass
+            self.activation_inputs += [action_input]
+
+            if not self.t_activation_inputs:
+                self.t_activation_inputs = [
+                    tf.placeholder("float",[None,state_dim], name="t_activ_{}".format(l))]
+            t_state_input = self.t_activation_inputs[-1]
+            t_action_input = tf.placeholder("float",[None,action_dim], name="t_activ_{}".format(l+1))
+
+            self.t_activation_inputs += [t_action_input]
+
+            # Now make the sub critic laeyr.
+
+            with tf.variable_scope("subcritic_layer{}".format(l)):
+
+                # Make a true and target placeholders (This is an optimization)
+                
+                b_size = tf.shape(state_input)[0]
+                #Create critics for each input
+                for j in range(action_dim):
+                    with tf.variable_scope("subcritic_n{}".format(l,j)):
+                        self.critics.append(
+                            PolynomialCritic(
+                                self.sess,
+                                state_input, tf.reshape(action_input[:,j], tf.pack([b_size, 1])),
+                                t_state_input, tf.reshape(t_action_input[:,j], tf.pack([b_size, 1])),
+                                self.reward_input,
+                                order))
+
+        # Create optimizer on all critics
+        with tf.variable_scope("subcritic_training"):
+            constituent_loss = [cn.loss for cn in self.critics]
+            self.loss = tf.add_n(constituent_loss)
+            self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.loss)
+
+        self.target_update = [cn.target_update for cn in self.critics]
 
     def perceive(self, activations, reward, done):
+        self.sess.run(self.target_update)
 
         # In here do exactly the same method as ddpg for training its critic except do it
         # for all critics.

@@ -40,25 +40,28 @@ class PolynomialCritic:
 
         # Set up dimensions=
         self.action_dim = 1 # Very specific, but necisarry.
-        self.state_dim= state_placeholder.get_shape()[1].value
+        self.state_dim= state_placeholder.get_shape()[-1].value
 
         # create q network
-        self.q_value_output,\
-        self.net = self.create_poly_q()
+        with tf.variable_scope("Q"):
+            self.q_value_output,\
+            self.net = self.create_poly_q()
 
         # create target q network (the same structure with q network)
-        self.target_q_value_output,\
-        self.target_update = self.create_target_q_network(self.net, order <= 1)
+        with tf.variable_scope("Qtarget"):
+            self.target_q_value_output,\
+            self.target_update = self.create_target_q_network(self.net, order <= 1)
 
-        self.create_loss()
-        #self.update_target()
+        with tf.variable_scope("loss"):
+            self.create_loss()
 
 
     def setup_graph(self, state_input, action_input, net, linear):
         """
         Sets up the network graph.
         """
-        concat_input = tf.concat(1,[state_input, action_input])
+        concat_input = tf.concat(1, [state_input, action_input])
+        print(concat_input)
         # TODO generalize this for order n (might be hard)
         if linear:
             q_value_output = tf.identity(tf.matmul(concat_input, net[0]) + net[1])
@@ -97,7 +100,7 @@ class PolynomialCritic:
         target_update = ema.apply(net)
         target_net = [ema.average(x) for x in net]
 
-        q_value_output = self.setup_graph(self.t_state_placeholder, self.t_action_placeholder, target_net, linear)
+        q_value_output, _  = self.setup_graph(self.t_state_placeholder, self.t_action_placeholder, target_net, linear)
         #   then let x =tf.concat(state_placeholder, action_placeholder) and
         return q_value_output, target_update
 
@@ -106,11 +109,10 @@ class PolynomialCritic:
 
     def create_loss(self):
         """ Define training loss """
-        #weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
-        #self.loss = tf.reduce_mean(
-        #    tf.square(
-        #        self.q_value_output - self.reward_placeholder - self.gamma*self.target_q_value_output)) + weight_decay
-        pass
+        weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
+        self.loss = tf.reduce_mean(
+            tf.square(
+                self.q_value_output - self.reward_placeholder - self.gamma*self.target_q_value_output)) + weight_decay
 
     def target_q(self,state_batch,action_batch):
         """
