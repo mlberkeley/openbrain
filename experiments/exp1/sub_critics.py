@@ -46,15 +46,15 @@ class SubCritics:
             self.action_inputs += [action_input]
             self.t_state_inputs += [t_state_input]
             self.t_action_inputs += [t_action_input]
-
+            b_size = tf.shape(state_input)[0]
             #Create critics for each input
             for j in range(action_dim):
                 with tf.variable_scope("subcritic_l{}_n{}".format(l,j)):
                     self.critics.append(
                         PolynomialCritic(
                             self.sess,
-                            state_input, action_input[:,j],
-                            t_state_input, t_action_input[:,j],
+                            state_input, tf.reshape(action_input[:,j], tf.pack([b_size, 1])),
+                            t_state_input, tf.reshape(t_action_input[:,j], tf.pack([b_size, 1])),
                             order))
 
             # Create optimizer on all critics
