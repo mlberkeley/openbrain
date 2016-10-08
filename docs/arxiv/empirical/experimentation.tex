@@ -1,13 +1,17 @@
+%!TEX root = main.tex
 \section{Experimentation}
 \subsection{Experiment 1: Learning Q functions on components of the Actor network.}
 
 \textbf{Motivation:}
-Our first batch of experiments aimed to establish empirically that the Q-functions of each layer, denoted $Q_1...Q_L$ are similar to the Q-function of the overall network, denoted $Q_{\mu}$. To that end, we extended the actor-critic methodology used in Lillicrap et al (2016) as follows. In addition to training $Q^\mu$, to estimate the Q functions of the actor network $\mu$, sub-critic networks $Q^n$ were initialized for each individual layer. We then compare the $Q$ values estimated by the subcritics to the $Q$ estimation provided by the main critic, $Q^\mu$. \\
-\newline
-The inputs used in the calculation of the Q-functions for each layer follow the conceptual framework laid out in Section 2.2. The state and action parameters are therefore voltages represented by the outputs of $\epsilon : \scripts \to \scriptv$ and $\delta : \scriptv \to \scripta$ respectively, where the changes in voltage are described by a voltage transition function $K : \scriptv \to \scriptv$. \\
-\newline
-To determine and compare the rate at which the subcritics and the main critic learn, the experiment was run in two phases. First, each of the subcritics and the main critic were trained using the standard DDPG algorithm on some actor $\mu$. In the second phase, a new actor $\mu'$ was initialized and its Q-function set to $Q_{\mu}$ as determined above in phase 1. The subcritics were trained, and the values of $Q_1\dots Q_{L}$ were plotted as training occurred. \todo[ineline]{Introduce the notion of similary used to compare the q-functions.}
-\newline
+Our first batch of experiments aimed to establish empirically that the Q-functions of each layer, denoted $Q_1...Q_L$ are similar to the Q-function of the overall network, denoted $Q_{\mu}$. To that end, we extended the actor-critic methodology used in Lillicrap et al (2016) as follows. In addition to training $Q^\mu$, to estimate the Q functions of the actor network $\mu$, sub-critic networks $Q^n$ were initialized for each individual layer. We then compare the $Q$ values estimated by the subcritics to the $Q$ estimation provided by the main critic, $Q^\mu$. 
+
+
+The inputs used in the calculation of the Q-functions for each layer follow the conceptual framework laid out in Section 2.2. The state and action parameters are therefore voltages represented by the outputs of $\epsilon : \scripts \to \scriptv$ and $\delta : \scriptv \to \scripta$ respectively, where the changes in voltage are described by a voltage transition function $K : \scriptv \to \scriptv$. 
+
+
+To determine and compare the rate at which the subcritics and the main critic learn, the experiment was run in two phases. First, each of the subcritics and the main critic were trained using the standard DDPG algorithm on some actor $\mu$. In the second phase, a new actor $\mu'$ was initialized and its Q-function set to $Q_{\mu}$ as determined above in phase 1. The subcritics were trained, and the values of $Q_1\dots Q_{L}$ were plotted as training occurred. \todo[inline]{Introduce the notion of similary used to compare the q-functions.}
+
+
 After [number of iterations], each $Q^n(s,a)$  networks effectively learned the same cost function as $Q^{\mu}(s,a)$.
 \todo[inline]{Incorporate metrics regarding the performance $Q_n$ w.r.t $Q^{\mu}$'s weights}. Furthermore, the $Q$-value plots for each $Q^n$correlate directly with the  $Q^{\mu}$'s $Q$ plot. This confirms that we are able teach the $Q^n$ model on the level of subcomponents of $\mu$ supporting the argument that we can use $Q^n$ nets to approximate $Q^\mu$. We can now use each $Q^n$ to calculate the gradient of the specific neuron component that the $Q^n$ is critiquing. We proceed with this in Experiment 2.
 
@@ -26,7 +30,7 @@ LEARNING]):
 For each neuron n:
 \begin{enumerate}
 \item[] Initialize random weights $\theta_{n,v}$, $\theta_{n,a}$, and $K^n$
-\item[] Initialize target network $Q^n'$ and $\mu^n'$ with same weights, $\theta'_{n,v}$, $\theta'_{n,a}$, and $K'^n$
+\item[] Initialize target network ${Q^n}'$ and ${\mu^n}'$ with same weights, $\theta'_{n,v}$, $\theta'_{n,a}$, and $K'^n$
 \item[] Initialize replay buffer R
 \item[] For each episode:
 \begin{enumerate}
@@ -43,7 +47,7 @@ For each neuron n:
 $$\nabla_{K^n} J \approx \frac{1}{N} \sum_i \nabla_a Q(v, a) \vert_{v=v_i, a=\mu^n(v_i)} \nabla_{K^n} \mu^n(v) \vert_{v_i}$$
 \item[] update the target networks:
 $$\theta_n' \leftarrow \tau \theta_n + (1 - \tau) \theta_n'$$
-$$K^n' \leftarrow \tau K^n + (1 - \tau) K^n'$$
+$${K^n}' \leftarrow \tau K^n + (1 - \tau) {K^n}'$$
 \end{enumerate}
 \item[] end for
 \end{enumerate}
@@ -52,11 +56,11 @@ $$K^n' \leftarrow \tau K^n + (1 - \tau) K^n'$$
 
 We train the critic weights $(\theta_{n,v}, \theta_{n,a})$ by minimizing the loss:
 
-$$L = \frac{1}{2}((r_i + \gamma Q^n'(v_{i+1}, a_{i+1})) -  Q(v_{i}, a_{i})) \\
+$$L = \frac{1}{2}((r_i + \gamma {Q^n}'(v_{i+1}, a_{i+1})) -  Q(v_{i}, a_{i})) \\
 = \frac{1}{2}D_i^2$$
 
 
-where $D_i := (r_i + \gamma \theta_n^T' (v_{i+1}, a_{i+1})) - \theta_n (v_{i}, a_{i}) $
+where $D_i := (r_i + \gamma {\theta_n^T}' (v_{i+1}, a_{i+1})) - \theta_n (v_{i}, a_{i}) $
 
 We thus have:
 $$\nabla_{\theta_n} L = -D_i (v_{i}, a_{i})$$
@@ -79,4 +83,4 @@ $$\theta_{n,v} \mathrel{+}= \frac{1}{N} \sum_i \eta_Q D_i v_i$$
 $$\theta_{n,a} \mathrel{+}= \frac{1}{N} \sum_i \eta_Q D_i a_i$$
 $$K^n \mathrel{+}= \frac{1}{N} \sum_i \eta_A \theta_{n,a} \sigma'(K^n v_i) v_i$$
 
-where $D_i := (r_i + \gamma \theta_n^T' (v_{i+1}, a_{i+1})) - \theta_n (v_{i}, a_{i}) $
+where $D_i := (r_i + \gamma {\theta_n^T}' (v_{i+1}, a_{i+1})) - \theta_n (v_{i}, a_{i}) $
