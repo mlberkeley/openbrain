@@ -79,8 +79,15 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
     cur_data = {}
 
     # Create the standard DDPG agent.
-    agent = DDPG(env,)
+    agent = DDPG(env)
     sub_critics = SubCritics(agent, order=1, verbose=True) # Make linear (order 1) subcritics
+
+    # Set up tensorboard.
+    merged = tf.merge_all_summaries()
+    train_writer = tf.train.SummaryWriter('/tmp/exp1/tboard',
+                                      agent.sess.graph)
+    # To see graph run tensorboard --logdir=/tmp/exp1/tboard
+    agent.sess.run(tf.initialize_all_variables())
 
     for episode in range(EPISODES):
         state = env.reset()
