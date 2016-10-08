@@ -11,7 +11,12 @@ TAU = 0.001
 L2 = 0.01
 
 class PolynomialCritic:
-    def __init__(self,sess,state_dim,action_dim=1, order=2):
+    def __init__(
+            self,sess,
+            state_placeholder,
+            action_placeholder,
+            t_state_placeholder,
+            t_action_placeholder, order=2):
         """
         Creates a polynomial critic
         action-dim is always [1] considering that we are doing
@@ -19,8 +24,11 @@ class PolynomialCritic:
         """
         self.order = order
         self.sess = sess
-        self.state_dim = state_dim
-        self.action_dim = action_dim
+        self.state_placeholder = state_placeholder
+        self.action_placeholder = action_placeholder
+        self.t_state_placeholder = t_state_placeholder
+        self.t_action_placeholder = t_action_placeholder
+
         # create q network
         self.state_input,\
         self.action_input,\
@@ -33,27 +41,25 @@ class PolynomialCritic:
         self.target_q_value_output,\
         self.target_update = self.create_target_q_network(state_dim,action_dim,self.net, order <= 1)
 
-        self.create_training_method()
-
-        # initialization
-        self.sess.run(tf.initialize_all_variables())
-
+        self.create_loss()
         self.update_target()
 
 
-    def create_training_method(self):
+
+    def create_loss(self):
         """ Define training optimizer """
         self.y_input = tf.placeholder("float",[None,1])
         weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
         self.cost = tf.reduce_mean(tf.square(self.y_input - self.q_value_output)) + weight_decay
         self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.cost)
-        self.action_gradients = tf.gradients(self.q_value_output,self.action_input)
 
-    def create_poly_q(self,state_dim,action_dim):
+    def get_loss(self):
+        return self.loss
+
+    def create_poly_q(self):
         """ Initialize the polynomial critic network"""
-        state_input = tf.placeholder("float",[None,state_dim]) #The none is for batches!
-        action_input = tf.placeholder("float",[None,action_dim])
 
+        # Create the variables.
         linear = self.order <= 1
         layer_size = state_dim + action_dim if not linear else 1
         # TODO: ensure no conflict between dimension objects and ints
@@ -62,11 +68,11 @@ class PolynomialCritic:
         b1 = self.variable([1], state_dim.value)
 
         net = [W1, b1]
-        q_value_output, net = self.setup_graph(state_input, action_input, net, linear)
+        q_value_output, net = self.setup_graph(self.state_placeholder , self.action_placeholder, net, linear)
 
         #   then let x =tf.concat(state_placeholder, action_placeholder) and the output of this polynomial
         #   critic will be Qn = x^TWx if order=2, or Qn = xW, if order =1, etc...
-        return state_input,action_input,q_value_output, net
+        return q_value_output, net
 
 
     def setup_graph(self, state_input, action_input, net, linear):
@@ -87,7 +93,7 @@ class PolynomialCritic:
         return q_value_output, net
 
 
-    def create_target_q_network(self,state_dim,action_dim,net, linear):
+    def create_target_q_network(self, net, linear):
         """ Initialize the target polynomial critic network"""
         # Implement
         state_input = tf.placeholder("float",[None,state_dim])
@@ -104,26 +110,6 @@ class PolynomialCritic:
 
     def update_target(self):
         self.sess.run(self.target_update)
-
-    def train(self,y_batch,state_batch,action_batch):
-        """
-        Iterates through the batches and adjust the network parameters
-        using the optimizer.
-        """
-        self.sess.run(self.optimizer,feed_dict={
-            self.y_input:y_batch,
-            self.state_input:state_batch,
-            self.action_input:action_batch
-            })
-
-    def gradients(self,state_batch,action_batch):
-        """
-        Calculates the gradient of the batch
-        """
-        return self.sess.run(self.action_gradients,feed_dict={
-            self.state_input:state_batch,
-            self.action_input:action_batch
-            })[0]
 
     def target_q(self,state_batch,action_batch):
         """
@@ -143,13 +129,3 @@ class PolynomialCritic:
         return self.sess.run(self.q_value_output,feed_dict={
             self.state_input:state_batch,
             self.action_input:action_batch})
-
-    # f fan-in size
-    def variable(self,shape,f):
-        """
-        Creates a tensor of SHAPE drawn from
-        a random uniform distribution in 0 +/- 1/sqrt(f)
-        """
-        #TODO: fix this. currently shape is a [Dimension, int] object
-
-        return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))

@@ -22,45 +22,45 @@ class SubCritics:
         self.agent = ddpg_agent
         self.sess = ddpg_agent.sess
         self.actor = ddpg_agent.actor_network
-        self.count = 1
         self.critics = []
+        self.state_inputs = []
+        self.action_inputs = []
+        self.t_state_inputs = []
+        self.t_action_inputs = []
+
         self.verbose = verbose
 
         #TODO Build the rest of the subcritic system.
         # actor.layers = [state, output_layer1, output_layer2, output_layer3, ..., action = output_layer[-1]]
+        for l, layer in enumerate(self.actor.layers[:-1]):
+            state_dim = layer.get_shape()[1] # Only works for 1d
+            action_dim = self.actor.layers[l+1].get_shape()[1]
 
-        # Make a PolynomialCritic of order ORDER for every neuron.
-        #    Enumerate over every layer, l, in actor.layers[:-1]
-        prev_layer_size = self.actor.layers[0].get_shape()[1]
-        for i, layer in enumerate(self.actor.layers[1:]):
-            cur_layer_size = layer.get_shape()[1]
-            self.output("Making {0} subcritics for layer {1} with {2} inputs".format(cur_layer_size,i, prev_layer_size))
-            self.critics.extend([PolynomialCritic(self.sess, prev_layer_size, 1, order) for _ in range(cur_layer_size)])
-            prev_layer_size = cur_layer_size
-        #     neuron_count = layer.output_size
-        #     state_dim = layer.input_size
-        # #    for every neuron n in actor.layers[l+1], actor.layers[l+1][n] is
-        # #        the action for that polynomial critic.
-        #     for _ in range(neuron_count):
-        #         # TODO fix this is place holder
-        #         #   and a placeholder for action of size actor.layers[l+1][n].shape ([1]).
-        #
-        #         action_dim = 1
-        #         self.critics.append(PolynomialCritic(self.sess, state_dim, action_dim, order ))
+            # Make a true and target placeholders (This is an optimization)
+            state_input = tf.placeholder("float",[None,state_dim], name="subcritic_state_{}".format(l)) 
+            action_input = tf.placeholder("float",[None,action_dim], name="subcritic_action_{}".format(l))
+            t_state_input = tf.placeholder("float",[None,state_dim], name="subcritic_t_state_{}".format(l)) 
+            t_action_input = tf.placeholder("float",[None,action_dim], name="subcritic_t_action_{}".format(l))
 
+            self.state_inputs += [state_input]
+            self.action_inputs += [action_input]
+            self.t_state_inputs += [t_state_input]
+            self.t_action_inputs += [t_action_input]
 
-        #    actor.layers[l] is the state for the polynomial critic
+            #Create critics for each input
+            for j in range(action_dim):
+                with tf.variable_scope("subcritic_l{}_n{}".format(l,j)):
+                    self.critics.append(
+                        PolynomialCritic(
+                            self.sess,
+                            state_input, action_input[:,j],
+                            t_state_input, t_action_input[:,j],
+                            order))
 
+            # Create optimizer on all critics
+            with tf.variable_scope("subcritic_training"):
+                pass
 
-        #   To make a polynomial critic, make a placeholder for the state of size actor.layers[l].shape
-
-
-
-        # pass
-
-    def output(self, *string):
-        if self.verbose:
-            print(*string)
     def perceive(self, activations, reward, done):
 
         # In here do exactly the same method as ddpg for training its critic except do it

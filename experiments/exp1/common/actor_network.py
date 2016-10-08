@@ -2,6 +2,8 @@ import tensorflow as tf
 import numpy as np
 import math
 
+from common.utils import variable
+
 # Hyper Parameters
 REPLAY_BUFFER_SIZE = 1000000
 LAYER1_SIZE = 400
@@ -52,10 +54,10 @@ class ActorNetwork:
 		state_input = tf.placeholder("float",[None,state_dim])
 		self.layers += [tf.identity(state_input)]
 
-		W1 = self.variable([state_dim,layer1_size],state_dim)
-		b1 = self.variable([layer1_size],state_dim)
-		W2 = self.variable([layer1_size,layer2_size],layer1_size)
-		b2 = self.variable([layer2_size],layer1_size)
+		W1 = variable([state_dim,layer1_size],state_dim)
+		b1 = variable([layer1_size],state_dim)
+		W2 = variable([layer1_size,layer2_size],layer1_size)
+		b2 = variable([layer2_size],layer1_size)
 		W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
 		b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
 
@@ -136,7 +138,3 @@ class ActorNetwork:
 			[self.target_action_output,self.target_layers],feed_dict={
 			self.target_state_input:state_batch
 			})
-
-	# f fan-in size
-	def variable(self,shape,f):
-		return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))
