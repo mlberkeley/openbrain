@@ -15,43 +15,9 @@ gc.enable()
 
 
 import common.filter_env
-from ddpg import DDPG
-from sub_critics import SubCritics
+from brain import DDPG
+from brain import SubCritics
 
-########################################
-# All of this warrants a class :)
-def init_data(cur_data, n_sub_critics):
-    """
-    This is total trash. You can fix if you want.
-    """
-    cur_data["episode"] = 0
-    cur_data["rewards"] = [[]] # episode -> rewards
-    cur_data["sub_critics"] = [[[]] for n in range(n_sub_critics)] # episode -> critics -> q_predicted
-    cur_data["critic"] = [[]]
-
-def new_episode_data(cur_data, n_sub_critics):
-    """
-    This is total trash. You can fix if you want.
-    """
-    cur_data["episode"] += 1
-    cur_data["rewards"] += [[]]
-    cur_data["sub_critics"] +=  [[[]] for cn in range(n_sub_critics)]
-    cur_data["critic"] += [[]]
-
-def record_data(cur_data, state, action, activations, reward, done,
-                agent, sub_critics):
-    if not cur_data:
-        init_data(cur_data, sub_critics.get_count())
-
-    episode = cur_data["episode"]
-    cur_data["rewards"][episode].append(reward)
-    cur_data["sub_critics"][episode].append(sub_critics.q(activations))
-    cur_data["critic"][episode].append(agent.critic_network.target_q([state],[action]))
-
-
-    if done:
-        new_episode_data(cur_data, sub_critics.get_count())
-################
 
 def test(env, agent, num_tests):
     """
@@ -76,7 +42,6 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
     Runs the experiment on the target en
     """
     env = common.filter_env.makeFilteredEnv(gym.make(ENV_NAME))
-    cur_data = {}
 
     # Create the standard DDPG agent.
     agent = DDPG(env)
@@ -125,12 +90,6 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 
             # Train DDPG
             agent.perceive(state,next_action,reward,next_state,done)
-
-            #record_data(
-            #    cur_data, state, action, activations, reward, done,
-            #    agent, sub_critics)
-            #plot_data(cur_data)
-
             if done:
                 break
             # Move on to next frame.
