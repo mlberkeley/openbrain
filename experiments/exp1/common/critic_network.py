@@ -3,6 +3,8 @@ import tensorflow as tf
 import numpy as np
 import math
 
+from common.utils import variable
+from common.utils import variable_summaries
 
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300
@@ -53,18 +55,18 @@ class CriticNetwork:
 		state_input = tf.placeholder("float",[None,state_dim])
 		action_input = tf.placeholder("float",[None,action_dim])
 
-		W1 = self.variable([state_dim,layer1_size],state_dim)
-		b1 = self.variable([layer1_size],state_dim)
-		W2 = self.variable([layer1_size,layer2_size],layer1_size+action_dim)
-		W2_action = self.variable([action_dim,layer2_size],layer1_size+action_dim)
-		b2 = self.variable([layer2_size],layer1_size+action_dim)
+		W1 = variable([state_dim,layer1_size],state_dim)
+		b1 = variable([layer1_size],state_dim)
+		W2 = variable([layer1_size,layer2_size],layer1_size+action_dim)
+		W2_action = variable([action_dim,layer2_size],layer1_size+action_dim)
+		b2 = variable([layer2_size],layer1_size+action_dim)
 		W3 = tf.Variable(tf.random_uniform([layer2_size,1],-3e-3,3e-3))
 		b3 = tf.Variable(tf.random_uniform([1],-3e-3,3e-3))
 
 		layer1 = tf.nn.relu(tf.matmul(state_input,W1) + b1)
 		layer2 = tf.nn.relu(tf.matmul(layer1,W2) + tf.matmul(action_input,W2_action) + b2)
 		q_value_output = tf.identity(tf.matmul(layer2,W3) + b3)
-
+		variable_summaries(q_value_output, "Critic_Q")
 		return state_input,action_input,q_value_output,[W1,b1,W2,W2_action,b2,W3,b3]
 
 	def create_target_q_network(self,state_dim,action_dim,net):
@@ -78,7 +80,7 @@ class CriticNetwork:
 		layer1 = tf.nn.relu(tf.matmul(state_input,target_net[0]) + target_net[1])
 		layer2 = tf.nn.relu(tf.matmul(layer1,target_net[2]) + tf.matmul(action_input,target_net[3]) + target_net[4])
 		q_value_output = tf.identity(tf.matmul(layer2,target_net[5]) + target_net[6])
-
+		variable_summaries(q_value_output, "Critic_T_Q")
 		return state_input,action_input,q_value_output,target_update
 
 	def update_target(self):
@@ -108,21 +110,3 @@ class CriticNetwork:
 		return self.sess.run(self.q_value_output,feed_dict={
 			self.state_input:state_batch,
 			self.action_input:action_batch})
-
-	# f fan-in size
-	def variable(self,shape,f):
-		return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))
-'''
-	def load_network(self):
-		self.saver = tf.train.Saver()
-		checkpoint = tf.train.get_checkpoint_state("saved_critic_networks")
-		if checkpoint and checkpoint.model_checkpoint_path:
-			self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
-			print "Successfully loaded:", checkpoint.model_checkpoint_path
-		else:
-			print "Could not find old network weights"
-
-	def save_network(self,time_step):
-		print 'save critic-network...',time_step
-		self.saver.save(self.sess, 'saved_critic_networks/' + 'critic-network', global_step = time_step)
-'''
