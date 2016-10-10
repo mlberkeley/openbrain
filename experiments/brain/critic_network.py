@@ -3,8 +3,8 @@ import tensorflow as tf
 import numpy as np
 import math
 
-from common.utils import variable
-from common.utils import variable_summaries
+from .common.utils import variable
+from .common.utils import variable_summaries
 
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300

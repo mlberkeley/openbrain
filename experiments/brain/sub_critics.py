@@ -6,13 +6,13 @@
 import gym
 import tensorflow as tf
 import numpy as np
-from ddpg import DDPG
-from common.critic_network import CriticNetwork
-from common.actor_network import ActorNetwork
-from common.replay_buffer import ReplayBuffer
-from common.utils import variable_summaries
+from .ddpg import DDPG
+from self.critic_network import CriticNetwork
+from .actor_network import ActorNetwork
+from .common.replay_buffer import ReplayBuffer
+from .common.utils import variable_summaries
 
-from polynomial_critic import PolynomialCritic
+from .polynomial_critic import PolynomialCritic
 
 LEARNING_RATE=1e-3
 
@@ -30,6 +30,9 @@ class SubCritics:
         self.t_activation_inputs = []
 
         self.reward_input =  tf.placeholder("float",[None], name="reward") 
+        # To make this into a batch based subcritic, we need to batch
+        # the episode done inputs and do batched tensorflow conditions
+        # on the reward function.
         self.done_input = tf.placeholder("bool", name="episode_done")
 
         #TODO Build the rest of the subcritic system.
@@ -100,15 +103,6 @@ class SubCritics:
             self.done_input: done})
 
         return [self.optimizer], feeds
-        
-
-    def q(self, activations):
-        """
-        Return the Q of every single subcritic for plotting
-        """
-        # alternative if we need target output in addtion to q_value
-        # return [(sc.q_value_output, sc.target_q_value_output) for sc in self.critics]
-        return [sc.q_value_output for sc in self.critics]
 
     def get_count(self):
         return len(self.critics)

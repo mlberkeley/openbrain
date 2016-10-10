@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import math
 
-from common.utils import variable
+from .common.utils import variable
 
 # Hyper Parameters
 REPLAY_BUFFER_SIZE = 1000000

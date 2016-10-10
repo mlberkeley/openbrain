@@ -6,10 +6,10 @@
 import gym
 import tensorflow as tf
 import numpy as np
-from common.ou_noise import OUNoise
-from common.critic_network import CriticNetwork
-from common.actor_network import ActorNetwork
-from common.replay_buffer import ReplayBuffer
+from .common.ou_noise import OUNoise
+from .critic_network import CriticNetwork
+from .actor_network import ActorNetwork
+from .common.replay_buffer import ReplayBuffer
 
 
 # Hyper Parameters:
