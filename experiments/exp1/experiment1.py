@@ -80,7 +80,8 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 
     # Create the standard DDPG agent.
     agent = DDPG(env)
-    sub_critics = SubCritics(agent, order=1, verbose=True) # Make linear (order 1) subcritics
+
+    sub_critics = SubCritics(agent, order=1) # Make linear (order 1) subcritics
 
     # Set up tensorboard.
     merged = tf.merge_all_summaries()
@@ -89,6 +90,7 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
     # To see graph run tensorboard --logdir=/tmp/exp1/tboard
     agent.sess.run(tf.initialize_all_variables())
 
+    t = 0
     for episode in range(EPISODES):
         state = env.reset()
         activations = None
@@ -96,31 +98,45 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
         r_tot = 0
 
         for step in range(env.spec.timestep_limit):
+            t+= 1
             # Explore state space.
-            action, next_activations = agent.noise_action_activations(state)
+            next_action, next_activations = agent.noise_action_activations(state)
 
             # Deal with the environment
-            next_state,reward,done,_ = env.step(action)
+            next_state,reward,done,_ = env.step(next_action)
             r_tot += reward
             env.render()
 
-            # Train subcrticis
-            if activations:
-                sub_critics.perceive(activations, next_activations, reward, done)
+            # Train subcrticis and plot to tensorflow
+            if activations and action:
+                ops, feeds = sub_critics.get_perceive_run(activations, next_activations, reward, done)
+                ops += [
+                    agent.critic_network.q_value_output, 
+                    agent.critic_network.target_q_value_output]
+                feeds.update({
+                    agent.critic_network.state_input: [state],
+                    agent.critic_network.action_input: [action],
+                    agent.critic_network.target_state_input: [next_state],
+                    agent.critic_network.target_action_input: [next_action]
+                    })
+                ops = [merged] + ops
+                result = agent.sess.run(ops, feeds)
+                train_writer.add_summary(result[0], t)
 
             # Train DDPG
-            agent.perceive(state,action,reward,next_state,done)
+            agent.perceive(state,next_action,reward,next_state,done)
 
-            record_data(
-                cur_data, state, action, activations, reward, done,
-                agent, sub_critics)
-            # plot_data(cur_data)
+            #record_data(
+            #    cur_data, state, action, activations, reward, done,
+            #    agent, sub_critics)
+            #plot_data(cur_data)
 
             if done:
                 break
             # Move on to next frame.
             state = next_state
             activations = next_activations
+            action = next_action
         print(" ", r_tot)
 
         # Testing:

@@ -10,13 +10,14 @@ from ddpg import DDPG
 from common.critic_network import CriticNetwork
 from common.actor_network import ActorNetwork
 from common.replay_buffer import ReplayBuffer
+from common.utils import variable_summaries
 
 from polynomial_critic import PolynomialCritic
 
 LEARNING_RATE=1e-3
 
 class SubCritics:
-    def __init__(self, ddpg_agent : DDPG, order=1, verbose=False):
+    def __init__(self, ddpg_agent : DDPG, order=1):
         """
         Initializes the subcritics based on a particular ddpg agent.
         ORDER is currently unused.
@@ -30,7 +31,6 @@ class SubCritics:
 
         self.reward_input =  tf.placeholder("float",[None], name="reward") 
         self.done_input = tf.placeholder("bool", name="episode_done")
-        self.verbose = verbose
 
         #TODO Build the rest of the subcritic system.
         # actor.layers = [state, output_layer1, output_layer2, output_layer3, ..., action = output_layer[-1]]
@@ -80,12 +80,14 @@ class SubCritics:
             constituent_loss = [cn.loss for cn in self.critics]
             self.loss = tf.add_n(constituent_loss)
             self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.loss)
+            variable_summaries(self.loss, "loss")
+
 
         self.target_update = [cn.target_update for cn in self.critics]
 
-    def perceive(self, activations, next_activations, reward, done):
+    def get_perceive_run(self, activations, next_activations, reward, done):
+        # Update the targets of the critics.
         self.sess.run(self.target_update)
-
 
         # TODO Enable batching.
         feeds = {}
@@ -97,17 +99,8 @@ class SubCritics:
             self.reward_input: [reward],
             self.done_input: done})
 
-        self.sess.run(self.optimizer, feeds)
-
-        # In here do exactly the same method as ddpg for training its critic except do it
-        # for all critics.
-
-
-        # Activations is the output of [state, output_layer1, output_layer2, output_layer3, ..., action = output_layer[-1]]
-
-        # We need to make a replay buffer for the subcritics be a window of the last N time steps.
-        # So do not use the replay buffer used for normal DDPG
-        pass
+        return [self.optimizer], feeds
+        
 
     def q(self, activations):
         """

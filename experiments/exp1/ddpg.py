@@ -15,7 +15,7 @@ from common.replay_buffer import ReplayBuffer
 # Hyper Parameters:
 
 REPLAY_BUFFER_SIZE = 1000000
-REPLAY_START_SIZE = 10000
+REPLAY_START_SIZE = 64
 BATCH_SIZE = 64
 GAMMA = 0.99
 
@@ -38,7 +38,7 @@ class DDPG:
             self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim)
 
         # initialize replay buffer
-        self.replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
+        self.replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE, uniform=True)
 
         # Initialize a random process the Ornstein-Uhlenbeck process for action exploration
         self.exploration_noise = OUNoise(self.action_dim)

@@ -8,10 +8,11 @@ class ReplayBuffer(object):
         self.buffer_size = buffer_size
         self.num_experiences = 0
         self.buffer = deque()
+        self.uniform = uniform
 
     def get_batch(self, batch_size):
-        if uniform:
-            return random.sample(self.buffer, batch_size)
+        if self.uniform:
+            return random.sample(list(self.buffer), batch_size)
         scale = self.scale_param * len(self.buffer)
         inds = np.rint(np.random.exponential(scale = scale, size = batch_size))
         # only go as far back as the start of the deque...

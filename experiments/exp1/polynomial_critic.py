@@ -4,14 +4,15 @@ import numpy as np
 import math
 
 from common.utils import variable
-
+from common.utils import variable_summaries
 
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300
 LEARNING_RATE = 1e-3
-TAU = 0.001
+TAU = 0.0001
 L2 = 0.01
 GAMMA=0.9
+
 
 class PolynomialCritic:
     def __init__(
@@ -21,7 +22,8 @@ class PolynomialCritic:
             t_state_placeholder,
             t_action_placeholder,
             reward_placeholder,
-            done_placeholder, order=1, gamma=GAMMA):
+            done_placeholder, order=1, gamma=GAMMA,
+            summaries=True):
         """
         Creates a polynomial critic
         action-dim is always [1] considering that we are doing
@@ -29,6 +31,7 @@ class PolynomialCritic:
         """
         self.order = order
         self.sess = sess
+        self.summaries = summaries
 
         # Set up placeholders
         self.state_placeholder = state_placeholder
@@ -92,6 +95,7 @@ class PolynomialCritic:
 
         #   then let x =tf.concat(state_placeholder, action_placeholder) and the output of this polynomial
         #   critic will be Qn = x^TWx if order=2, or Qn = xW, if order =1, etc...
+        if self.summaries: variable_summaries(q_value_output, q_value_output.name)
         return q_value_output, net
 
     def create_target_q_network(self, net, linear):
@@ -103,7 +107,9 @@ class PolynomialCritic:
         target_net = [ema.average(x) for x in net]
 
         q_value_output, _  = self.setup_graph(self.t_state_placeholder, self.t_action_placeholder, target_net, linear)
+
         #   then let x =tf.concat(state_placeholder, action_placeholder) and
+        if self.summaries: variable_summaries(q_value_output, q_value_output.name)
         return q_value_output, target_update
 
     def update_target(self):
@@ -117,7 +123,8 @@ class PolynomialCritic:
             lambda: self.q_value_output - self.reward_placeholder,
             lambda: self.q_value_output - self.reward_placeholder - self.gamma*self.target_q_value_output)
 
-        self.loss = tf.reduce_mean(tf.square(diff)) + weight_decay
+        self.loss = tf.reduce_mean(tf.square(diff)) #+ weight_decay
+        #variable_summaries(self.loss, "loss")
 
     def target_q(self,state_batch,action_batch):
         """

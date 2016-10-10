@@ -4,6 +4,7 @@ import numpy as np
 import math
 
 from common.utils import variable
+from common.utils import variable_summaries
 
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300
@@ -65,7 +66,7 @@ class CriticNetwork:
 		layer1 = tf.nn.relu(tf.matmul(state_input,W1) + b1)
 		layer2 = tf.nn.relu(tf.matmul(layer1,W2) + tf.matmul(action_input,W2_action) + b2)
 		q_value_output = tf.identity(tf.matmul(layer2,W3) + b3)
-
+		variable_summaries(q_value_output, "Critic_Q")
 		return state_input,action_input,q_value_output,[W1,b1,W2,W2_action,b2,W3,b3]
 
 	def create_target_q_network(self,state_dim,action_dim,net):
@@ -79,7 +80,7 @@ class CriticNetwork:
 		layer1 = tf.nn.relu(tf.matmul(state_input,target_net[0]) + target_net[1])
 		layer2 = tf.nn.relu(tf.matmul(layer1,target_net[2]) + tf.matmul(action_input,target_net[3]) + target_net[4])
 		q_value_output = tf.identity(tf.matmul(layer2,target_net[5]) + target_net[6])
-
+		variable_summaries(q_value_output, "Critic_T_Q")
 		return state_input,action_input,q_value_output,target_update
 
 	def update_target(self):
