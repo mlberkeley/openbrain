@@ -13,10 +13,9 @@ from itertools import chain
 import gc
 gc.enable()
 
-
-import common.filter_env
 from brain import DDPG
 from brain import SubCritics
+from brain.common.filter_env import makeFilteredEnv
 
 
 def test(env, agent, num_tests):
@@ -41,7 +40,7 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
     """
     Runs the experiment on the target en
     """
-    env = common.filter_env.makeFilteredEnv(gym.make(ENV_NAME))
+    env = makeFilteredEnv(gym.make(ENV_NAME))
 
     # Create the standard DDPG agent.
     agent = DDPG(env)
