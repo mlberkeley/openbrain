@@ -176,6 +176,10 @@ Berkeley CA, 94720 \\
 
 \todo[inline]{Synthetic gradients are a step in the right direction, but still require eventual back propogation.}
 
+Recent work has attempted to address the issue of decoupling connections between layers in the network using decoupled neural interfaces \cite{jaderberg2016syngrad}. The initial coupling is due to the reliance on the forwards and backwards computations to compute the backpropagated error gradient for a given layer. Synthetic gradient modules model the error gradient using only local information, allowing immediate feedback that is later corrected when the backpropogated error is finally computed. This method has had success in both feedforward and recurrent architectures, where the network is able to model much greater time horizons.
+
+Although synthetic gradients decouple the network modules to some degree, this technique still relies on synchronous backpropagation to learn the local regressors. In addition, they model at a lower granularity, learning layer-level gradients instead of those of the individual neurons.
+
 \todo[inline]{Therefore it is feasible that each neuron is maximizing the expectation on his future dopamine intake, and so we propose the following theorem.  }
 
 \section{Agent-Environment Value Decomposition}
@@ -206,7 +210,7 @@ In order to decompose the $Q^\mu$ algorithm we will abstractly define a neurocom
 If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational agent} is a tuple $\scriptn = (\mu, \epsilon, \delta, K, \Theta, \sigma, D)$ such that:
 \begin{itemize}
     \item $\epsilon : \scripts  \to \scriptv$ encodes the state into the voltages. Realistically, only a subset of all neurons are input neurons, denoted as $N_I \subset \scriptv$, so $\epsilon(s_t) = proj_{N_I}(\epsilon(s_t))$.
-    \item $\delta: \scriptv \to \scripta$ decodes the voltages of the \emph{output neurons } $N_O \subset V$ into an action, so that $\delta(v_t) = $\delta(proj_{N_O}(v_t))$.
+    \item $\delta: \scriptv \to \scripta$ decodes the voltages of the \emph{output neurons } $N_O \subset V$ into an action, so that $\delta(v_t) = \delta(proj_{N_O}(v_t))$.
     \item $K: \scriptv \to \scriptv$ is the linear voltage graph transition function of the graph representing the topolopy of $\scriptn$, parameterized by $\theta$.
     \item $\Theta: \scriptv \to \scriptv$ is a nonlinear inhibition function.
     \item $\sigma: \scriptv \to \scriptv$ is the elementwise application of some activation function to the voltage vector.
