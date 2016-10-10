@@ -41,7 +41,7 @@ def new_episode_data(cur_data, n_sub_critics):
 def record_data(cur_data, state, action, activations, reward, done,
                 agent, sub_critics):
     if not cur_data:
-        init_data(cur_data, sub_critics.count)
+        init_data(cur_data, sub_critics.get_count())
 
     episode = cur_data["episode"]
     cur_data["rewards"][episode].append(reward)
@@ -50,7 +50,7 @@ def record_data(cur_data, state, action, activations, reward, done,
 
 
     if done:
-        new_episode_data(cur_data, sub_critics.count)
+        new_episode_data(cur_data, sub_critics.get_count())
 ################
 
 def test(env, agent, num_tests):
@@ -91,12 +91,13 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 
     for episode in range(EPISODES):
         state = env.reset()
+        activations = None
         print("Episode: ", episode, end="")
         r_tot = 0
 
         for step in range(env.spec.timestep_limit):
             # Explore state space.
-            action, activations = agent.noise_action_activations(state)
+            action, next_activations = agent.noise_action_activations(state)
 
             # Deal with the environment
             next_state,reward,done,_ = env.step(action)
@@ -104,7 +105,8 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
             env.render()
 
             # Train subcrticis
-            sub_critics.perceive(activations, reward, done)
+            if activations:
+                sub_critics.perceive(activations, next_activations, reward, done)
 
             # Train DDPG
             agent.perceive(state,action,reward,next_state,done)
@@ -118,6 +120,7 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
                 break
             # Move on to next frame.
             state = next_state
+            activations = next_activations
         print(" ", r_tot)
 
         # Testing:

@@ -29,7 +29,7 @@ class SubCritics:
         self.t_activation_inputs = []
 
         self.reward_input =  tf.placeholder("float",[None], name="reward") 
-
+        self.done_input = tf.placeholder("bool", name="episode_done")
         self.verbose = verbose
 
         #TODO Build the rest of the subcritic system.
@@ -72,7 +72,7 @@ class SubCritics:
                                 self.sess,
                                 state_input, tf.reshape(action_input[:,j], tf.pack([b_size, 1])),
                                 t_state_input, tf.reshape(t_action_input[:,j], tf.pack([b_size, 1])),
-                                self.reward_input,
+                                self.reward_input, self.done_input,
                                 order))
 
         # Create optimizer on all critics
@@ -83,11 +83,25 @@ class SubCritics:
 
         self.target_update = [cn.target_update for cn in self.critics]
 
-    def perceive(self, activations, reward, done):
+    def perceive(self, activations, next_activations, reward, done):
         self.sess.run(self.target_update)
+
+
+        # TODO Enable batching.
+        feeds = {}
+        feeds.update({
+            activation: [activations[i]] for i, activation in enumerate(self.activation_inputs)})
+        feeds.update({
+            t_activation: [next_activations[i]] for i, t_activation in enumerate(self.t_activation_inputs)})
+        feeds.update({
+            self.reward_input: [reward],
+            self.done_input: done})
+
+        self.sess.run(self.optimizer, feeds)
 
         # In here do exactly the same method as ddpg for training its critic except do it
         # for all critics.
+
 
         # Activations is the output of [state, output_layer1, output_layer2, output_layer3, ..., action = output_layer[-1]]
 
@@ -102,3 +116,6 @@ class SubCritics:
         # alternative if we need target output in addtion to q_value
         # return [(sc.q_value_output, sc.target_q_value_output) for sc in self.critics]
         return [sc.q_value_output for sc in self.critics]
+
+    def get_count(self):
+        return len(self.critics)

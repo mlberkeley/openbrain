@@ -20,7 +20,8 @@ class PolynomialCritic:
             action_placeholder,
             t_state_placeholder,
             t_action_placeholder,
-            reward_placeholder, order=1, gamma=GAMMA):
+            reward_placeholder,
+            done_placeholder, order=1, gamma=GAMMA):
         """
         Creates a polynomial critic
         action-dim is always [1] considering that we are doing
@@ -35,6 +36,7 @@ class PolynomialCritic:
         self.t_state_placeholder = t_state_placeholder
         self.t_action_placeholder = t_action_placeholder
         self.reward_placeholder = reward_placeholder
+        self.done_placeholder = done_placeholder
 
         self.gamma = gamma
 
@@ -110,9 +112,12 @@ class PolynomialCritic:
     def create_loss(self):
         """ Define training loss """
         weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
-        self.loss = tf.reduce_mean(
-            tf.square(
-                self.q_value_output - self.reward_placeholder - self.gamma*self.target_q_value_output)) + weight_decay
+        diff = tf.cond(
+            self.done_placeholder, 
+            lambda: self.q_value_output - self.reward_placeholder,
+            lambda: self.q_value_output - self.reward_placeholder - self.gamma*self.target_q_value_output)
+
+        self.loss = tf.reduce_mean(tf.square(diff)) + weight_decay
 
     def target_q(self,state_batch,action_batch):
         """
