@@ -36,7 +36,7 @@ def test(env, agent, num_tests):
     return avg_reward
 
 
-def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10):
+def run_experiment(ENV_NAME='CartPole-v0', EPISODES=10000, TEST=10):
     """
     Runs the experiment on the target en
     """

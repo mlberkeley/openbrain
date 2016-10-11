@@ -7,7 +7,7 @@ import gym
 import tensorflow as tf
 import numpy as np
 from .ddpg import DDPG
-from self.critic_network import CriticNetwork
+from .critic_network import CriticNetwork
 from .actor_network import ActorNetwork
 from .common.replay_buffer import ReplayBuffer
 from .common.utils import variable_summaries
