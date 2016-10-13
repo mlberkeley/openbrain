@@ -50,7 +50,7 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
 
     # Set up tensorboard.
     merged = tf.merge_all_summaries()
-    train_writer = tf.train.SummaryWriter('/tmp/exp1/{}'.format(exp_name),
+    train_writer = tf.train.SummaryWriter('/tmp/tboard/{}'.format(exp_name),
                                       agent.sess.graph)
     # To see graph run tensorboard --logdir=/tmp/exp1/tboard
     agent.sess.run(tf.initialize_all_variables())
