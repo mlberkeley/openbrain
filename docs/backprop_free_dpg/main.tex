@@ -143,10 +143,10 @@ Machine Learning at Berkeley \\
 Berkeley CA, 94720 \\
 \texttt{mlyzhong@berkeley.edu} \\
 \And
-Utkarsh S \\
+James Bartlett\\
 Machine Learning at Berkeley \\
 Berkeley CA, 94720 \\
-\texttt{philkuz@ml.berkeley.edu}
+\texttt{bartlett@ml.berkeley.edu}
 \And
 Max Johansen \\
 Machine Learning at Berkeley \\
@@ -172,36 +172,33 @@ Berkeley CA, 94720 \\
 \section{Introduction}
 \todo[inline]{Introduction to DDPG and recent advances in deep RL. }
 
-\todo[inline]{Biological diffusion of dopamine in the brain$\implies$ error backpropagation is not biologically feasible.}
-
-\todo[inline]{Synthetic gradients are a step in the right direction, but still require eventual back propogation.}
+\todo[inline]{\textbf{The problem statment is here.} Biological diffusion of dopamine in the brain$\implies$ error backpropagation is not biologically feasible.}
 
 Recent work has attempted to address the issue of decoupling connections between layers in the network using decoupled neural interfaces \cite{jaderberg2016syngrad}. The initial coupling is due to the reliance on the forwards and backwards computations to compute the backpropagated error gradient for a given layer. Synthetic gradient modules model the error gradient using only local information, allowing immediate feedback that is later corrected when the backpropogated error is finally computed. This method has had success in both feedforward and recurrent architectures, where the network is able to model much greater time horizons.
 
 Although synthetic gradients decouple the network modules to some degree, this technique still relies on synchronous backpropagation to learn the local regressors. In addition, they model at a lower granularity, learning layer-level gradients instead of those of the individual neurons.
 
-\todo[inline]{Therefore it is feasible that each neuron is maximizing the expectation on his future dopamine intake, and so we propose the following theorem.  }
+\todo[inline]{Coupling synthetic gradients with dopamine we get blah. Therefore it is feasible that each neuron is maximizing the expectation on his future dopamine intake, and so we propose the following theorem.  }
 
 \section{Agent-Environment Value Decomposition}
 
-\todo[inline]{A high level description of the section.}
+In this section we will develop a theoretical basis for decomposing the agent and its environment in to neuromorphically local agent which act on the activations of their priors. We then will show that under some mild conditions, these agents act in environments which are so simple that it suffices to estimate the policy gradient using a linear approximation, much in the style of synthetic gradients. These results lead to a new decentralized, local, and asynchronous learning paradigm for deep reinforcement learning without the use of deep error-backpropagation.
 
-\todo[inline]{Fix the time thing. Remove $\ell$.}
 \subsection{Background}
-Recall the standard reinforcement learning setup. We say $E$ is an \emph{environment} if $E \defeq (\scripts, \scripta, \scriptr, T, r)$ where $T$ describes transition probability measure $T\left(s_{t+1}\suchthat s_t, a_t\right)$ and $r: \scripts \times \scripta \to \scriptr$ is a reward function. Furthermore $\scripts$, $\scripta$, $\scriptr$ are the \emph{state space, action space, and reward space} respectively. We restrict $\scriptr$ to a compact subset of $\mathbb{R}$ and action space and state space to finite dimensional real vector spaces. As in DDPG we assume that the environment $E$ is \emph{fully observed}\todo[inline]{FIX THIS WHEN FIXING $\ell$. The environment is NOT fully observed.}; that is, at any time step the state $s_t$ is fully described by the observation presented, $x_t$, and not by the history $(x_1, a_1, \dots, a_{t-1}).$
+Recall the standard reinforcement learning setup. We say $E$ is an \emph{environment} if $E \defeq (\scripts, \scripta, \scriptr, T, r)$ where $T$ describes transition probability measure $T\left(s_{t+1}\suchthat s_t, a_t\right)$ and $r: \scripts \times \scripta \to \scriptr$ is a reward function. Furthermore $\scripts$, $\scripta$, $\scriptr$ are the \emph{state space, action space, and reward space} respectively. We restrict $\scriptr$ to a compact subset of $\mathbb{R}$ and action space and state space to finite dimensional real vector spaces. As in DDPG we assume that the environment $E$ is \emph{fully observed}; that is, at any time step the state $s_t$ is fully described by the observation presented, $x_t$, and not by the history $(x_1, a_1, \dots, a_{t-1}).$
 
 We define the policy for an agent to be $\pi: \scriptp(\scripta) \times \scripts \to [0,1]$. In general the policy is a probability measure on some $\sigma$-algebra $\scriptm \subset \scriptp(\scripta)$ conditioned on $\scripts$ so that $\pi\left(\scripta \suchthat s \in \scripts\right) = 1$. However, we will deal only with \emph{deterministic} policies where for every $s_t$ there is unique $a_t$ so that $\pi\left(\set{a_t} \suchthat s = s_t\right) = 1$ and the measure is $0$ otherwise. Thus we will abuse notation and define a \emph{deterministic agent} by a policy function $\pi: \scripts \to \scripta$. Additionally we denote the state-space trajectories of $\pi $ by
 \begin{equation}
  	\Gamma_\pi(\scripts) = \set{(s_1, s_2, \dots)\suchthat s_1 \sim T(s_0), s_{t+1} \sim T\left(s \suchthat s_t, \pi(s_t)\right)}.
  \end{equation}
 
-For a policy $\pi$  the action-value function is the expected future reward under $\pi$ by performing $a_t$ at state $s_t$ using the Bellman equation
+For a policy $\pi$  the action-value function is the expected future reward under $\pi$ by performing $a_t$ at state $s_t$. A temporally local definition thereof can be obtained using the Bellman equation
 \begin{equation}
     Q^{\pi}(s_t, a_t) = \expect_{s_{t+1} \sim E}\left[r(s_{t}, a_t) + \gamma Q^{\pi}(s_{t+1}, \pi(s_{t+1}))\right]
 \end{equation}
 with $\gamma \in (0,1)$ a discount factor, and the second expectation removed because $\pi$ is deterministic. \todo{Insert reference and make this a footnote}{[Some survey]} provides an extensive exposition into a justification of this equation and choice for the action-value of $\pi$, so we will assume such a choice is a valid measure of performance.
 
-In deterministic policy gradient methods, we define an actor $\mu: \scripts \to \scripta$ and a critic $Q^\mu: \scripts \times \scripta \to \mathbb{R}$ and optimize $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ This method is provably the true policy gradient of $\mu$ if $Q^\mu$ is known. Recently \todo{Cite lilicrap}{(DDPG)} utilizes the universality of DNNs in order to approximate both $\mu$ and $Q^\mu$ along with delayed weight-transfer networks to stabilize learning and  prevent divergence as depicted in \todo{Make DDPG figure}{Figure 1}. In order to decompose the action-value function we will make heavy use of this methodology at a scale local to each neuron in the flavor of \todo{Cite deepmind}{(Synthetic gradients.)}
+Among a variety of methods, the deep reinforcement learning approach to solving environments (MDPs) has been predominately been separated into deterministic policy gradient methods and direct, optimal Q-Learning methods. In deterministic policy gradient (DPG) methods, we define an actor $\mu: \scripts \to \scripta$ and a critic $Q^\mu: \scripts \times \scripta \to \mathbb{R}$ and optimize $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ Deep determinsiitc policy gradient (DDPG) learning directly learns to approximate $Q_a$ by creating two different deep neural networks for the actor and the critic and then back-propagating the $Q$ gradient from the critic to the actor. Specifically, DDPG maximizes $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ This method is provably the true policy gradient of $\mu$ if $Q^\mu$ is known. In order to decompose the action-value function we will make heavy use of this methodology at a scale local to each neuron in the flavor of \todo{Cite deepmind}{(Synthetic gradients.)}
 
 \subsection{Towards Neurocomputational Decomposition of $Q^\mu$}
 
@@ -217,33 +214,39 @@ If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational
     \item $D: \scriptv \times \scriptv \to \scriptv$ is called voltage dynamic of $\scriptn$ such that
     \begin{equation}
         \begin{aligned}
-          v_{cur + 1} \defeq D(v_{cur},v_{in}) \defeq \sigma\left(\Theta K[v_{cur}]\right) + v_{in}
+         v_{t+1} \defeq D(v_t,v_{in}) \defeq \sigma\left(\Theta K[v_t]\right) + v_{in}
         \end{aligned}
     \end{equation}
-    where $v_{cur}$ is the internal voltage vector of $\scriptn$ and $v_{in}$ is an input voltage. We will occasionally abuse notation an say that $D(v_{cur}) = D(v_{cur}, 0)$ when $v_{in}$ is 0.
-    \item $\mu: \scripts \to \scripta$ is the deterministic policy for $\scriptn$. For some agents, the internal time $\tau$ is not in sync with the discrete time step $t$ of $E$.  Therefore for every $t$ there is an evaluation delay  $\ell$ so that
+    where $v_t$ is the internal voltage vector of $\scriptn$ at time $t$ and $v_{in}$ is an input voltage to the network. We will occasionally abuse notation an say that $D(v_t) = D(v_t, 0)$ when $v_{in}$ is 0.
+    \item $\mu: \scripts \to \scripta$ is the deterministic policy for $\scriptn$ such that
     \begin{equation}
     	\begin{aligned}
-    		v_{t+1} &=  D(v_t) + \epsilon(s_t) \\
-                &=  D(v_{t-1}, \epsilon(s_t)) \\
-        \mu(s_t) &= \delta(v_t)
+        \mu(s_t) &= \delta(D(v_t, \epsilon(s_t))
     	\end{aligned}
     \end{equation}
 \end{itemize}
-It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other paradigms such as the leaky integrattor are neurocomputational agents. (See appendix.)
+It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other paradigms such as the leaky integrattor are neurocomputational agents. In this paper we will mainly discuss standard feed forward neural networks, in which case $\Theta$ is not defined and the neural dynamics are repeatedly applied $D^{(n)}$ times until an output of $N_O$ is produced. Theoretically, however, it is without loss of generality to consider the above definition. (See Appendix A.)
+\todo[inline]{Show equivalence in the appendix.}
 
- If $n$ is some neuron in $\scriptn$, we say $E^n = (\scripts^n, \scripta^n, \scriptr^n, T^n, r^n)$ is deterministic \emph{sub-environment} of $E$ with respect to $\scriptn$ if it has the following properties:
+ If $n$ is some neuron in $\scriptn$, we say $E^n = (\scripts, \scripta, \scriptr, T, r)$ is deterministic \emph{sub-environment} of $E$ with respect to $\scriptn$ if
 
 \begin{itemize}
-  \item an environment $\scripts ^n = \scriptv$, in that the environment that neuron n sees is the voltages of all other neurons. We assume that the graph is fully connected so that all neurons are connected to all other neurons. Realistically, each neuron only sees the voltages of a subset of all neurons. We will deal with this in a further iteration of the paper.
-  \item an action $\scripta ^n = \reals$ denotes the output voltage of neuron n one time step later, i.e. $\alpha_t^n = v_{t+1}^n$.
-  \item a reward $\scriptr ^n = \scriptr$, denoting the reward that neuron n receives. It is the same as the reward that the entire agent sees.
-  \item a transition function $T^n : \scripts ^n \times \scripta ^n \to \scripts ^n$ such that $T^n(v_t, \alpha_t^n) = (I - \delta_{n,n}) D(v_t, \epsilon(s_t)) + e_n \alpha_t^n$
-  \item and a reward function $r^n(v_{\tau}, \alpha) = r(s_t, \mu(s_t))$ if $I(\tau) \neq 0$ and $0$ otherwise. Essentially the state space of $E^n$ at time step $\tau +1$ is just the normal dynamics of $\scriptn$ applied to the previous state along with a possible encoded input state $\epsilon(s_t)$ from $E$ except for at neuron $n$. Lastly an agent  $\mu^n: \scriptv \to \mathbb{R}$  is called \emph{neuromorphically local} to $\scriptn$ if $v_\tau \mapsto \langle D(v_\tau), e_n \rangle$.
+  \item The state space is $\scripts = \scriptv$;  that is, the environment that neuron $n$ observes is the voltages of all other neurons. Although this definition permits a fully connected graph for $\scriptn$, realistically, each neuron only sees the voltages of a subset of all neurons. In the case of standard feed forward networks, $n$ would observe only the activations of the previous layer.
+
+  \item The action space is the set of voltages $\scripta = \reals$ which the neuron $n$ can output.
+  \item The reward space $\scriptr$ is the same as that of the base environment $E$. Furthermore the subenvironment emitts the same same reward as does the base environment. If the agent $\mu$ of $\scriptn$ acts on a state $s_t$ and receives a reward $r_t$, then every sub-environment emits the same reward $r_t$. 
+  \item The transition function $T : \scriptv \times \mathbb{R}  \to \scripts ^n$ is such that 
+  \begin{equation}
+    T(v_t, \alpha_t) = (I - \chi_{n,n}) D(v_t, \epsilon(s_t)) + e_n \alpha
+  \end{equation}
+  where $e_n$ is the $n^{th}$ unit basis vector, $I$ is the identity, and $\chi_{n,n} =1$ if $n = n$ and $0$ otherwise. Intuitively, the transition in $E^n$ is the normal neural dynamics on $\scriptn$ except for at the neuron $n$, itself; in $E^n$ we set the voltage of $n$ in $v_{t+1}$ to be the voltage chosen, $\alpha_t$.
 \end{itemize}
-We now can think of every neuron in $\scriptn$ as an agent in its own environment, acting on its inputs, and we can extend the action-value definition to $\mu^n$ as follows
+ Lastly an agent  $\mu^n: \scriptv \to \mathbb{R}$  is called \emph{neuromorphically local} to $\scriptn$ if $v_t \mapsto \langle D(v_\tau, \epsilon(s_t)), e_n \rangle$; that is, $\mu^n$ acts according to the normal dynamics.
+
+
+We now can view every neuron in $\scriptn$ as an agent in its own environment, acting on its anterior neurons, and we can extend the action-value definition to $\mu^n$ as follows
 \begin{equation}
-    Q^{\mu^n}(v_\tau, \alpha_\tau) = \expect_{v_{\tau+1}\ \sim E^n}\left[r^n(v_\tau, a_\tau) + \gamma Q^{\mu^n}(v_{\tau+1}, \mu^n(v_{\tau+1}))\right].
+    Q^{\mu^n}(v_t, \alpha_t) = \expect_{v_{t+1}\ \sim E^n}\left[r(v_t, a_t) + \gamma Q^{\mu^n}(v_{t+1}, \mu^n(v_{\tau+1}))\right].
 \end{equation}
 
 \subsubsection{Results}
