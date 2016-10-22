@@ -47,6 +47,8 @@ class PolynomialCritic:
         self.action_dim = 1 # Very specific, but necisarry.
         self.state_dim= state_placeholder.get_shape()[-1].value
 
+        cur_act = tf.identity(self.t_state_placeholder)
+        if self.summaries: variable_summaries(cur_act, cur_act.name)
         # create q network
         with tf.variable_scope("Q"):
             self.q_value_output,\
@@ -95,7 +97,6 @@ class PolynomialCritic:
 
         #   then let x =tf.concat(state_placeholder, action_placeholder) and the output of this polynomial
         #   critic will be Qn = x^TWx if order=2, or Qn = xW, if order =1, etc...
-        if self.summaries: variable_summaries(q_value_output, q_value_output.name)
         return q_value_output, net
 
     def create_target_q_network(self, net, linear):

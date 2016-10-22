@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from IPython import display
 from itertools import chain
 import gc
+import argparse
 gc.enable()
 
 from brain import DDPG
@@ -36,7 +37,7 @@ def test(env, agent, num_tests):
     return avg_reward
 
 
-def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10):
+def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000, TEST=10):
     """
     Runs the experiment on the target en
     """
@@ -49,7 +50,7 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
 
     # Set up tensorboard.
     merged = tf.merge_all_summaries()
-    train_writer = tf.train.SummaryWriter('/tmp/exp1/tboard',
+    train_writer = tf.train.SummaryWriter('/tmp/tboard/{}'.format(exp_name),
                                       agent.sess.graph)
     # To see graph run tensorboard --logdir=/tmp/exp1/tboard
     agent.sess.run(tf.initialize_all_variables())
@@ -72,7 +73,7 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
             env.render()
 
             # Train subcrticis and plot to tensorflow
-            if activations and action:
+            if activations is not None and action is not None:
                 ops, feeds = sub_critics.get_perceive_run(activations, next_activations, reward, done)
                 ops += [
                     agent.critic_network.q_value_output, 
@@ -103,4 +104,14 @@ def run_experiment(ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10)
             print(('episode: ',episode,'Evaluation Average Reward:',avg_reward))
 
 if __name__ == '__main__':
-    run_experiment()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+      '--name',
+      type=str,
+      default='tboard',
+      help="""\
+      the name of the experiment to run.\
+      """
+    )
+    args = parser.parse_args()
+    run_experiment(args.name)
