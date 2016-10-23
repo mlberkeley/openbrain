@@ -26,7 +26,7 @@ def test(env, agent, num_tests):
 
 		for j in range(env.spec.timestep_limit):
 			#env.render()
-			action = agent.getAction([state])
+			action = agent.action([state])
 			state,reward,done,_ = env.step(action)
 			total_reward += reward
 			if done:
