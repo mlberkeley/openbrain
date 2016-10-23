@@ -9,11 +9,12 @@ GAMMA = 0.9
 class Layer:
 
 	def __init__(self, sess, reward, done, size, prevLayer=None, state=None, \
-					nextState =None, stateDim=None):
+					nextState =None, stateDim=None, activation=True):
 		self.sess = sess
 		self.reward = reward
 		self.done = done
 		self.size = size
+		self.activation = activation
 		if prevLayer:
 			self.num = prevLayer.num + 1
 			self.prevSize = prevLayer.size
@@ -27,7 +28,7 @@ class Layer:
 		self.name = "layer_{}".format(self.num)
 		with tf.variable_scope(self.name):
 			self.output, self.targetOutput, self.weights = self.construct()
-			variable_summaries(self.output, self.name + "_action")
+			variable_summaries(self.output, self.name + "/action")
 			with tf.variable_scope('subcritic'):
 				self.Q, self.Qweights = self.createCritic()
 				self.Qtarget, self.Qupdate = self.createTargetCritic()
@@ -35,15 +36,19 @@ class Layer:
 				self.Qoptimizer = self.createCriticLearning()
 			self.grads = tf.gradients(self.Q, self.weights)
 
-		self.sess.run(tf.initialize_all_variables())
-
 	def construct(self):
 		with tf.variable_scope('actor'):
-			W = variable([self.prevSize, self.size], self.prevSize)
-			b = variable([self.size], self.prevSize)
-			output = tf.nn.relu(tf.matmul(self.input, W) + b)
+			W = variable([self.prevSize, self.size], self.prevSize, name='weights')
+			b = variable([self.size], self.prevSize, name='bias')
+			variable_summaries(b, self.name + "/bias")
+			variable_summaries(W, self.name + "/weights")
+			output = tf.matmul(self.input, W) + b
+			if self.activation:
+				output = tf.nn.relu(output)
 		with tf.variable_scope('actor_target'):
-			targetOutput = tf.nn.relu(tf.matmul(self.targetInput, W) + b)
+			targetOutput = tf.matmul(self.targetInput, W) + b
+			if self.activation:
+				targetOutput = tf.nn.relu(targetOutput)
 		return output, targetOutput, [W, b]
 
 	def createCritic(self):
@@ -53,7 +58,7 @@ class Layer:
 			b = variable([self.size], self.prevSize)
 
 			q = tf.identity(tf.matmul(self.input, Ms) + tf.matmul(self.output, Ma) + b)
-			variable_summaries(q, self.name + "_Q")
+			variable_summaries(q, self.name + "/Q")
 		return q, [Ms, Ma, b]
 
 	def createTargetCritic(self):
@@ -65,7 +70,7 @@ class Layer:
 			q = tf.identity(tf.matmul(self.targetInput, weights[0]) \
 									 + tf.matmul(self.targetOutput, weights[1]) \
 									 + weights[2])
-			variable_summaries(q, self.name + "_Qtarget")
+			variable_summaries(q, self.name + "/Qtarget")
 		return q, update
 
 	def updateTargetCritic(self):
@@ -76,7 +81,7 @@ class Layer:
 			loss = tf.square(self.Q \
 							   - self.reward \
 							   - tf.mul(self.done, tf.scalar_mul(GAMMA, self.Qtarget)))
-			variable_summaries(loss, self.name + "_loss")
+			variable_summaries(loss, self.name + "/loss")
 		return loss
 
 	def createCriticLearning(self):

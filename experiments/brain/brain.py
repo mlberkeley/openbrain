@@ -24,7 +24,7 @@ class Brain:
 		self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
 							LAYER2_SIZE, self.layers[0])]
 		self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
-							actionDim, self.layers[1])]
+							actionDim, self.layers[1], activation=False)]
 
 		self.actorOptimizer = self.createActorTraining()
 
