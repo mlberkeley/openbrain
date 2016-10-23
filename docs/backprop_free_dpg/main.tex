@@ -89,6 +89,11 @@
 \def\nobull{\noindent$\bullet$\ }
 \def\defeq{\stackrel{\text{def}}{=}}
 
+\newtheoremstyle{named}{}{}{\itshape}{}{\bfseries}{.}{.5em}{\thmnote{#3's }#1}
+\theoremstyle{named}
+\newtheorem*{namedtheorem}{Theorem}
+
+
 
 \def\scriptf{{\mathcal F}}
 \def\scriptq{{\mathcal Q}}
@@ -164,7 +169,7 @@ Berkeley CA, 94720 \\
 \maketitle
 
 \begin{abstract}
-    In this paper we conjecture that an agent, envirionment pair $(\pi, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q^{\pi}$ can be decomposed into a number of sub-agent, sub-environment pairs  $(\pi_n, E_n)$ ranging over every neuron in $\mu$; that is, we show empircially that treating each neuron $n$ as an agent $\pi_n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q^{\pi_n}$ with respect to the weights of $\pi_n$ is dual to optimizing $Q^\pi$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\pi_n$ without error backpropogation achieving state of the art performance and speed across a variety of OpenAI Gym environments.
+    In this paper we conjecture that an agent, envirionment pair $(\mu, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q^{\mu}$ can be decomposed into a number of sub-agent, sub-environment pairs  $(\mu^n, E^n)$ ranging over every neuron in $\mu$; that is, we show empircially that treating each neuron $n$ as an agent $\mu^n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q^{\mu^n}$ with respect to the weights of $\mu^n$ is dual to optimizing $Q^\mu$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\mu^n$ without error backpropogation achieving state of the art performance and speed across a variety of OpenAI Gym environments.
 \end{abstract}
 \listoftodos
 
@@ -187,16 +192,16 @@ In this section we will develop a theoretical basis for decomposing the agent an
 \subsection{Background}
 Recall the standard reinforcement learning setup. We say $E$ is an \emph{environment} if $E \defeq (\scripts, \scripta, \scriptr, T, r)$ where $T$ describes transition probability measure $T\left(s_{t+1}\suchthat s_t, a_t\right)$ and $r: \scripts \times \scripta \to \scriptr$ is a reward function. Furthermore $\scripts$, $\scripta$, $\scriptr$ are the \emph{state space, action space, and reward space} respectively. We restrict $\scriptr$ to a compact subset of $\mathbb{R}$ and action space and state space to finite dimensional real vector spaces. As in DDPG we assume that the environment $E$ is \emph{fully observed}; that is, at any time step the state $s_t$ is fully described by the observation presented, $x_t$, and not by the history $(x_1, a_1, \dots, a_{t-1}).$
 
-We define the policy for an agent to be $\pi: \scriptp(\scripta) \times \scripts \to [0,1]$. In general the policy is a probability measure on some $\sigma$-algebra $\scriptm \subset \scriptp(\scripta)$ conditioned on $\scripts$ so that $\pi\left(\scripta \suchthat s \in \scripts\right) = 1$. However, we will deal only with \emph{deterministic} policies where for every $s_t$ there is unique $a_t$ so that $\pi\left(\set{a_t} \suchthat s = s_t\right) = 1$ and the measure is $0$ otherwise. Thus we will abuse notation and define a \emph{deterministic agent} by a policy function $\pi: \scripts \to \scripta$. Additionally we denote the state-space trajectories of $\pi $ by
+We define the policy for an agent to be $\mu: \scriptp(\scripta) \times \scripts \to [0,1]$. In general the policy is a probability measure on some $\sigma$-algebra $\scriptm \subset \scriptp(\scripta)$ conditioned on $\scripts$ so that $\mu\left(\scripta \suchthat s \in \scripts\right) = 1$. However, we will deal only with \emph{deterministic} policies where for every $s_t$ there is unique $a_t$ so that $\mu\left(\set{a_t} \suchthat s = s_t\right) = 1$ and the measure is $0$ otherwise. Thus we will abuse notation and define a \emph{deterministic agent} by a policy function $\mu: \scripts \to \scripta$. Additionally we denote the state-space trajectories of $\mu $ by
 \begin{equation}
- 	\Gamma_\pi(\scripts) = \set{(s_1, s_2, \dots)\suchthat s_1 \sim T(s_0), s_{t+1} \sim T\left(s \suchthat s_t, \pi(s_t)\right)}.
+ 	\Gamma_\mu(\scripts) = \set{((s_1, a_1), (s_2, a_2) \dots)\suchthat s_1 \sim T(s_0), s_{t+1} \sim T\left(s \suchthat s_t, \mu(s_t)\right)}.
  \end{equation}
 
-For a policy $\pi$  the action-value function is the expected future reward under $\pi$ by performing $a_t$ at state $s_t$. A temporally local definition thereof can be obtained using the Bellman equation
+For a policy $\mu$  the action-value function is the expected future reward under $\mu$ by performing $a_t$ at state $s_t$. A temporally local definition thereof can be obtained using the Bellman equation
 \begin{equation}
-    Q^{\pi}(s_t, a_t) = \expect_{s_{t+1} \sim E}\left[r(s_{t}, a_t) + \gamma Q^{\pi}(s_{t+1}, \pi(s_{t+1}))\right]
+    Q^{\mu}(s_t, a_t) = \expect_{s_{t+1} \sim E}\left[r(s_{t}, a_t) + \gamma Q^{\mu}(s_{t+1}, \mu(s_{t+1}))\right]
 \end{equation}
-with $\gamma \in (0,1)$ a discount factor, and the second expectation removed because $\pi$ is deterministic. \todo{Insert reference and make this a footnote}{[Some survey]} provides an extensive exposition into a justification of this equation and choice for the action-value of $\pi$, so we will assume such a choice is a valid measure of performance.
+with $\gamma \in (0,1)$ a discount factor, and the second expectation removed because $\mu$ is deterministic. \todo{Insert reference and make this a footnote}{[Some survey]} provides an extensive exposition into a justification of this equation and choice for the action-value of $\mu$, so we will assume such a choice is a valid measure of performance.
 
 Among a variety of methods, the deep reinforcement learning approach to solving environments (MDPs) has been predominately been separated into deterministic policy gradient methods and direct, optimal Q-Learning methods. In deterministic policy gradient (DPG) methods, we define an actor $\mu: \scripts \to \scripta$ and a critic $Q^\mu: \scripts \times \scripta \to \mathbb{R}$ and optimize $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ Deep determinsiitc policy gradient (DDPG) learning directly learns to approximate $Q_a$ by creating two different deep neural networks for the actor and the critic and then back-propagating the $Q$ gradient from the critic to the actor. Specifically, DDPG maximizes $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ This method is provably the true policy gradient of $\mu$ if $Q^\mu$ is known. In order to decompose the action-value function we will make heavy use of this methodology at a scale local to each neuron in the flavor of \todo{Cite deepmind}{(Synthetic gradients.)}
 
@@ -204,10 +209,12 @@ Among a variety of methods, the deep reinforcement learning approach to solving 
 
 In order to decompose the $Q^\mu$ algorithm we will abstractly define a neurocomputational agent in terms of an operator on voltages with no restrictions on the topology of the network, and then relate the action-value function of the whole agent to those which are defined for each individual neuron in the network.
 
-If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational agent} is a tuple $\scriptn = (\mu, \epsilon, \delta, K, \Theta, \sigma, D)$ such that:
+\begin{definition}
+
+If $\scriptv$ is an $N$-dimensional vector space then a \textbf{neurocomputational agent} is a tuple $\scriptn = (\mu, \epsilon, \delta, K, \Theta, \sigma, D)$ such that:
 \begin{itemize}
-    \item $\epsilon : \scripts  \to \scriptv$ encodes the state into the voltages. Realistically, only a subset of all neurons are input neurons, denoted as $N_I \subset \scriptv$, so $\epsilon(s_t) = proj_{N_I}(\epsilon(s_t))$.
-    \item $\delta: \scriptv \to \scripta$ decodes the voltages of the \emph{output neurons } $N_O \subset V$ into an action, so that $\delta(v_t) = \delta(proj_{N_O}(v_t))$.
+    \item $\epsilon : \scripts  \to \scriptv$ encodes the state into the voltages. Realistically, only a subset of all neurons are input neurons, denoted as $N_I \subset \scriptv$, so $\epsilon(s_t) = \pi_{N_I}(\epsilon(s_t))$, where  $\pi_K(x)$ is the cannonical projection of $x$ on dimension(s) $K$,
+    \item $\delta: \scriptv \to \scripta$ decodes the voltages of the \emph{output neurons } $N_O \subset V$ into an action, so that $\delta(v_t) = \delta(\pi_{N_O}(v_t))$.
     \item $K: \scriptv \to \scriptv$ is the linear voltage graph transition function of the graph representing the topolopy of $\scriptn$, parameterized by $\theta$.
     \item $\Theta: \scriptv \to \scriptv$ is a nonlinear inhibition function.
     \item $\sigma: \scriptv \to \scriptv$ is the elementwise application of some activation function to the voltage vector.
@@ -225,10 +232,18 @@ If $\scriptv$ is an $N$-dimensional vector space then a \emph{neurocomputational
     	\end{aligned}
     \end{equation}
 \end{itemize}
-It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other paradigms such as the leaky integrattor are neurocomputational agents. In this paper we will mainly discuss standard feed forward neural networks, in which case $\Theta$ is not defined and the neural dynamics are repeatedly applied $D^{(n)}$ times until an output of $N_O$ is produced. Theoretically, however, it is without loss of generality to consider the above definition. (See Appendix A.)
+
+
+\end{definition}
+
+
+It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other paradigms such as the leaky integrattor are neurocomputational agents. In this paper we will mainly discuss standard feed forward neural networks, in which case $\Theta$ is not defined and the neural dynamics are repeatedly applied until an output of $N_O$ is produced (See Appendix A.)
 \todo[inline]{Show equivalence in the appendix.}
 
- If $n$ is some neuron in $\scriptn$, we say $E^n = (\scripts, \scripta, \scriptr, T, r)$ is deterministic \emph{sub-environment} of $E$ with respect to $\scriptn$ if
+
+\begin{definition}\label{def:subenv}
+
+ If $n$ is some neuron in $\scriptn$, we say $E^n = (\scripts, \scripta, \scriptr, T^n, r^n)$ is a deterministic \textbf{sub-environment} of $E$ with respect to $\scriptn$ if
 
 \begin{itemize}
   \item The state space is $\scripts = \scriptv$;  that is, the environment that neuron $n$ observes is the voltages of all other neurons. Although this definition permits a fully connected graph for $\scriptn$, realistically, each neuron only sees the voltages of a subset of all neurons. In the case of standard feed forward networks, $n$ would observe only the activations of the previous layer.
@@ -237,127 +252,80 @@ It is not hard to see that this definition encompasses any DQN or DDPG network w
   \item The reward space $\scriptr$ is the same as that of the base environment $E$. Furthermore the subenvironment emitts the same same reward as does the base environment. If the agent $\mu$ of $\scriptn$ acts on a state $s_t$ and receives a reward $r_t$, then every sub-environment emits the same reward $r_t$. 
   \item The transition function $T : \scriptv \times \mathbb{R}  \to \scripts ^n$ is such that 
   \begin{equation}
-    T(v_t, \alpha_t) = (I - \chi_{n,n}) D(v_t, \epsilon(s_t)) + e_n \alpha
+    T^n(v_t, \alpha_t) = (I - \chi_{n,n}) D(v_t)) + e_n \alpha + \epsilon(s_t)
   \end{equation}
-  where $e_n$ is the $n^{th}$ unit basis vector, $I$ is the identity, and $\chi_{n,n} =1$ if $n = n$ and $0$ otherwise. Intuitively, the transition in $E^n$ is the normal neural dynamics on $\scriptn$ except for at the neuron $n$, itself; in $E^n$ we set the voltage of $n$ in $v_{t+1}$ to be the voltage chosen, $\alpha_t$.
+  where $e_n$ is the $n^{th}$ unit basis vector, $I$ is the identity, and $\chi_{n,n} =1$ if $n = n$ and $0$ otherwise. Intuitively, the transition in $E^n$ is the normal\footnote{Since the state space of $E^n$ is only
+  $\scriptv$, $s_t$ is a hidden variable of the markov decision process, and $T$ should be a function on $\scriptv \times \scripts \times \mathbb{R}$, but this is ommitted for simplicity.} neural dynamics on $\scriptn$ except for at the neuron $n$, itself; in $E^n$ we set the voltage of $n$ in $v_{t+1}$ to be the voltage chosen, $\alpha_t$, plus the newly encoded voltage $\epsilon(s_t)$.
 \end{itemize}
- Lastly an agent  $\mu^n: \scriptv \to \mathbb{R}$  is called \emph{neuromorphically local} to $\scriptn$ if $v_t \mapsto \langle D(v_\tau, \epsilon(s_t)), e_n \rangle$; that is, $\mu^n$ acts according to the normal dynamics.
+ Lastly an agent  $\mu^n: \scriptv \to \mathbb{R}$  is called \textbf{neuromorphically local} to $\scriptn$ if $\mu^n: v_t \mapsto \langle D(v_t), e_n \rangle$; that is, $\mu^n$ acts according to the normal dynamics.
 
+\end{definition}
 
-We now can view every neuron in $\scriptn$ as an agent in its own environment, acting on its anterior neurons, and we can extend the action-value definition to $\mu^n$ as follows
-\begin{equation}
-    Q^{\mu^n}(v_t, \alpha_t) = \expect_{v_{t+1}\ \sim E^n}\left[r(v_t, a_t) + \gamma Q^{\mu^n}(v_{t+1}, \mu^n(v_{\tau+1}))\right].
-\end{equation}
+With the basic definitions given, we will now show performing reinforcement learning on $\scriptn$ can be decomposed into the dual problem of perfoming reinforcement learning on agents and environments of type given in Definition \ref{def:subenv}.
 
-\subsubsection{Results}
-Provided with the previous definitions, the following question arises: does deterministic policy gradient learning on $\scriptn$, specifically $\mu$ on $E$, \emph{commute} with performing the same operation simultaneously on every neuromorphically local agent $\mu^n$ comprising $\scriptn$ and their respective sub-environments $E^n$? Supposing that we have the true $Q^\mu$ function and $\mu$ is optimal with respect to $Q^\mu$, then it is intuitive, but not obvious, that every $\mu^n$ should behave optimally with respect to an infinite time horizon -- but will the reverse hold? We give the following results:
-\begin{theorem}
-	Let $E$ and $\scriptn$ be defined as before. Then for every $n \in \scriptn$, it follows that $\Gamma_\mu(\scripts)$ is equal to $\Gamma_{\mu^n}(\scriptv)$ up to bijection and the following diagram commutes.
+\begin{theorem}[Neurocomputational Decompostion]\label{thm:ncomp}
+  Let $E$ be an environment and $\scriptn$ be a neurocomputational agent. Then there exists a set of agent environment pairs $\mathfrak{D}_\scriptn \defeq \{(E^n, \mu^n)\}_{n\in \scriptn}$ such that for every $n \in \scriptn$, the following diagram commutes
 \begin{equation}\label{eq:sub_env_com}
           \begin{tikzcd} %THe diagram for Q function decomposition.
 %-------------------------------------------------------------------------------------%
-			  \scriptv  \times \scripts \arrow{rrr}{\mu\circ\pi_2}
+        \scriptv  \times \scripts \arrow{r}{\mu\circ\pi_2}
              \arrow{d}
-               {\mathrm{id}_\scriptv\times\epsilon}  &[+25pt]    &     & \scripta    \\
+               {\mathrm{id}_\scriptv\times\epsilon}  &[+25pt]  \scripta    \\
 %-------------------------------------------------------------------------------------%%
-  				\overbrace{\scriptv \times \scriptv}^{(v_{\tau},\epsilon(s_t))}
-               				\arrow{r}{D}
-			   	                        \arrow[pos = 0.7]{rd}[swap]{\mu^n\circ\pi_1 + \pi_n\circ\pi_2}
-               				& \overbrace{\scriptv}^{v_{\tau+1}}
-                                            \arrow{rd}
-                                            {\mu^n}
+          \overbrace{\scriptv \times \scriptv}^{(v_{t},\epsilon(s_t))}
+                      \arrow{r}{D}
+                                  \arrow[pos = 0.7]{rd}[swap]{\mu^n\circ\pi_1 + \pi_n \circ \pi_2}
+                      & \overbrace{\scriptv}^{v_{t+1}}
                                             \arrow[two heads, pos=0.8]
                                               {d}
                                               {\pi_n}
-                                              \arrow{r}
-                                              {D}  & \overbrace{\scriptv\rightarrow\cdots\rightarrow\scriptv}^{v_{\tau+2},\dots,v_{\tau+{\ell-1}}}
-                                              		 \arrow{r}{D}
-                                              		 \arrow[two heads]{d}{\pi_n}
-                                              		 \arrow{rd}{\mu^n}
-                                              					& \scriptv
-                                              					\arrow{u}{\delta}
-                                              					\arrow[two heads]{d}{\pi_n} \\
+                                            \arrow{u}{\delta} \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  &\reals& \reals\:\cdots\:\reals & \reals
+  &\reals
          \end{tikzcd}
     \end{equation}
 \end{theorem}
 \begin{proof}
-	We first show that \eqref{eq:sub_env_com} commutes. Let $v \in \scriptv$ and $s \in \scripts$. Observe that
-	$\mu(\scripts) = $
-	 is clear that $V[b,c]\circ V[a,b] = V[a,c]$ by \eqref{eq:vdef}, so
-	the upper part of the diagram is equivalent to
-	\begin{equation}
-		\begin{tikzcd}
-			\scripts \arrow{r}{\mu}\arrow{d}{\epsilon} & \scripta \\
-			\scriptv \arrow{r}{V[\tau, \ell]} & \scriptv \arrow{u}{\delta}
-		\end{tikzcd}
-	\end{equation}
-	and by definition $\mu$ with an evaluation time $\ell$ we have that
-	\todo{fix this equation, $\epsilon$ doesn't directly commute}
-	\begin{equation}
-		\begin{aligned}
-			\mu(s_t) &= \delta(V[\tau + \ell]( \sigma\left(K\Theta[V(\tau)]\right) + \epsilon(s_t))) \\
-			 		 &= \delta(V[\tau + \ell](V(\tau))).
-		\end{aligned}
-	\end{equation}
-	Next for each $V[\tau+k,1]$, $k\in \mathbb{N} \cup \{0\}$ observe the cooresponding trangle in the diagram. When $\pi_n$ is the cannonical projection, we have
-	\begin{equation}
-		\begin{aligned}
-			\left(\pi_n \circ V[\tau+k, 1]\right)(v_\tau) &= \left\langle V[\tau+k+1](v), e_n\right\rangle
-		\end{aligned}
-	\end{equation}
-	and by \eqref{eq:vdef}
+  If $E$ and $\scriptn$ are given, then for every $n \in \scriptn$ let $E^n$ be a sub-environment of $E$ with respect to $\scriptn$. Next let $\mu^n$ be a neuromorphically local agent in $E^n$ with respect to $\scriptn$.
 
+  We first show that \eqref{eq:sub_env_com} commutes. Let $v_t \in \scriptv$ and $s_t \in \scripts$. Observe that
+\begin{equation*}
+\left[\mu \circ \pi_2\right](v_t, s_t) = \mu(s_t) = \delta\left(D(v_t, \epsilon(s_t))\right) = \left[\delta \circ D \circ (\mathrm{id}_\scriptv \times \epsilon)\right](v_t, s_t),
+\end{equation*}
+and therefore the top half of the diagram commutes. Given some $(v_t, \epsilon(s_t)) \in \scriptv \times \scriptv$ we have that 
+\begin{equation*}
+  \begin{aligned}
+    \left[ \mu^n \circ \pi_1 + \pi_2\right] (v_t, \epsilon(s_t))  &= \mu^n(v_t) + \pi_n(\epsilon(s_t)),\\
+     &= \pi_n\left(D(v_t) + \epsilon(s_t)\right), \\
+     &= \left[\pi_n\circ D\right](v_t, \epsilon(s_t)). 
+  \end{aligned}
+\end{equation*}
+Thus the diagram in \eqref{eq:sub_env_com} commutes. 
 \end{proof}
 
+\todo[inline]{Make a sub environment tikz diagram to help people understand waht this decomposition looks like.}
+Theorem \ref{thm:ncomp} gives a natural connection between the state space trajectories of $\mu$ and $\mu^n$ because in $\scriptn$, the voltage $v_t$ is a hidden variable which governs action of $\scriptn$ at any timestep and dually the state $s_t$ is a hidden variable of the Markov Decision Process formed by $E^n$ which governs the state given by $T^n$ at any timestep. 
 
+Naturally, the following question arises: does DPG learning on $\scriptn$, specifically $\mu$ on $E$, commute with performing DPG learning on on every $(E^n, \mu^n) \in \mathfrak{D}_\scriptn$? Supposing that we have the true $Q^\mu$ function and $\mu$ is optimal with respect to $Q^\mu$, then it is intuitive, but not obvious, that every $\mu^n$ should behave optimally with respect to an $Q^{\mu^n}$ -- but will the reverse hold? To answer these questions we give the following result.
 \begin{theorem}
-    If $\scriptn$ is a nuerocomputational agent in $E$ and for every $n \in \scriptn$ there is a nueromorphically local agent $\mu^n$ in sub-environment $E^n$, then policy gradient for $\mu$ agrees with the simultaneous policy gradients of every neuromorphically local agent; that is
+    If $\scriptn$ is a nuerocomputational agent in $E$, then policy gradient for $\mu$ agrees with the simultaneous policy gradients of its decomposition; that is for every $(E^n, \mu^n) \in \mathfrak{D}_\scriptn$
     \begin{equation}
-        \prod_{n=1}^N \nabla_{K^n} Q^{\mu^n}(v,a)\Big|_{v=v_t,a=\mu^n(v_t)} =\nabla_{K} Q^{\mu}(s,a)\Big|_{s=s_t,a=\mu(s_t)}
+        \nabla_{K^n} Q^{\mu^n}(v,\alpha)\Big|_{v=v_t,\alpha=\mu^n(v_t)} =\pi_n \left(\nabla_{K} Q^{\mu}(s,a)\Big|_{s=s_t,a=\mu(s_t)}\right)
     \end{equation}
-    for every time step $t$, where $K^n$ represents the nth column of the linear voltage graph transition function, i.e. the weights of the connections from all neurons to neuron $n.$
-    \newline \newline Suggestion (from Mike): \newline \newline
-    If $\scriptn$ is a nuerocomputational agent in $E$ and for every $n \in \scriptn$ there is a nueromorphically local agent $\mu^n$ in sub-environment $E^n$, then policy gradient for $\mu$ agrees with the simultaneous policy gradients of every neuromorphically local agent; that is
-    \begin{equation}
-        \forall n, \nabla_{K^n} Q^{\mu^n}(v,a)\Big|_{v=v_t,a=\mu^n(v_t)} =\nabla_{K^n} Q^{\mu}(s,a)\Big|_{s=s_t,a=\mu(s_t)}
-    \end{equation}
-    for every time step $t$, where $K^n$ represents the nth column of the linear voltage graph transition function, i.e. the weights of the connections from all neurons to neuron $n.$
+    for every time step $t$, where $K^n$ is the nth column of the linear voltage graph transition matrix, i.e. the weights of the connections from all neurons to neuron $n.$
 \end{theorem}
 \begin{proof}
-  \todo[inline]{Prove the Decomposition}
+  Let $\scriptn, E$ be given and fix $(E^n, \mu^n) \in \mathfrak{D}_\scriptn$.
+  For any initial state $s_0$, Theorem  \ref{def:subenv} gives that the state-action trajectory $\kappa \in \Gamma_\mu(\scripts)$ generated by $\mu$ from $s_0$ is dual to the state-action trajectory $\kappa^* \in \Gamma_{\mu^n}(\scriptv)$ generated by $\mu^n$ from $v_0 = 0$ when the hidden state of $T^n$ is $s_t$. Because $E^n$ is a sub-environment of $E$, $r^n \equiv r$ the sequence of rewards on $\kappa$ and $\kappa^*$ are the same. Using the definition of the action-value function assuming that $s_0$ fixed, \begin{equation*}
+      Q^{\mu}(s_t, a_t) = \sum_{\tau =t}^\infty r(s_t, \mu(s_t)) \gamma^{\tau - t} = \sum_{\tau =t}^\infty r^n(v_t, \mu^n(v_t)) \gamma^{\tau - t} = Q^{\mu^n}(v_t, a_t)
+  \end{equation*}
+  where $\kappa = ((s_t, \mu(s_t)))_{t\in\mathbb{N}}$ and $\kappa^* = ((v_t,\mu^n(v_t)))_{t\in\mathbb{N}}.$ Since $\left(Q^\mu(k)\right)_{k \in \kappa} = \left(Q^{\mu^n}(k)\right)_{k \in \phi(\kappa)}$ for every $\kappa \in \Gamma_{\mu}(\scripts)$ where $\phi$ is the nautral isomorphism of $\kappa$ onto its dual trajectory.
+
+  \textbf{TODO: Show the gradients are equal by filling state space with its trajectories lol}.
 \end{proof}
 
+\subsubsection{Results}
 
-
-\todo[inline]{Emperical justification of the iff using the following experiment (s).}
-
-Intuitively, it should be the case that by treating each neuron in the neural network as its own Q-learner, the policy gradient of an individual agent should be the same as for the policy gradient entire agent, if each neuron sees the same reward $r_t$ as the entire agent. In other words, the optimal way of updating the entire connection matrix $K$ should be the optimal way for updating the weights connected to each neuron w.r.t. each neuron as its own Q-learner, given the same rewards.
-
-
-\noindent 3. Plot the output of both $Q^\mu$ and $Qn$ using TENSORFLOW summaries.
-
-From Experiment 1, we see that there is a correlation between the Q-gradient for neuron $n$, and the nth column of the gradient of the agent's Q function:
-
-from strong to weak:
-$$\nabla_{K^n} Q^{\mu^n}(v,a) = \nabla_{K^n} Q^{\mu}(s,a)$$
-$$\nabla_{K^n} Q^{\mu^n}(v,a) \propto \nabla_{K^n} Q^{\mu}(s,a)$$
-$$corr[\nabla_{K^n} Q^{\mu^n}(v,a), \nabla_{K^n} Q^{\mu}(s,a)] \approx EMPERICAL VALUE$$
-
-although (assuming we get a weak experimental result), we propose that it is due to our neurons not being the ideal Q-learner (convergence issues, etc.).
-
-\todo[inline]{1. Training a network on Atari using DDPG and plotting average critic functions for neurons using window.
-}
-
-\textbf{EXPERIMENT 1 SPECIFICATION.}
-\noindent 1. Set up a standard DDPG to play the set of atari games in OpenAi Gym using TENSORFLOW (this will be mac,linux, or windows bash only). If on Windows bash install Xming (its an X server) and run all OpenAI Gym commands with \verb|DISPLAY=localhost:0.0 python3 src/experiment1/some__script_in_src.py|. This will pipe the visual output fo the OpenAI Gym simulators to the display. If you cannot get this to work on your screen, do not do env.render. We can also stop using the atari games, since this works for a fact on the basic Box2d versions. \textbf{We are going to write all of this in Python3, make sure to install gym in python3.}\\
-\noindent 2. DDPG has a $Q^\mu$ network which we use to optimize $\mu(s_t\:|\: \theta)$ with respect to $\theta$. The goal of this experiment is to train a standard DDPG network to play one of these OpenAI Gym simulations, whislt concurrently estimating and viewing the $Q$ functions for every single neuron. THEREFORE, we need to select a subset of neurons in the fully connected layers (for example) of the $\mu$ network (actor) and concurrently train a network $Q^n(s,a)$ to estimate the $Q$ function of the neuron based on its inputs $s$ and its SINGLE output voltage $s$. This can be a 3 layer fully connected network with $|s| + 1$ inputs (one for each input the neuron $n$ and 1 for the voltage of the neuron after receiving that output.) Tensorflow is a dataflow language so the output of a layer looks like $O2 = \sigma(W*O1).$ Therefore you just need to make another "network" whose dataflow could be like $Qn = \sigma(W^n_3*\sigma(W^n_2*\sigma(W^n_1*\mathrm{concat}(O1, O2[i]))))$ where n is the $i$th neuron on layer $O2$. And $O1, O2, O3$ are the outputs of the neurons on those layers in the network. Then as in standard DQN you tain $Qn$ with a lag network $W(Qn') = W(Qn)(1-\tau) + \tau W(Qn)$ where $W$ denotes the weights of $Qn$, say $W^n_3, W^n_2, W^n_1, \dots$. And then actually do gradient decent on the weights of $Qn$ not $Qn'$ by minimizing the following bellman equation
-\begin{equation*}
-  L(s_t, a_t, r_t, s_{t+1}, a_{t+1}) = (Qn(O1(s_t),O2[i](s_t)) - r_t - Qn'(O1(s_{t+1}),O2[i](s_{t+1})))^2
-\end{equation*}
-with respect to the parameters $W(Qn)$. Note I didn't actually use $a_t$ above since really the $Qn$ function takes in the input of the previous layer (to $n$) as its input, say $O1(s_t)$ and the action for that same time step which is just the output of the neuron $n$, say $O2(s_t)[i]$.  The same goes for $Qn'$ but at the next time step.
-\input{experimentation}
 
 
 \todo[inline]{Therefore we propose the following learning rule in aims to evidence the reverse, training $\mu$ using simultaneous optimization on all $Q_n$ w.r.t $\pi_n$'s weights.
@@ -375,7 +343,11 @@ with respect to the parameters $W(Qn)$. Note I didn't actually use $a_t$ above s
 \todo[inline]{Parallelism, no error backprop, and only 2x operations, but no locking on GPU, so all can be run sumultaneously if we cache!}
 
 
+\input{experimentation}
+
 \section{Results}
+
+
 \todo[inline]{To validate the new learning rule we throw a fuck ton of experiments together on the following list (or better using OpenAI Gym).}
 \begin{verbatim}
 blockworld1 1.156 1.511 0.466 1.299 -0.080 1.260
