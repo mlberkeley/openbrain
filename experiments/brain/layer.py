@@ -8,11 +8,12 @@ GAMMA = 0.9
 
 class Layer:
 
-	def __init__(self, sess, reward, done, size, prevLayer=None, state=None, \
+	def __init__(self, sess, reward, done, noise, size, prevLayer=None, state=None, \
 					nextState =None, stateDim=None, activation=True):
 		self.sess = sess
 		self.reward = reward
 		self.done = done
+		self.noise = noise
 		self.size = size
 		self.activation = activation
 		if prevLayer:
@@ -42,11 +43,11 @@ class Layer:
 			b = variable([self.size], self.prevSize, name='bias')
 			variable_summaries(b, self.name + "/bias")
 			variable_summaries(W, self.name + "/weights")
-			output = tf.matmul(self.input, W) + b
+			output = tf.matmul(self.input, W) + b + self.noise
 			if self.activation:
 				output = tf.nn.relu(output)
 		with tf.variable_scope('actor_target'):
-			targetOutput = tf.matmul(self.targetInput, W) + b
+			targetOutput = tf.matmul(self.targetInput, W) + b + self.noise
 			if self.activation:
 				targetOutput = tf.nn.relu(targetOutput)
 		return output, targetOutput, [W, b]
