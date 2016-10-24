@@ -79,9 +79,12 @@ class Layer:
 
 	def createCriticLoss(self):
 		with tf.variable_scope('loss'):
-			loss = tf.square(self.Q \
-							   - self.reward \
-							   - tf.mul(self.done, tf.scalar_mul(GAMMA, self.Qtarget)))
+			loss = tf.reduce_sum(tf.square(tf.sub(self.Q, \
+								tf.transpose([self.reward for _ in range(self.size)])) \
+							   	- tf.matmul(tf.diag(self.done), \
+							   	tf.scalar_mul(GAMMA, self.Qtarget)))) \
+					- tf.reduce_sum(tf.square(tf.concat(0, [tf.unpack(self.weights[0]), \
+														self.weights[1:]])))
 			variable_summaries(loss, self.name + "/loss")
 		return loss
 
