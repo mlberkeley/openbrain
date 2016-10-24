@@ -9,6 +9,7 @@ class ReplayBuffer(object):
         self.num_experiences = 0
         self.buffer = deque()
         self.uniform = uniform
+        self.scale_param = scale_param
 
     def get_batch(self, batch_size):
         if self.uniform:

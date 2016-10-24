@@ -2,11 +2,16 @@ import tensorflow as tf
 from .layer import Layer
 
 from .common.ou_noise import OUNoise
+from .common.replay_buffer import ReplayBuffer
+
 import numpy as np
 
 LAYER1_SIZE = 10
 LAYER2_SIZE = 10
 LEARNING_RATE = 1e-4
+REPLAY_SIZE = 1000000
+REPLAY_START_SIZE = 64
+BATCH_SIZE = 64
 
 class Brain:
 
@@ -34,6 +39,7 @@ class Brain:
 		self.sess.run(tf.initialize_all_variables())
 		self.explorationNoises = [OUNoise(size) for size in [LAYER1_SIZE, LAYER2_SIZE, actionDim]]
 		self.actionDim = actionDim
+		self.replayBuffer = ReplayBuffer(REPLAY_SIZE)
 
 	def createActorTraining(self):
 		grads_vars = []
@@ -52,8 +58,6 @@ class Brain:
 		return ops
 
 	def getTrain(self, rewardBatch, doneBatch, stateBatch, nextStateBatch):
-
-
 		ops = self.getCriticOps()
 		ops += [self.actorOptimizer]
 		feeds = {self.rewardInput: rewardBatch,
@@ -70,3 +74,20 @@ class Brain:
 			feed_dict[self.noises[i]] = [noise.noise()]
 		action = self.sess.run(self.layers[-1].output, feed_dict=feed_dict)
 		return action[0]
+
+	def perceive(self, reward, done, state, nextState):
+
+		self.replayBuffer.add(state, None, reward, nextState, done)
+
+		if self.replayBuffer.count() > REPLAY_START_SIZE:
+			minibatch = self.replayBuffer.get_batch(BATCH_SIZE)
+			stateBatch = np.asarray([data[0] for data in minibatch])
+			rewardBatch = np.asarray([data[2] for data in minibatch])
+			nextStateBatch = np.asarray([data[3] for data in minibatch])
+			doneBatch = np.asarray([data[4] for data in minibatch])
+			return self.getTrain(rewardBatch, doneBatch, stateBatch, nextStateBatch)
+
+		if done:
+			for noise in self.explorationNoises:
+				noise.reset()
+		return None, None
