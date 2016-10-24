@@ -77,7 +77,7 @@ class Brain:
 
 	def perceive(self, reward, done, state, nextState):
 
-		self.replayBuffer.add(state, None, reward, nextState, done)
+		self.replayBuffer.add(state, None, reward, nextState, 1 - done)
 
 		if self.replayBuffer.count() > REPLAY_START_SIZE:
 			minibatch = self.replayBuffer.get_batch(BATCH_SIZE)
