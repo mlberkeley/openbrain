@@ -16,7 +16,7 @@ gc.enable()
 from brain.common.filter_env import makeFilteredEnv
 from brain.brain import Brain
 
-EXPLORE_TIME = 100000
+EXPLORE_TIME = 10000
 
 def test(env, agent, num_tests):
 	"""
@@ -73,11 +73,11 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 			# if episode %100 == 0:
 			# 	env.render()
 			ops, feeds = brain.perceive(reward, int(done), state, next_state)
-			#if t > EXPLORE_TIME:
-			if ops != None and feeds != None:
-				ops = [merged] + ops
-				result = sess.run(ops, feeds)
-				train_writer.add_summary(result[0], t)
+			if t > EXPLORE_TIME:
+				if ops != None and feeds != None:
+					ops = [merged] + ops
+					result = sess.run(ops, feeds)
+					train_writer.add_summary(result[0], t)
 			if done:
 				break
 			# Move on to next frame.
@@ -103,7 +103,7 @@ class StupidGame:
 		if self.pose > 100:
 			return self.pose, 100, True, None
 		elif self.pose > 0:
-			return self.pose, self.pose, False, None
+			return self.pose, 1, False, None
 		elif self.pose < -100:
 			return self.pose, -100, True, None
 		else:

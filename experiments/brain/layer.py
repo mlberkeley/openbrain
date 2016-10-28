@@ -83,12 +83,12 @@ class Layer:
 	def createCriticLoss(self):
 		with tf.variable_scope('loss'):
 			reward = tf.transpose([self.reward for _ in range(self.size)])
-
-			loss = tf.square(self.Q - reward - tf.matmul(tf.diag(self.done), \
-							   	 				tf.scalar_mul(GAMMA, self.Qtarget)))
+			diff = self.Q - reward - tf.matmul(tf.diag(self.done), tf.scalar_mul(GAMMA, self.Qtarget))
+			loss = tf.square(diff)
 			# l2reg = ALPHA * tf.square(tf.concat(1, [tf.unpack(self.Qweights[0]), \
 			# 										 tf.unpack(tf.transpose(self.Qweights[1]))]))
 			# loss = tf.concat(0, [l, l2reg])
+			variable_summaries(diff, self.name + "/diff")
 			variable_summaries(loss, self.name + "/loss")
 		return loss
 
