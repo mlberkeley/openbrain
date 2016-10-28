@@ -7,6 +7,7 @@ TAU = 0.0001
 GAMMA = 0.9
 ALPHA = 0.3
 
+
 class Layer:
 
 	def __init__(self, sess, reward, done, noise, size, prevLayer=None, state=None, \
@@ -38,7 +39,7 @@ class Layer:
 				self.Qloss = self.createCriticLoss()
 				self.Qoptimizer = self.createCriticLearning()
 			self.grads = tf.gradients(self.Q, self.weights)
-
+			self.l2grads_vars = self.computeL2RegGrads()
 	def construct(self):
 		with tf.variable_scope('actor'):
 			W = variable([self.prevSize, self.size], self.prevSize, name='weights')
@@ -82,10 +83,12 @@ class Layer:
 	def createCriticLoss(self):
 		with tf.variable_scope('loss'):
 			reward = tf.transpose([self.reward for _ in range(self.size)])
-			l = tf.square(self.Q - reward - tf.matmul(tf.diag(1 - self.done), \
+
+			loss = tf.square(self.Q - reward - tf.matmul(tf.diag(self.done), \
 							   	 				tf.scalar_mul(GAMMA, self.Qtarget)))
-			
-			loss = tf.reduce_mean(l) + ALPHA*tf.nn.l2_loss(self.weights[0]) + ALPHA*tf.nn.l2_loss(self.weights[1])
+			# l2reg = ALPHA * tf.square(tf.concat(1, [tf.unpack(self.Qweights[0]), \
+			# 										 tf.unpack(tf.transpose(self.Qweights[1]))]))
+			# loss = tf.concat(0, [l, l2reg])
 			variable_summaries(loss, self.name + "/loss")
 		return loss
 
@@ -96,3 +99,10 @@ class Layer:
 			optimizer = tf.train.AdamOptimizer(LEARNING_RATE) \
 						.apply_gradients(list(zip(gradQM, self.Qweights)))
 		return optimizer
+
+	def computeL2RegGrads(self):
+
+		optimizer = tf.train.AdamOptimizer(LEARNING_RATE)
+		loss = tf.concat(0, [self.weights[0], [self.weights[1]]])
+		print(loss)
+		return optimizer.compute_gradients(loss, [self.weights[0], self.weights[1]])

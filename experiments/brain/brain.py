@@ -6,16 +6,19 @@ from .common.replay_buffer import ReplayBuffer
 
 import numpy as np
 
-LAYER1_SIZE = 2
-LAYER2_SIZE = 10
+LAYER1_SIZE = 1
+LAYER2_SIZE = 1
 ACTOR_LEARNING_RATE = 1e-4
 REPLAY_SIZE = 32
 REPLAY_START_SIZE = 32
 BATCH_SIZE = 32
 
+
+
 class Brain:
 
 	def __init__(self, sess, stateDim, actionDim):
+		self.timestep = 0
 		self.sess = sess
 		self.stateInput = tf.placeholder("float", [None, stateDim])
 		self.nextStateInput = tf.placeholder("float", [None, stateDim])
@@ -45,6 +48,7 @@ class Brain:
 		grads_vars = []
 		for layer in self.layers:
 			grads_vars += [(-grad, var) for grad, var in zip(layer.grads, layer.weights)]
+			grads_vars += layer.l2grads_vars
 
 		with tf.variable_scope('actor_learning'):
 			optimizer = tf.train.AdamOptimizer(ACTOR_LEARNING_RATE).apply_gradients(grads_vars)
@@ -70,6 +74,7 @@ class Brain:
 		return ops, feeds
 
 	def getAction(self, stateInput):
+		stateInput = np.reshape(stateInput, (1,1))
 		feed_dict = {self.stateInput: stateInput}
 		for i, noise in enumerate(self.explorationNoises):
 			feed_dict[self.noises[i]] = [noise.noise()]
@@ -86,8 +91,12 @@ class Brain:
 			rewardBatch = np.asarray([data[2] for data in minibatch])
 			nextStateBatch = np.asarray([data[3] for data in minibatch])
 			doneBatch = np.asarray([data[4] for data in minibatch])
+			stateBatch = np.reshape(stateBatch, [BATCH_SIZE, 1])
+			nextStateBatch = np.reshape(nextStateBatch, [BATCH_SIZE, 1])
+			rewardBatch = np.reshape(stateBatch, [BATCH_SIZE])
+			doneBatch = np.reshape(nextStateBatch, [BATCH_SIZE])
 			return self.getTrain(rewardBatch, doneBatch, stateBatch, nextStateBatch, train_actor)
-
+			
 		if done:
 			for noise in self.explorationNoises:
 				noise.reset()

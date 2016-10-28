@@ -16,6 +16,8 @@ gc.enable()
 from brain.common.filter_env import makeFilteredEnv
 from brain.brain import Brain
 
+EXPLORE_TIME = 100000
+
 def test(env, agent, num_tests):
 	"""
 	Tests the agent.
@@ -39,9 +41,10 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 	"""
 	Runs the experiment.
 	"""
-	env = gym.make('CartPole-v0')
-	stateDim = env.observation_space.shape[0]
-	actionDim = 1
+	#env = makeFilteredEnv(gym.make(ENV_NAME))
+	env = StupidGame()
+	stateDim = 1#env.observation_space.shape[0]
+	actionDim = 1#env.action_space.shape[0]
 	sess = tf.Session()
 	brain = Brain(sess, stateDim, actionDim)
 
@@ -59,20 +62,18 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 		print("Episode: ", episode, end="")
 		r_tot = 0
 
-		for step in range(env.spec.timestep_limit):
+		for step in range(200):#env.spec.timestep_limit):
 			t+= 1
-			action = brain.getAction([state])
-			if action >= 0:
-				act = 1
-			else:
-				act = 0
+			action = brain.getAction(state)
 			# Deal with the environment
 			next_state,reward,done,_ = env.step(act)
 			r_tot += reward
-			if episode %20 == 0:
-				env.render()
 
 			ops, feeds = brain.perceive(reward, int(done), state, next_state, t > 100)
+			# if episode %100 == 0:
+			# 	env.render()
+			ops, feeds = brain.perceive(reward, int(done), state, next_state)
+			#if t > EXPLORE_TIME:
 			if ops != None and feeds != None:
 				ops = [merged] + ops
 				result = sess.run(ops, feeds)
@@ -85,8 +86,28 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 
 		# Testing:
 		# if episode % 100 == 0 and episode > 100:
-			#avg_reward = test(env, brain, TEST)
-			#print(('episode: ',episode,'Evaluation Average Reward:',avg_reward))
+		# 	avg_reward = test(env, brain, TEST)
+		# 	print(('episode: ',episode,'Evaluation Average Reward:',avg_reward))
+
+class StupidGame:
+
+	def __init__(self):
+		self.reset()
+
+	def reset(self):
+		self.pose = 0
+		return self.pose
+	def step(self, action):
+		self.pose += action
+		print(self.pose)
+		if self.pose > 100:
+			return self.pose, 100, True, None
+		elif self.pose > 0:
+			return self.pose, self.pose, False, None
+		elif self.pose < -100:
+			return self.pose, -100, True, None
+		else:
+			return self.pose, -1, False, None
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
