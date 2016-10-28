@@ -224,220 +224,6 @@
 \end{frame}
 
 
-%----------------------------------------------------------------------------------------
-%   PRESENTATION SLIDES
-%----------------------------------------------------------------------------------------
-\section{Background}
-\begin{frame}[fragile]
-  \frametitle{Background on Reinforcement Learning}
-  \textbf{The setup.}
-  \begin{enumerate}
-    \item Environment, $E = (\mathcal{S}, \mathcal{A}, \mathcal{R}, \rho, r)$.
-    \begin{enumerate}
-    \item State space, $\mathcal{S} = \mathbb{R}^n$
-    \item Action space, $\mathcal{A} = \mathbb{R}^m$
-    \item Reward space, $\mathcal{R} = \mathbb{R}$
-    \item Transition function, $\rho(s'\ |\ s,a)$. Given a previous state $s$ and action $a$, environment gives $s'$.
-    \item Reward function $r(s,a) \in \mathcal{R}$.
-    \end{enumerate}
-    \item Deterministic agent $\pi: \mathcal{S} \to \mathcal{A}$ acts in $E$.
-    \begin{equation*}
-      \begin{tikzcd}
-          s_1 \arrow{r}{\pi} & a_1 \arrow{r}{\rho, r} & s_2, r_2 \arrow{r}{\pi}& a_2  \arrow{r}{\rho, r} & \cdots
-         \end{tikzcd}
-    \end{equation*}
-    Eg. Pacman sees the screen, and decides to move $\uparrow, \downarrow, \rightarrow, \leftarrow$ and then gets a reward for eating food.
-  \end{enumerate}
-\end{frame}
-\begin{frame}
-\frametitle{Background on Reinforcement Learning}
-  \begin{center}
-    \includegraphics[width=0.5\textwidth]{Pac-man.png}
-  \end{center}
-\end{frame}
-
-\begin{frame}
-\frametitle{Background on Reinforcement Learning}
-  \textbf{The action-value function (simplified).}
-  \begin{enumerate}
-    \item  The future expected reward of an agent $\pi$ is
-    \begin{equation*}
-      Q^\pi(s_t, a_t) = \underbrace{r(s_t, a_t)}_{\text{reward for } a_t} + \sum_{n={t+1}}^\infty \gamma^n r(s_n, \pi(s_n))
-    \end{equation*}
-    \item The Bellman equation gives us
-    \begin{equation*}
-      Q^\pi(s_t, a_t) = r_t + \gamma Q^\pi(s_{t+1}, \pi(s_{t+1}))
-    \end{equation*}`'
-    \item Given some state $s_t$, the \textbf{best} agent, $\pi^*$ is one that take action
-    \begin{equation*}
-      a_t = \arg \max_a Q(s_t, a).
-    \end{equation*}
-  \end{enumerate}
-\end{frame}
-
-\begin{frame}
-\frametitle{Background on Reinforcement Learning}
-  \textbf{The action-value function (simplified).}
-  \begin{enumerate}
-    \item The $Q$ function for $\pi^*$ is
-    \begin{equation*}
-      Q^*(s_t, a_t) = r_t + \gamma \arg \max_a Q^\pi(s_{t+1}, a).
-    \end{equation*}
-    \item We can \emph{approximate} this with deep learning!
-    \begin{enumerate}
-      \item Make a neural network $\scriptn: \scripts \to \mathbb{R}^n$ which predicts
-      the future reward of taking each possible action
-      \begin{equation*}
-        \scriptn(s_t) =\begin{pmatrix}
-            Q^*(s_t, a_1) \\
-             Q^*(s_t, a_2)\\
-             \vdots \\
-              Q^*(s_t, a_n)
-        \end{pmatrix}
-      \end{equation*}
-    \end{enumerate}
-  \end{enumerate}
-\end{frame}
-
-\begin{frame}
-\frametitle{Background on Reinforcement Learning}
-  \textbf{Deep Q-Learning}
-\begin{center}
-  \begin{tikzpicture}
-\bode[rectangle] at (0,0) (A) {$s_t$};
-\node[rectangle] at (1.5,0) [draw,thick,minimum width=1cm,minimum height=2cm] (B) {$\scriptn$};
-\node[rectangle] at (4.4, 2)  [draw, fill=red!30] (C1) {$Q^*(s_t,a_1) = -12$};
-\node[rectangle] at (4.4, 1)  [draw, fill=red!30] (C2) {$Q^*(s_t,a_2) = 0.17$};
-\node[rectangle] at (4.4, 0)  [draw, fill=green!30] (C3) {$Q^*(s_t,a_3) = 0.22$};
-\node[rectangle] at (4.4, -1) [draw, fill=red!30]  (C4) {$Q^*(s_t,a_4) = 0.03$};
-\node[rectangle] at (4.4, -2) [draw, fill=red!30]  (C5) {$Q^*(s_t,a_5) = -3.2$};
-\node[rectangle] at (8.2, 0) (D) {$ \pi(s_t) =  \arg \max_a \scriptn(s_t)$};
-\draw[->] (A) edge (B);
-\draw[->] (B) edge (C1.west);
-\draw[->] (B) edge (C2.west);
-\draw[->] (B) edge (C3.west);
-\draw[->] (B) edge (C4.west);
-\draw[->] (B) edge (C5.west);
-\end{tikzpicture}
-\end{center}
-\end{frame}
-
-\begin{frame}
-    \Huge{\centerline{Can we do better?}}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Background on Reinforcement Learning}
-  \textbf{Deep Determisitic Policy Gradient}
-  \begin{enumerate}
-    \item Actor neural network $\mu: \scripts \to \scripta$
-    \item Critic network $Q^\mu: \scripts \times \scripta \to \mathbb{R}$
-    \item Performance of $\mu$ is $Q^\mu(s_t, \mu(s_t))$. \textbf{Maximize performance!} $\nabla_W Q^{\mu}(s_t, a_t) = \nabla_a Q^\mu(s_t,a) \cdot \nabla_W \mu(s_t)$
-  \end{enumerate}
-\begin{center}
-  \begin{tikzpicture}
-\bode[rectangle] at (0,0) (A) {$s_t$};
-\node[rectangle] at (1.75,0) [draw,thick,minimum width=0.2cm,minimum height=1.8cm, fill=black] (BC1) {};
-\node[rectangle] at (2.25,0) [draw,thick,minimum width=0.2cm,minimum height=1.8cm, fill=black] (BC2) {};
-\node[rectangle] at (1.5,0) [draw,thick,minimum width=0.3cm,minimum height=2cm] (B1) {};
-\node[rectangle] at (2,0) [draw,thick,minimum width=0.3cm,minimum height=2cm] (B2) {};
-\node[rectangle] at (2.5,0) [draw,thick,minimum width=0.3cm,minimum height=2cm] (B3) {};
-\node[rectangle] at (3.5,0) (action) {$a_t$};
-\draw[->] (B3.east) edge (action.west);
-\draw[brace] (B1.north) -- node [position label,yshift=2ex] {$\mu$} (B3.north);
-\draw[->] (A) edge (B1);
-
-\node[rectangle] at (2.7+ 1.75,-1.5) [draw,thick,minimum width=0.2cm,minimum height=1.8cm, fill=black] (QC1) {};
-\node[rectangle] at (2.7+ 2.25,-1.5) [draw,thick,minimum width=0.2cm,minimum height=1.8cm, fill=black] (QC2) {};
-\node[rectangle] at (2.7+ 1.5,-1.5) [draw,thick,minimum width=0.3cm,minimum height=2cm] (Q1) {};
-\node[rectangle] at (2.7+ 2,-1.5) [draw,thick,minimum width=0.3cm,minimum height=2cm] (Q2) {};
-\node[rectangle] at (2.7+ 2.5,-1.5) [draw,thick,minimum width=0.3cm,minimum height=2cm] (Q3) {};
-\draw[brace] (Q1.north) -- node [position label,yshift=2ex] {$Q^\mu$} (Q3.north);
-\draw[->, bend right] (A) edge (Q1.west);
-\draw[->, bend right] (action) edge (Q1.west);
-\node[rectangle] at (2.7+ 4,-1.5) (critic) {$Q^{\mu}(s_t, a_t)$};
-\draw[->] (Q3.east) edge (critic.west);
-\end{tikzpicture}
-\end{center}
-\end{frame}
-
-
-%------------------------------------------------
-\section{Our Approach} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
-%---------------- -------------------------------
-\begin{frame}
-  \frametitle{Our Approach}
-      \begin{columns}
-      \begin{column}{0.6\textwidth}
-
-  \textbf{Neuromorphically Local Agents}
-  \begin{enumerate}
-
-    \item Every neuron in the brain is an agent!
-    \item Anterior neurons are the state that $\mu^n$ sees.
-    \item The action of each $\mu^n$ is its output:
-    \begin{equation*}
-      \mu^n(s_t) = \sigma\left(\sum_{i=1}^m W_{in}s_t^{(i)}   \right) = a_t
-    \end{equation*}
-  \end{enumerate}
-      \end{column}
-      \begin{column}{0.4\textwidth}
-      \begin{figure}
-          \begin{centering}
-            \begin{tikzpicture}
-              \foreach \a in {1,2,...,7}{
-              \path[draw, ->] (\a*360/6: 0.25cm)  -- (\a*360/12 + 60: 1.5cm-0.25cm) node[circle, fill=red!30, scale=0.8] {$\Scale[0.7]{s_t^{(\a)}}$};
-
-              }
-            \node[circle, style=dashed, fill=green!30] (A) {$\mu^n$};
-            \node[rectangle] at (1.2,0) (B) {$a_t$};
-            \draw[->] (A) edge (B);
-          \end{tikzpicture}
-
-          \end{centering}
-          \caption{A neuron $n$ and its environment, $E^n$.}
-      \end{figure}
-
-      \end{column}
-    \end{columns}
-
-\end{frame}
-
-\begin{frame}
-  \frametitle{Our Approach}
-      \begin{columns}
-      \begin{column}{0.6\textwidth}
-
-  \textbf{Local $Q$ Critics}
-  \begin{enumerate}
-
-    \item  Hypothesis: $\mu^n$ lives in an extremely \textbf{simple} environment.
-    \item Can we estimate $Q^n$ without error backprop?
-    \item \textbf{Remark.} Training whole $\mu$ is equivalent to training $\mu^n$ simultaneously:
-    \begin{equation*}
-      $\nabla_{W^{(n)}} Q^{n}(\mu^n) = \left(\nabla_{W} Q^\mu(\mu)\right)^{(n)}$
-    \end{equation*}
-  \end{enumerate}
-      \end{column}
-      \begin{column}{0.4\textwidth}
-      \begin{figure}
-          \begin{centering}
-            \begin{tikzpicture}
-              \foreach \a in {1,2,...,7}{
-              \path[draw, ->] (\a*360/6: 0.25cm)  -- (\a*360/12 + 60: 1.5cm-0.25cm) node[circle, fill=red!30, scale=0.8] {$\Scale[0.7]{s_t^{(\a)}}$};
-              }
-            \node[circle, style=dashed, fill=green!30] (A) {$\mu^n$};
-            \node[rectangle] at (1.7,0) [draw] (B) {$Q^n = \theta^Tx$};
-            \draw[->] (A) edge (B);
-          \end{tikzpicture}
-          \end{centering}
-          \caption{A linear critic for $\mu^n$ }
-      \end{figure}
-
-      \end{column}
-    \end{columns}
-
-\end{frame}
 
 \section{Results}
 \begin{frame}
@@ -473,22 +259,7 @@
 
 \end{frame}
 
-\begin{frame}
-  \frametitle{Experiments}
-  \textbf{Experiment 1.}
-  \begin{enumerate}
-    \item Test if training $\mu$ with the full $Q^n$ $\implies$ each $\mu^n$ acting optimal to $Q^n$
-    \item Is it true in practice that $\nabla_{W^{(n)}} Q^{n}(\mu^n) = \left(\nabla_{W} Q^\mu(\mu)\right)^{(n)}$?
-  \end{enumerate}
-    \textbf{Experiment 2.}
-    \begin{enumerate}
-      \item Train $\mu^n$ using $Q^n$ $\implies$ $Q$ optimal?
-    \end{enumerate}
-        \textbf{Experiment 3.}
-    \begin{enumerate}
-      \item Beat the state of the art in Atari 2600 environments!
-    \end{enumerate}
-\end{frame}
+
 \begin{frame}[fragile]
     \frametitle{Theorem 1}
     \begin{theorem}[Neurocomputational Decompostion]\label{thm:ncomp}
@@ -526,12 +297,38 @@
     \end{theorem}
 \end{frame}
 \begin{frame}
-    \frametitle{Experiment 1}
-    % \textbf{Experiment 1}
-    Compare subcritic Q-values to Q-values of the critic.
+  \frametitle{Experiments}
+  \textbf{Experiment 1.}
+  \begin{enumerate}
+    \item Test if training $\mu$ with the full $Q^n$ $\implies$ each $\mu^n$ acting optimal to $Q^n$
+    \item Is it true in practice that $\nabla_{W^{(n)}} Q^{n}(\mu^n) = \left(\nabla_{W} Q^\mu(\mu)\right)^{(n)}$?
+  \end{enumerate}
+    \textbf{Experiment 2.}
+    \begin{enumerate}
+      \item Train $\mu^n$ using $Q^n$ $\implies$ $Q$ optimal?
+    \end{enumerate}
+        \textbf{Experiment 3.}
+    \begin{enumerate}
+      \item Beat the state of the art in Atari 2600 environments!
+    \end{enumerate}
 \end{frame}
+% \begin{frame}
+%     \frametitle{Experiment 1}
+%     % \textbf{Experiment 1}
+%     Compare subcritic Q-values to Q-values of the critic.
+% \end{frame}
 \begin{frame}
-    \frametitle{Experiment 2}
+    \frametitle{Experiment 1 Results}
+    \begin{column}{0.5\textwidth}
+        Subcritic Layer 0 Neuron 3
+        % TODO Insert here
+        \includegraphics[height=2cm,width=2cm]{BlueGold_fill_small.png}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+        Network Critic Q value
+        % TODO Insert here
+        \includegraphics[height=2cm,width=2cm]{BlueGold_fill_small.png}
+    \end{column}
 \end{frame}
 \begin{frame}
     \frametitle{Experiment 2}
