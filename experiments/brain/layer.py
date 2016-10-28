@@ -2,10 +2,10 @@ import tensorflow as tf
 
 from .common.utils import variable, variable_summaries
 
-LEARNING_RATE = 1e-3
-TAU = 0.001
+LEARNING_RATE = 1e-2
+TAU = 0.0001
 GAMMA = 0.9
-ALPHA = 0.1
+ALPHA = 0.3
 
 class Layer:
 
@@ -47,11 +47,11 @@ class Layer:
 			variable_summaries(W, self.name + "/weights")
 			output = tf.matmul(self.input, W) + b + self.noise
 			if self.activation:
-				output = tf.nn.relu(output)
+				output = tf.nn.tanh(output)
 		with tf.variable_scope('actor_target'):
 			targetOutput = tf.matmul(self.targetInput, W) + b + self.noise
 			if self.activation:
-				targetOutput = tf.nn.relu(targetOutput)
+				targetOutput = tf.nn.tanh(targetOutput)
 		return output, targetOutput, [W, b]
 
 	def createCritic(self):
@@ -82,11 +82,10 @@ class Layer:
 	def createCriticLoss(self):
 		with tf.variable_scope('loss'):
 			reward = tf.transpose([self.reward for _ in range(self.size)])
-			l = tf.square(self.Q - reward - tf.matmul(tf.diag(self.done), \
+			l = tf.square(self.Q - reward - tf.matmul(tf.diag(1 - self.done), \
 							   	 				tf.scalar_mul(GAMMA, self.Qtarget)))
-			l2reg = ALPHA * tf.square(tf.concat(0, [tf.unpack(self.weights[0]), \
-													 self.weights[1:]]))
-			loss = tf.concat(0, [l, l2reg])
+			
+			loss = tf.reduce_mean(l) + ALPHA*tf.nn.l2_loss(self.weights[0]) + ALPHA*tf.nn.l2_loss(self.weights[1])
 			variable_summaries(loss, self.name + "/loss")
 		return loss
 
