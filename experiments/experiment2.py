@@ -39,9 +39,9 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 	"""
 	Runs the experiment.
 	"""
-	env = makeFilteredEnv(gym.make(ENV_NAME))
+	env = gym.make('CartPole-v0')
 	stateDim = env.observation_space.shape[0]
-	actionDim = env.action_space.shape[0]
+	actionDim = 1
 	sess = tf.Session()
 	brain = Brain(sess, stateDim, actionDim)
 
@@ -62,13 +62,17 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 		for step in range(env.spec.timestep_limit):
 			t+= 1
 			action = brain.getAction([state])
+			if action >= 0:
+				act = 1
+			else:
+				act = 0
 			# Deal with the environment
-			next_state,reward,done,_ = env.step(action)
+			next_state,reward,done,_ = env.step(act)
 			r_tot += reward
 			if episode %20 == 0:
 				env.render()
 
-			ops, feeds = brain.perceive(reward, int(done), state, next_state)
+			ops, feeds = brain.perceive(reward, int(done), state, next_state, t > 100)
 			if ops != None and feeds != None:
 				ops = [merged] + ops
 				result = sess.run(ops, feeds)
@@ -80,9 +84,9 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 		print(" ", r_tot)
 
 		# Testing:
-		if episode % 100 == 0 and episode > 100:
-			avg_reward = test(env, brain, TEST)
-			print(('episode: ',episode,'Evaluation Average Reward:',avg_reward))
+		# if episode % 100 == 0 and episode > 100:
+			#avg_reward = test(env, brain, TEST)
+			#print(('episode: ',episode,'Evaluation Average Reward:',avg_reward))
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()

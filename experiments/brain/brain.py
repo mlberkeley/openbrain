@@ -6,12 +6,12 @@ from .common.replay_buffer import ReplayBuffer
 
 import numpy as np
 
-LAYER1_SIZE = 10
+LAYER1_SIZE = 2
 LAYER2_SIZE = 10
-LEARNING_RATE = 1e-4
-REPLAY_SIZE = 1000000
-REPLAY_START_SIZE = 64
-BATCH_SIZE = 64
+ACTOR_LEARNING_RATE = 1e-4
+REPLAY_SIZE = 32
+REPLAY_START_SIZE = 32
+BATCH_SIZE = 32
 
 class Brain:
 
@@ -47,7 +47,7 @@ class Brain:
 			grads_vars += [(-grad, var) for grad, var in zip(layer.grads, layer.weights)]
 
 		with tf.variable_scope('actor_learning'):
-			optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(grads_vars)
+			optimizer = tf.train.AdamOptimizer(ACTOR_LEARNING_RATE).apply_gradients(grads_vars)
 		return optimizer
 
 	def getCriticOps(self):
@@ -57,9 +57,10 @@ class Brain:
 			ops += [critic.Qoptimizer]
 		return ops
 
-	def getTrain(self, rewardBatch, doneBatch, stateBatch, nextStateBatch):
+	def getTrain(self, rewardBatch, doneBatch, stateBatch, nextStateBatch, train_actor=True):
 		ops = self.getCriticOps()
-		ops += [self.actorOptimizer]
+		if train_actor:
+			ops += [self.actorOptimizer]
 		feeds = {self.rewardInput: rewardBatch,
 				 self.doneInput: doneBatch,
 				 self.stateInput: stateBatch,
@@ -75,9 +76,9 @@ class Brain:
 		action = self.sess.run(self.layers[-1].output, feed_dict=feed_dict)
 		return action[0]
 
-	def perceive(self, reward, done, state, nextState):
+	def perceive(self, reward, done, state, nextState, train_actor=True):
 
-		self.replayBuffer.add(state, None, reward, nextState, 1 - done)
+		self.replayBuffer.add(state, None, reward, nextState, done)
 
 		if self.replayBuffer.count() > REPLAY_START_SIZE:
 			minibatch = self.replayBuffer.get_batch(BATCH_SIZE)
@@ -85,7 +86,7 @@ class Brain:
 			rewardBatch = np.asarray([data[2] for data in minibatch])
 			nextStateBatch = np.asarray([data[3] for data in minibatch])
 			doneBatch = np.asarray([data[4] for data in minibatch])
-			return self.getTrain(rewardBatch, doneBatch, stateBatch, nextStateBatch)
+			return self.getTrain(rewardBatch, doneBatch, stateBatch, nextStateBatch, train_actor)
 
 		if done:
 			for noise in self.explorationNoises:
