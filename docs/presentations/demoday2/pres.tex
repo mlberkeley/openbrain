@@ -489,7 +489,42 @@
       \item Beat the state of the art in Atari 2600 environments!
     \end{enumerate}
 \end{frame}
+\begin{frame}
+    \frametitle{Theorem 1}
+    \begin{theorem}[Neurocomputational Decompostion]\label{thm:ncomp}
+      Let $E$ be an environment and $\scriptn$ be a neurocomputational agent. Then there exists a set of agent environment pairs $\mathfrak{D}_\scriptn \defeq \{(E^n, \mu^n)\}_{n\in \scriptn}$ such that for every $n \in \scriptn$, the following diagram commutes
+        \begin{equation}\label{eq:sub_env_com}
+            \begin{tikzcd} %THe diagram for Q function decomposition.
+  %-------------------------------------------------------------------------------------%
+          \scriptv  \times \scripts \arrow{r}{\mu\circ\pi_2}
+               \arrow{d}
+                 {\pi_1  \times\epsilon \circ \pi_2}  &[+25pt]  \scripta    \\
+  %-------------------------------------------------------------------------------------%%
+            \overbrace{\scriptv \times \scriptv}^{(v_{t},\epsilon(s_t))}
+                        \arrow{r}{D}
+                                    \arrow[pos = 0.7]{rd}[swap]{\mu^n\circ\pi_1 + \pi_n \circ \pi_2}
+                        & \overbrace{\scriptv}^{v_{t+1}}
+                                              \arrow[two heads, pos=0.8]
+                                                {d}
+                                                {\pi_n}
+                                              \arrow{u}{\delta} \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    &\reals
+           \end{tikzcd}
+        \end{equation}
+    \end{theorem}
+\end{frame}
 
+\begin{frame}
+    \frametitle{Theorem 2}
+    \begin{theorem}
+        If $\scriptn$ is a nuerocomputational agent in $E$, then policy gradient for $\mu$ agrees with the simultaneous policy gradients of its decomposition; that is for every $(E^n, \mu^n) \in \mathfrak{D}_\scriptn$
+        \begin{equation}
+            \nabla_{K^n} Q^{\mu^n}(v,\alpha)\Big|_{v=v_t,\alpha=\mu^n(v_t)} =\nabla_{K^n} Q^{\mu}(s,a)\Big|_{s=s_t,a=\mu(s_t)}
+        \end{equation}
+        for every time step $t$, where $K^n$ is the nth column of the linear voltage graph transition matrix, i.e. the weights of the connections from all neurons to neuron $n.$
+    \end{theorem}
+\end{frame}
 \begin{frame}
     \frametitle{Experiment 1}
     % \textbf{Experiment 1}
