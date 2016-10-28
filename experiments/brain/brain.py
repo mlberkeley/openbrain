@@ -9,7 +9,7 @@ import numpy as np
 LAYER1_SIZE = 1
 LAYER2_SIZE = 1
 ACTOR_LEARNING_RATE = 1e-4
-REPLAY_SIZE = 32
+REPLAY_SIZE = 10000
 REPLAY_START_SIZE = 32
 BATCH_SIZE = 32
 
@@ -91,6 +91,7 @@ class Brain:
 			rewardBatch = np.asarray([data[2] for data in minibatch])
 			nextStateBatch = np.asarray([data[3] for data in minibatch])
 			doneBatch = np.asarray([data[4] for data in minibatch])
+
 			stateBatch = np.reshape(stateBatch, [BATCH_SIZE, 1])
 			nextStateBatch = np.reshape(nextStateBatch, [BATCH_SIZE, 1])
 			rewardBatch = np.reshape(stateBatch, [BATCH_SIZE])
