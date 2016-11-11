@@ -1,3 +1,4 @@
+
 import tensorflow as tf
 from .layer import Layer
 
@@ -24,7 +25,7 @@ class Brain:
 		self.nextStateInput = tf.placeholder("float", [None, stateDim])
 		self.rewardInput = tf.placeholder("float", [None]) 
 		self.doneInput = tf.placeholder("float", [None])
-		self.noises = [tf.placeholder("float", [None, size]) for size in [LAYER1_SIZE, LAYER2_SIZE, actionDim]]
+		self.noises = [tf.placeholder("float", [None, size]) for size in [LAYER1_SIZE, actionDim]] #LAYER2_SIZE, actionDim]]
 
 
 		self.layers = []
@@ -32,15 +33,15 @@ class Brain:
 							self.noises[0], LAYER1_SIZE, state = self.stateInput, \
 							nextState = self.nextStateInput, \
 							stateDim = stateDim)]
-		self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
-							self.noises[1], LAYER2_SIZE, self.layers[0])]
-		self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
-							self.noises[2], actionDim, self.layers[1], activation=False)]
+		#self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
+		#					self.noises[1], LAYER2_SIZE, self.layers[0])]
+		#self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
+		#					self.noises[2], actionDim, self.layers[1], activation=False)]
 
 		self.actorOptimizer = self.createActorTraining()
 
 		self.sess.run(tf.initialize_all_variables())
-		self.explorationNoises = [OUNoise(size) for size in [LAYER1_SIZE, LAYER2_SIZE, actionDim]]
+		self.explorationNoises = [OUNoise(size) for size in [LAYER1_SIZE, actionDim]] # LAYER2_SIZE, actionDim]]
 		self.actionDim = actionDim
 		self.replayBuffer = ReplayBuffer(REPLAY_SIZE)
 
@@ -69,7 +70,7 @@ class Brain:
 				 self.doneInput: doneBatch,
 				 self.stateInput: stateBatch,
 				 self.nextStateInput: nextStateBatch}
-		for i, size in enumerate([LAYER1_SIZE, LAYER2_SIZE, self.actionDim]):
+		for i, size in enumerate([LAYER1_SIZE, self.actionDim]): # LAYER2_SIZE, self.actionDim]):
 			feeds[self.noises[i]] = [np.zeros(size)]
 		return ops, feeds
 

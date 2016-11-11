@@ -21,6 +21,7 @@ def variable(shape,f, name="Variable"):
     a random uniform distribution in 0 +/- 1/sqrt(f)
     """
     #TODO: fix this. currently shape is a [Dimension, int] object
-    v =  tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)), name=name)
+    #v =  tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)), name=name)
+    v = tf.Variable(tf.constant(0.1, shape=shape, name=name))
     if TRACK_VARS: variable_summaries(var, name)
     return v
