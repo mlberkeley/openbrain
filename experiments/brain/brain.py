@@ -95,7 +95,7 @@ class Brain:
 
 			stateBatch = np.reshape(stateBatch, [BATCH_SIZE, 1])
 			nextStateBatch = np.reshape(nextStateBatch, [BATCH_SIZE, 1])
-			rewardBatch = np.reshape(stateBatch, [BATCH_SIZE])
+			rewardBatch = np.reshape(rewardBatch, [BATCH_SIZE])
 			doneBatch = np.reshape(nextStateBatch, [BATCH_SIZE])
 			return self.getTrain(rewardBatch, doneBatch, stateBatch, nextStateBatch, train_actor)
 			

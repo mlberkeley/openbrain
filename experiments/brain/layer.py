@@ -48,11 +48,11 @@ class Layer:
 			variable_summaries(W, self.name + "/weights")
 			output = tf.matmul(self.input, W) + b + self.noise
 			if self.activation:
-				output = tf.nn.tanh(output)
+				output = tf.nn.relu(output)
 		with tf.variable_scope('actor_target'):
 			targetOutput = tf.matmul(self.targetInput, W) + b + self.noise
 			if self.activation:
-				targetOutput = tf.nn.tanh(targetOutput)
+				targetOutput = tf.nn.relu(targetOutput)
 		return output, targetOutput, [W, b]
 
 	def createCritic(self):
@@ -85,9 +85,9 @@ class Layer:
 			reward = tf.transpose([self.reward for _ in range(self.size)])
 			diff = self.Q - reward - tf.matmul(tf.diag(self.done), tf.scalar_mul(GAMMA, self.Qtarget))
 			loss = tf.square(diff)
-			# l2reg = ALPHA * tf.square(tf.concat(1, [tf.unpack(self.Qweights[0]), \
+			#l2reg = ALPHA * tf.square(tf.concat(1, [tf.unpack(self.Qweights[0]), \
 			# 										 tf.unpack(tf.transpose(self.Qweights[1]))]))
-			# loss = tf.concat(0, [l, l2reg])
+			#loss = tf.concat(0, [l, l2reg])
 			variable_summaries(diff, self.name + "/diff")
 			variable_summaries(loss, self.name + "/loss")
 		return loss
