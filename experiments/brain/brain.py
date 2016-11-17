@@ -21,12 +21,13 @@ class Brain:
 	def __init__(self, sess, stateDim, actionDim):
 		self.timestep = 0
 		self.sess = sess
-		self.stateInput = tf.placeholder("float", [None, stateDim])
-		self.nextStateInput = tf.placeholder("float", [None, stateDim])
-		self.rewardInput = tf.placeholder("float", [None]) 
-		self.doneInput = tf.placeholder("float", [None])
-		self.noises = [tf.placeholder("float", [None, size]) for size in [LAYER1_SIZE, actionDim]] #LAYER2_SIZE, actionDim]]
+		self.stateInput = tf.placeholder("float", [1, stateDim])
+		self.nextStateInput = tf.placeholder("float", [1, stateDim])
+		self.rewardInput = tf.placeholder("float", [1]) 
+		self.doneInput = tf.placeholder("float", [1])
+		self.noises = [tf.placeholder("float", [1, size]) for size in [LAYER1_SIZE, actionDim]] #LAYER2_SIZE, actionDim]]
 
+		self.stateDim = stateDim
 
 		self.layers = []
 		self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
@@ -49,7 +50,7 @@ class Brain:
 		grads_vars = []
 		for layer in self.layers:
 			grads_vars += [(-grad, var) for grad, var in zip(layer.grads, layer.weights)]
-			grads_vars += layer.l2grads_vars
+			#grads_vars += layer.l2grads_vars
 
 		with tf.variable_scope('actor_learning'):
 			optimizer = tf.train.AdamOptimizer(ACTOR_LEARNING_RATE).apply_gradients(grads_vars)
@@ -84,20 +85,20 @@ class Brain:
 
 	def perceive(self, reward, done, state, nextState, train_actor=True):
 
-		self.replayBuffer.add(state, None, reward, nextState, done)
+		# self.replayBuffer.add(state, None, reward, nextState, done)
 
-		if self.replayBuffer.count() > REPLAY_START_SIZE:
-			minibatch = self.replayBuffer.get_batch(BATCH_SIZE)
-			stateBatch = np.asarray([data[0] for data in minibatch])
-			rewardBatch = np.asarray([data[2] for data in minibatch])
-			nextStateBatch = np.asarray([data[3] for data in minibatch])
-			doneBatch = np.asarray([data[4] for data in minibatch])
+		# if self.replayBuffer.count() > REPLAY_START_SIZE:
+		# 	minibatch = self.replayBuffer.get_batch(BATCH_SIZE)
+		# 	stateBatch = np.asarray([data[0] for data in minibatch])
+		# 	rewardBatch = np.asarray([data[2] for data in minibatch])
+		# 	nextStateBatch = np.asarray([data[3] for data in minibatch])
+		# 	doneBatch = np.asarray([data[4] for data in minibatch])
 
-			stateBatch = np.reshape(stateBatch, [BATCH_SIZE, 1])
-			nextStateBatch = np.reshape(nextStateBatch, [BATCH_SIZE, 1])
-			rewardBatch = np.reshape(rewardBatch, [BATCH_SIZE])
-			doneBatch = np.reshape(nextStateBatch, [BATCH_SIZE])
-			return self.getTrain(rewardBatch, doneBatch, stateBatch, nextStateBatch, train_actor)
+		state = np.reshape(state, [1, self.stateDim])
+		nextState = np.reshape(nextState, [1, self.stateDim])
+		reward = np.reshape(reward, [1])
+		done = np.reshape(nextState, [1])
+		return self.getTrain(reward, done, state, nextState, train_actor)
 			
 		if done:
 			for noise in self.explorationNoises:

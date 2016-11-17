@@ -39,21 +39,21 @@ class Layer:
 				self.Qloss = self.createCriticLoss()
 				self.Qoptimizer = self.createCriticLearning()
 			self.grads = tf.gradients(self.Q, self.weights)
-			self.l2grads_vars = self.computeL2RegGrads()
+			#self.l2grads_vars = self.computeL2RegGrads()
 	def construct(self):
 		with tf.variable_scope('actor'):
 			W = variable([self.prevSize, self.size], self.prevSize, name='weights')
 			b = variable([self.size], self.prevSize, name='bias')
 			variable_summaries(b, self.name + "/bias")
 			variable_summaries(W, self.name + "/weights")
-			output = tf.matmul(self.input, W) + b + self.noise
+			output = tf.matmul(self.input, W) + self.noise # + b
 			if self.activation:
-				output = tf.nn.relu(output)
+				output = tf.nn.tanh(output)
 		with tf.variable_scope('actor_target'):
-			targetOutput = tf.matmul(self.targetInput, W) + b + self.noise
+			targetOutput = tf.matmul(self.targetInput, W) # + b
 			if self.activation:
 				targetOutput = tf.nn.relu(targetOutput)
-		return output, targetOutput, [W, b]
+		return output, targetOutput, [W]#, b]
 
 	def createCritic(self):
 		with tf.variable_scope('Q'):
@@ -61,9 +61,9 @@ class Layer:
 			Ma = variable([self.size, 1], self.prevSize)
 			b = variable([self.size], self.prevSize)
 
-			q = tf.identity(tf.matmul(self.input, Ms) + tf.matmul(self.output, Ma) + b)
+			q = tf.identity(tf.matmul(self.input, Ms) + tf.matmul(self.output, Ma))# + b)
 			variable_summaries(q, self.name + "/Q")
-		return q, [Ms, Ma, b]
+		return q, [Ms, Ma]#, b]
 
 	def createTargetCritic(self):
 		with tf.variable_scope('Q_target'):
@@ -72,8 +72,8 @@ class Layer:
 			weights = [ema.average(x) for x in self.Qweights]
 
 			q = tf.identity(tf.matmul(self.targetInput, weights[0]) \
-									 + tf.matmul(self.targetOutput, weights[1]) \
-									 + weights[2])
+									 + tf.matmul(self.targetOutput, weights[1]) )#\
+									 #+ weights[2])
 			variable_summaries(q, self.name + "/Qtarget")
 		return q, update
 
@@ -85,9 +85,9 @@ class Layer:
 			reward = tf.transpose([self.reward for _ in range(self.size)])
 			diff = self.Q - reward - tf.matmul(tf.diag(self.done), tf.scalar_mul(GAMMA, self.Qtarget))
 			loss = tf.square(diff)
-			#l2reg = ALPHA * tf.square(tf.concat(1, [tf.unpack(self.Qweights[0]), \
+			# l2reg = ALPHA * tf.square(tf.concat(1, [tf.unpack(self.Qweights[0]), \
 			# 										 tf.unpack(tf.transpose(self.Qweights[1]))]))
-			#loss = tf.concat(0, [l, l2reg])
+			# loss = tf.concat(0, [l, l2reg])
 			variable_summaries(diff, self.name + "/diff")
 			variable_summaries(loss, self.name + "/loss")
 		return loss

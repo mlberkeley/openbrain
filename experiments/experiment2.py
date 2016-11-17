@@ -81,7 +81,7 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 				break
 			# Move on to next frame.
 			state = next_state
-		print(" ", r_tot)
+		print(" ",  state, r_tot)
 
 		# Testing:
 		# if episode % 100 == 0 and episode > 100:
@@ -94,7 +94,7 @@ class StupidGame:
 		self.reset()
 
 	def reset(self):
-		self.pose = 0
+		self.pose = 1
 		return self.pose
 	def step(self, action):
 		self.pose += action
@@ -102,11 +102,11 @@ class StupidGame:
 		if self.pose > 100:
 			return self.pose, 100, True, None
 		elif self.pose > 0:
-			return self.pose, 1, False, None
+			return self.pose, self.pose, False, None
 		elif self.pose < -100:
 			return self.pose, -100, True, None
 		else:
-			return self.pose, -1, False, None
+			return self.pose, self.pose, False, None
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
