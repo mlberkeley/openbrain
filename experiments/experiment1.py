@@ -17,6 +17,8 @@ gc.enable()
 from brain import DDPG
 from brain import SubCritics
 from brain.common.filter_env import makeFilteredEnv
+import brain.common.utils as utils
+from brain.common.utils import episode_stats, write_row
 
 
 def test(env, agent, num_tests):
@@ -53,7 +55,8 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
     train_writer = tf.train.SummaryWriter('/tmp/tboard/{}'.format(exp_name),
                                       agent.sess.graph)
     # To see graph run tensorboard --logdir=/tmp/exp1/tboard
-    agent.sess.run(tf.initialize_all_variables())
+    init_op = tf.initialize_all_variables()
+    agent.sess.run(init_op)
 
     t = 0
     for episode in range(EPISODES):
@@ -61,7 +64,7 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
         activations = None
         print("Episode: ", episode, end="")
         r_tot = 0
-
+        old = None # TODO DELETE FOR TESTING
         for step in range(env.spec.timestep_limit):
             t+= 1
             # Explore state space.
@@ -76,7 +79,7 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
             if activations is not None and action is not None:
                 ops, feeds = sub_critics.get_perceive_run(activations, next_activations, reward, done)
                 ops += [
-                    agent.critic_network.q_value_output, 
+                    agent.critic_network.q_value_output,
                     agent.critic_network.target_q_value_output]
                 feeds.update({
                     agent.critic_network.state_input: [state],
@@ -86,6 +89,17 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
                     })
                 ops = [merged] + ops
                 result = agent.sess.run(ops, feeds)
+                # use ordered dict for stats_map
+                stats_result = agent.sess.run(episode_stats['variables'], feeds)
+                # ## TEST BLOCK TODO DELETE WHEN DONE
+                # test_idx = 100
+                # if old:
+                #
+                #     print(episode_stats['names'][test_idx],stats_result[test_idx] == old, stats_result[test_idx], old)
+                #     exit()
+                # old = stats_result[test_idx]
+                # ## END TEST BLOCK TODO
+                write_row(episode, step, stats_result)
                 train_writer.add_summary(result[0], t)
 
             # Train DDPG
@@ -113,5 +127,23 @@ if __name__ == '__main__':
       the name of the experiment to run.\
       """
     )
+    parser.add_argument(
+        '--output_dir',
+        type=str,
+        default='output/',
+        help="""\
+        The directory to output training csvs\
+        """
+    )
+    parser.add_argument(
+        '--output_csv',
+        dest='output_csv',
+        action='store_true',
+        help="""\
+        Flag to save the experiments as csv\
+        """
+    )
+    parser.set_defaults(output_csv=False)
     args = parser.parse_args()
+    utils.set_output_dir(args.output_dir)
     run_experiment(args.name)
