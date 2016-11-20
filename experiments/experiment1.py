@@ -64,7 +64,7 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
         activations = None
         print("Episode: ", episode, end="")
         r_tot = 0
-        old = None # TODO DELETE FOR TESTING
+
         for step in range(env.spec.timestep_limit):
             t+= 1
             # Explore state space.
@@ -91,14 +91,6 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
                 result = agent.sess.run(ops, feeds)
                 # use ordered dict for stats_map
                 stats_result = agent.sess.run(episode_stats['variables'], feeds)
-                # ## TEST BLOCK TODO DELETE WHEN DONE
-                # test_idx = 100
-                # if old:
-                #
-                #     print(episode_stats['names'][test_idx],stats_result[test_idx] == old, stats_result[test_idx], old)
-                #     exit()
-                # old = stats_result[test_idx]
-                # ## END TEST BLOCK TODO
                 write_row(episode, step, stats_result)
                 train_writer.add_summary(result[0], t)
 
