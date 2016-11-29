@@ -39,7 +39,7 @@ def test(env, agent, num_tests):
     return avg_reward
 
 
-def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000, TEST=10):
+def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10):
     """
     Runs the experiment on the target en
     """
@@ -109,6 +109,31 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
             avg_reward = test(env, agent, TEST)
             print(('episode: ',episode,'Evaluation Average Reward:',avg_reward))
 
+    criticToPlot = sub_critics.critics[0]
+    tempAction = np.array([1])
+    tempState = np.array([1,2])
+    print(criticToPlot.q_value(tempState,tempAction))
+    # criticToPlot = sub_critics.critics[0]
+    # tempAction = [[.5]]
+    # tempState = np.array([1,2])
+    # print(criticToPlot.q_value(tempAction,tempState))
+    # fixedAction = 0.5
+    # for velocity in range(-10,10):
+    #     for position in range(-1,1):
+    #         ops, feeds = sub_critics.get_perceive_run(activations, next_activations, reward, done)
+    #         ops += [
+    #             agent.critic_network.q_value_output,
+    #         feeds.update({
+    #             agent.critic_network.state_input: [state],
+    #             agent.critic_network.action_input: [fixedAction],
+    #             })
+    #         ops = [merged] + ops
+    #         result = agent.sess.run(ops, feeds)
+    #         # use ordered dict for stats_map
+    #         stats_result = agent.sess.run(episode_stats['variables'], feeds)
+    #         write_row(episode, step, stats_result)
+    #         train_writer.add_summary(result[0], t)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -138,4 +163,4 @@ if __name__ == '__main__':
     parser.set_defaults(output_csv=False)
     args = parser.parse_args()
     utils.set_output_dir(args.output_dir)
-    run_experiment(args.name)
+    run_experiment(args.name, EPISODES=15)

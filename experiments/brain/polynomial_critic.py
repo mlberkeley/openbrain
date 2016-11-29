@@ -120,7 +120,7 @@ class PolynomialCritic:
         """ Define training loss """
         weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
         diff = tf.cond(
-            self.done_placeholder, 
+            self.done_placeholder,
             lambda: self.q_value_output - self.reward_placeholder,
             lambda: self.q_value_output - self.reward_placeholder - self.gamma*self.target_q_value_output)
 
@@ -137,11 +137,12 @@ class PolynomialCritic:
             self.target_action_input:action_batch
             })
 
-    def q_value(self,state_batch,action_batch):
+    def q_value(self,state,action):
         """
         Feeds the state and action batch to calculate
         the q value through the regular network.
         """
         return self.sess.run(self.q_value_output,feed_dict={
-            self.state_input:state_batch,
-            self.action_input:action_batch})
+            self.state_placeholder:[state],
+            self.action_placeholder:[action]
+            })
