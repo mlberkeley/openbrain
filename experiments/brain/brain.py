@@ -13,6 +13,7 @@ ACTOR_LEARNING_RATE = 1e-4
 REPLAY_SIZE = 10000
 REPLAY_START_SIZE = 32
 BATCH_SIZE = 32
+NUM_LAYERS = 1
 
 
 
@@ -26,19 +27,23 @@ class Brain:
 		self.rewardInput = tf.placeholder("float", [1]) 
 		self.doneInput = tf.placeholder("float", [1])
 		self.noises = [tf.placeholder("float", [1, size]) for size in [LAYER1_SIZE, actionDim]] #LAYER2_SIZE, actionDim]]
+		self.actions = [tf.placeholder("float", [1, size])  for size in [LAYER1_SIZE, actionDim]]
+		self.nextActions = [tf.placeholder("float", [1, size])  for size in [LAYER1_SIZE, actionDim]]
 
 		self.stateDim = stateDim
+		self.actionDim = actionDim
 
 		self.layers = []
 		self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
-							self.noises[0], LAYER1_SIZE, state = self.stateInput, \
+							self.noises[0], LAYER1_SIZE, self.actions[0],  \
+							self.nextActions[0],
+							state = self.stateInput, \
 							nextState = self.nextStateInput, \
 							stateDim = stateDim)]
 		#self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
 		#					self.noises[1], LAYER2_SIZE, self.layers[0])]
 		#self.layers += [Layer(self.sess, self.rewardInput, self.doneInput, \
 		#					self.noises[2], actionDim, self.layers[1], activation=False)]
-
 		self.actorOptimizer = self.createActorTraining()
 
 		self.sess.run(tf.initialize_all_variables())
@@ -59,20 +64,22 @@ class Brain:
 	def getCriticOps(self):
 		ops = []
 		for critic in self.layers:
-			critic.updateTargetCritic()
+			critic.updateTargets()
 			ops += [critic.Qoptimizer]
 		return ops
 
-	def getTrain(self, rewardBatch, doneBatch, stateBatch, nextStateBatch, train_actor=True):
+	def getTrain(self, reward, done, state, nextState, actions, nextActions, train_actor=True):
 		ops = self.getCriticOps()
 		if train_actor:
 			ops += [self.actorOptimizer]
-		feeds = {self.rewardInput: rewardBatch,
-				 self.doneInput: doneBatch,
-				 self.stateInput: stateBatch,
-				 self.nextStateInput: nextStateBatch}
+		feeds = {self.rewardInput: reward,
+				 self.doneInput: done,
+				 self.stateInput: state,
+				 self.nextStateInput: nextState}
 		for i, size in enumerate([LAYER1_SIZE, self.actionDim]): # LAYER2_SIZE, self.actionDim]):
 			feeds[self.noises[i]] = [np.zeros(size)]
+		feeds[self.actions[0]] = [actions[0]]
+		feeds[self.nextActions[0]] = [nextActions[0]]
 		return ops, feeds
 
 	def getAction(self, stateInput):
@@ -80,10 +87,10 @@ class Brain:
 		feed_dict = {self.stateInput: stateInput}
 		for i, noise in enumerate(self.explorationNoises):
 			feed_dict[self.noises[i]] = [noise.noise()]
-		action = self.sess.run(self.layers[-1].output, feed_dict=feed_dict)
-		return action[0]
+		actions = self.sess.run([self.layers[i].output for i in range(len(self.layers))], feed_dict=feed_dict)
+		return actions
 
-	def perceive(self, reward, done, state, nextState, train_actor=True):
+	def perceive(self, reward, done, state, nextState, actions, nextActions, train_actor=True):
 
 		# self.replayBuffer.add(state, None, reward, nextState, done)
 
@@ -98,7 +105,9 @@ class Brain:
 		nextState = np.reshape(nextState, [1, self.stateDim])
 		reward = np.reshape(reward, [1])
 		done = np.reshape(nextState, [1])
-		return self.getTrain(reward, done, state, nextState, train_actor)
+		actions = np.reshape(actions, [len(self.layers), self.actionDim])
+		nextActions = np.reshape(nextActions, [len(self.layers), self.actionDim])
+		return self.getTrain(reward, done, state, nextState, actions, nextActions, train_actor)
 			
 		if done:
 			for noise in self.explorationNoises:

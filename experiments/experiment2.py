@@ -64,12 +64,14 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 
 		for step in range(200):#env.spec.timestep_limit):
 			t+= 1
-			action = brain.getAction(state)
+			actions = brain.getAction(state)
+			action = actions[-1][0]
 			# Deal with the environment
 			next_state,reward,done,_ = env.step(action)
+			nextActions = brain.getAction(next_state)
 			r_tot += reward
 
-			ops, feeds = brain.perceive(reward, int(done), state, next_state, t > 100)
+			ops, feeds = brain.perceive(reward, int(done), state, next_state, actions, nextActions, t > 100)
 			# if episode %100 == 0:
 			# 	env.render()
 			if t > EXPLORE_TIME:
@@ -102,11 +104,11 @@ class StupidGame:
 		if self.pose > 100:
 			return self.pose, 100, True, None
 		elif self.pose > 0:
-			return self.pose, self.pose, False, None
+			return self.pose, 1, False, None
 		elif self.pose < -100:
 			return self.pose, -100, True, None
 		else:
-			return self.pose, self.pose, False, None
+			return self.pose, -1, False, None
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()

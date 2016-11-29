@@ -10,13 +10,15 @@ ALPHA = 0.3
 
 class Layer:
 
-	def __init__(self, sess, reward, done, noise, size, prevLayer=None, state=None, \
+	def __init__(self, sess, reward, done, noise, size, actionInput, nextActionInput, prevLayer=None, state=None, \
 					nextState =None, stateDim=None, activation=True):
 		self.sess = sess
 		self.reward = reward
 		self.done = done
 		self.noise = noise
 		self.size = size
+		self.actionInput = actionInput
+		self.nextActionInput = nextActionInput
 		self.activation = activation
 		if prevLayer:
 			self.num = prevLayer.num + 1
@@ -30,7 +32,13 @@ class Layer:
 			self.targetInput = nextState
 		self.name = "layer_{}".format(self.num)
 		with tf.variable_scope(self.name):
-			self.output, self.targetOutput, self.weights = self.construct()
+			self.output, \
+			self.targetOutput, \
+			self.targetOutputTplus1, \
+			self.weights,\
+			self.targetWeights, \
+			self.actorUpdate = self.construct()
+
 			variable_summaries(self.output, self.name + "/action")
 			variable_summaries(self.reward, self.name + "/reward")
 			with tf.variable_scope('subcritic'):
@@ -38,7 +46,7 @@ class Layer:
 				self.Qtarget, self.Qupdate = self.createTargetCritic()
 				self.Qloss = self.createCriticLoss()
 				self.Qoptimizer = self.createCriticLearning()
-			self.grads = tf.gradients(self.Q, self.weights)
+			self.grads = tf.gradients(self.Q, self.targetWeights)
 			#self.l2grads_vars = self.computeL2RegGrads()
 	def construct(self):
 		with tf.variable_scope('actor'):
@@ -50,10 +58,14 @@ class Layer:
 			if self.activation:
 				output = tf.nn.tanh(output)
 		with tf.variable_scope('actor_target'):
-			targetOutput = tf.matmul(self.targetInput, W) # + b
+			ema = tf.train.ExponentialMovingAverage(decay=1-TAU)
+			update = ema.apply([W])
+			Wtarget = ema.average(W)
+			targetOutput = tf.matmul(self.input, Wtarget)
+			targetOutputTplus1 = tf.matmul(self.targetInput, Wtarget) # + b
 			if self.activation:
-				targetOutput = tf.nn.relu(targetOutput)
-		return output, targetOutput, [W]#, b]
+				targetOutput = tf.nn.tanh(targetOutput)
+		return output, targetOutput, targetOutputTplus1, [W], [Wtarget], update#, b]
 
 	def createCritic(self):
 		with tf.variable_scope('Q'):
@@ -61,7 +73,11 @@ class Layer:
 			Ma = variable([self.size, 1], self.prevSize)
 			b = variable([self.size], self.prevSize)
 
-			q = tf.identity(tf.matmul(self.input, Ms) + tf.matmul(self.output, Ma))# + b)
+			q = tf.matmul(tf.matmul(tf.transpose(self.actionInput - self.targetOutput), \
+							tf.gradients(self.targetOutput, self.targetWeights)[0]),\
+						  Ma ) \
+				+ tf.transpose(tf.matmul(self.input, Ms))
+
 			variable_summaries(q, self.name + "/Q")
 		return q, [Ms, Ma]#, b]
 
@@ -71,19 +87,21 @@ class Layer:
 			update = ema.apply(self.Qweights)
 			weights = [ema.average(x) for x in self.Qweights]
 
-			q = tf.identity(tf.matmul(self.targetInput, weights[0]) \
-									 + tf.matmul(self.targetOutput, weights[1]) )#\
-									 #+ weights[2])
+			q = tf.matmul(tf.matmul(tf.transpose(self.nextActionInput - self.targetOutputTplus1), \
+							tf.gradients(self.targetOutputTplus1, self.targetWeights)[0]),\
+						  weights[1] ) \
+				+ tf.transpose(tf.matmul(self.targetInput, weights[0]))
+
 			variable_summaries(q, self.name + "/Qtarget")
 		return q, update
 
-	def updateTargetCritic(self):
-		self.sess.run(self.Qupdate)
+	def updateTargets(self):
+		self.sess.run([self.Qupdate, self.actorUpdate])
 
 	def createCriticLoss(self):
 		with tf.variable_scope('loss'):
 			reward = tf.transpose([self.reward for _ in range(self.size)])
-			diff = self.Q - reward - tf.matmul(tf.diag(self.done), tf.scalar_mul(GAMMA, self.Qtarget))
+			diff = self.Q - reward - tf.matmul(tf.diag(1 - self.done), tf.scalar_mul(GAMMA, self.Qtarget))
 			loss = tf.square(diff)
 			# l2reg = ALPHA * tf.square(tf.concat(1, [tf.unpack(self.Qweights[0]), \
 			# 										 tf.unpack(tf.transpose(self.Qweights[1]))]))
