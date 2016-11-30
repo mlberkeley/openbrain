@@ -12,6 +12,7 @@ from IPython import display
 from itertools import chain
 import gc
 import argparse
+from mpl_toolkits.mplot3d import Axes3D
 gc.enable()
 
 from brain import DDPG
@@ -58,6 +59,19 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
     init_op = tf.initialize_all_variables()
     agent.sess.run(init_op)
 
+    criticToPlot = sub_critics.critics[0]
+    minPos = -1.2
+    maxPos = 0.6
+    minVelocity = -0.07
+    maxVelocity = 0.07
+    nx = 400
+    ny = 400
+    xRange = np.linspace(minPos, maxPos, nx)
+    yRange = np.linspace(minVelocity, maxVelocity, ny)
+    xv, yv = np.meshgrid(xRange, yRange)
+    zToPlot = []
+    xToPlot = xv[0]
+    yToPlot = [row[0] for row in yv]
     t = 0
     for episode in range(EPISODES):
         state = env.reset()
@@ -73,7 +87,7 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
             # Deal with the environment
             next_state,reward,done,_ = env.step(next_action)
             r_tot += reward
-            env.render()
+            # env.render()
 
             # Train subcrticis and plot to tensorflow
             if activations is not None and action is not None:
@@ -108,11 +122,29 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
         if episode % 100 == 0 and episode > 100:
             avg_reward = test(env, agent, TEST)
             print(('episode: ',episode,'Evaluation Average Reward:',avg_reward))
-
-    criticToPlot = sub_critics.critics[0]
-    tempAction = np.array([1])
-    tempState = np.array([1,2])
-    print(criticToPlot.q_value(tempState,tempAction))
+    for i in range(nx):
+        for j in range(ny):
+            x, y = xv[i,j], yv[i,j]
+            # tempAction = np.array([1])
+            # tempState = np.array([x,y])
+            # zToPlot.append(criticToPlot.q_value(tempState,tempAction))
+            ops = [agent.critic_network.q_value_output]
+            feeds = {}
+            state = np.array([x,y])[:,np.newaxis].T
+            action = np.array([1])[:,np.newaxis].T
+            feeds.update({
+                agent.critic_network.state_input: state,
+                agent.critic_network.action_input: action,
+                })
+            result = agent.sess.run(ops, feeds)
+            zToPlot.append(result[0].squeeze())
+    zToPlot = np.array(zToPlot).reshape((len(xToPlot), len(yToPlot)))
+    h = plt.contourf(xToPlot,yToPlot,zToPlot)
+    plt.title('Global q value')
+    plt.xlabel('position')
+    plt.ylabel('velocity')
+    plt.colorbar(h)
+    plt.show()
     # criticToPlot = sub_critics.critics[0]
     # tempAction = [[.5]]
     # tempState = np.array([1,2])
@@ -163,4 +195,4 @@ if __name__ == '__main__':
     parser.set_defaults(output_csv=False)
     args = parser.parse_args()
     utils.set_output_dir(args.output_dir)
-    run_experiment(args.name, EPISODES=15)
+    run_experiment(args.name, EPISODES=70)

@@ -68,7 +68,7 @@ class PolynomialCritic:
         Sets up the network graph.
         """
         concat_input = tf.concat(1, [state_input, action_input])
-        print(concat_input)
+        # print(concat_input)
         # TODO generalize this for order n (might be hard)
         if linear:
             q_value_output = tf.identity(tf.matmul(concat_input, net[0]) + net[1])
@@ -78,7 +78,7 @@ class PolynomialCritic:
             xT = tf.transpose(concat_input)
             q_value_output = tf.identity(tf.matmul(xT, tf.matmul(W1,concat_input)) + net[1])
             net = [W1, net[1]]
-        print("state_input {0}. action_input {1}".format(state_input, action_input))
+        # print("state_input {0}. action_input {1}".format(state_input, action_input))
         return q_value_output, net
 
     def create_poly_q(self):
