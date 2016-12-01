@@ -1,6 +1,6 @@
 import numpy as np
 
-critic_learning_rate = 1
+critic_learning_rate = 1000
 actor_learning_rate = 1
 TAU = 0.0001
 GAMMA = 0.99
@@ -16,10 +16,10 @@ class Neuron:
 		self.t = 0
 		np.random.seed(0)
 	def init_var(self):
-		return np.array([-.00001])
+		return np.array([0.0001])
 
 	def updateTargets(self):
-		# self.t += 1
+		self.t += 1
 		# if self.t % 10000 == 0:
 		# 	self.qaTarget = self.qa
 		# 	self.weightTarget = self.weight
@@ -34,22 +34,22 @@ class Neuron:
 
 	def getQ(self, action, state):
 		muOffPolicy = np.tanh(np.dot(state, self.weightTarget))
-		muGrads = np.dot(state, 1 - np.square(np.tanh(muOffPolicy)))
-		return np.dot(np.dot(muOffPolicy, muGrads), self.qa), muOffPolicy, muGrads
+		muGrads = np.dot(state, 1 - np.square(muOffPolicy))
+		return np.dot(np.dot(action - muOffPolicy, muGrads), self.qa), muOffPolicy, muGrads
 
 	def getTargetQ(self, action, state):
 		muOffPolicy = np.tanh(np.dot(state, self.weightTarget))
-		muGrads = np.dot(state, 1 - np.square(np.tanh(muOffPolicy)))
-		return np.dot(np.dot(muOffPolicy, muGrads), self.qaTarget), muOffPolicy, muGrads
+		muGrads = np.dot(state, 1 - np.square(muOffPolicy))
+		return np.dot(np.dot(action - muOffPolicy, muGrads), self.qaTarget), muOffPolicy, muGrads
 
-	def getQloss(self, q, qtarget, reward, done):
-		q, _, _ = self.getQ(action, state)
-		qtarget, _, _ = self.getTargetQ(nextaction, nextstate)
-		target = np.dot(1 - done, np.dot(GAMMA, qtarget))
+	# def getQloss(self, q, qtarget, reward, done):
+	# 	q, _, _ = self.getQ(action, state)
+	# 	qtarget, _, _ = self.getTargetQ(nextaction, nextstate)
+	# 	target = np.dot(1 - done, np.dot(GAMMA, qtarget))
 		
-		qloss =  np.square(q - reward - target)
+	# 	qloss =  np.square(q - reward - target)
 		
-		return qloss
+	# 	return qloss
 
 	def trainCritic(self, reward, action, state, nextaction, nextstate, done):
 		q, mu, muGrads = self.getQ(action, state)
@@ -57,7 +57,7 @@ class Neuron:
 		target = np.dot(1 - done, np.dot(GAMMA, qtarget))
 		grad1 = 2 * (q - reward - target)
 		
-		agradient = np.dot(np.dot(grad1, muGrads), mu)
+		agradient = np.dot(np.dot(grad1, muGrads), action - mu)
 		if agradient > 1:
 			agradient = 1
 		if agradient < -1:
@@ -66,7 +66,12 @@ class Neuron:
 
 	def trainActor(self, action, state):
 		q, mu, muGrads = self.getQ(action, state)
-		weightgradient = np.dot(np.dot(state, muGrads), self.qa)
+		weightgradient = -np.dot(np.dot(muGrads, muGrads), self.qa)
+		if weightgradient > 1:
+			weightgradient = 1
+		if weightgradient < -1:
+			weightgradient = -1
+		#print("t: ",self.t, " ", self.weight)
 		self.weight += actor_learning_rate * weightgradient
 
 	def train(self, reward, action, state, nextaction, nextstate, done):

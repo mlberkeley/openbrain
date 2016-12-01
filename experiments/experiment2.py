@@ -16,7 +16,7 @@ gc.enable()
 from brain.common.filter_env import makeFilteredEnv
 from brain.brain import Brain
 
-EXPLORE_TIME = 10000
+EXPLORE_TIME = -1
 
 def test(env, agent, num_tests):
 	"""
@@ -71,13 +71,14 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
 			nextActions = brain.getAction(next_state)
 			r_tot += reward
 
-			ops, feeds = brain.perceive(reward, int(done), state, next_state, actions, nextActions, t > 100)
+			ops, feeds = brain.perceive(reward, int(done), state, next_state, actions, nextActions, t > -1)
 			# if episode %100 == 0:
 			# 	env.render()
 			if t > EXPLORE_TIME:
 				if ops != None and feeds != None:
 					ops = [merged] + ops
 					result = sess.run(ops, feeds)
+					#print(result[2])
 					train_writer.add_summary(result[0], t)
 			if done:
 				break

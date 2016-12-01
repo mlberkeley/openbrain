@@ -46,7 +46,7 @@ class Layer:
 				self.Qtarget, self.Qupdate = self.createTargetCritic()
 				self.Qloss = self.createCriticLoss()
 				self.Qoptimizer = self.createCriticLearning()
-			self.grads = tf.gradients(self.Q, self.targetWeights)
+			self.grads = tf.gradients(self.targetOutput, self.targetWeights, tf.gradients(self.targetOutput, self.targetWeights))
 			#self.l2grads_vars = self.computeL2RegGrads()
 	def construct(self):
 		with tf.variable_scope('actor'):

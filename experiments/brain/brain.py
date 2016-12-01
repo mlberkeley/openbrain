@@ -71,7 +71,7 @@ class Brain:
 	def getTrain(self, reward, done, state, nextState, actions, nextActions, train_actor=True):
 		ops = self.getCriticOps()
 		if train_actor:
-			ops += [self.actorOptimizer]
+			ops += [self.layers[0].grads, self.actorOptimizer]
 		feeds = {self.rewardInput: reward,
 				 self.doneInput: done,
 				 self.stateInput: state,
