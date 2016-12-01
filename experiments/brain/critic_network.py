@@ -6,9 +6,9 @@ import math
 from .common.utils import variable
 from .common.utils import variable_summaries
 
-LAYER1_SIZE = 400
-LAYER2_SIZE = 300
-LEARNING_RATE = 1e-3
+LAYER1_SIZE = 32
+LAYER2_SIZE = 10
+LEARNING_RATE = 1e-1
 TAU = 0.001
 L2 = 0.01
 GAMMA = 0.99
@@ -44,8 +44,7 @@ class CriticNetwork:
 		diff = self.q_value_output - self.reward_input - tf.matmul(
 			tf.diag(1- self.done_input), tf.scalar_mul(GAMMA, self.target_q_value_output))
 		loss = tf.square(diff)
-		loss = tf.Print(loss, [loss, diff, (1- self.done_input), tf.diag(1- self.done_input), self.reward_input,
-			self.q_value_output])
+		#loss = tf.Print(loss, [loss, diff])
 		self.cost = tf.reduce_mean(loss) + weight_decay
 		self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.cost)
 
