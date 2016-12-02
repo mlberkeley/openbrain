@@ -77,8 +77,7 @@ class Layer:
 
 	def createCriticLoss(self, td):
 		with tf.variable_scope('loss'):
-            # + because td is already negative
-			l = tf.square(self.Q + td)
+			l = tf.square(self.Q - td)
 			loss = tf.reduce_mean(l) + ALPHA*(
 				tf.nn.l2_loss(self.Qweights[0])
 				+ tf.nn.l2_loss(self.Qweights[1] )
