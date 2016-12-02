@@ -42,7 +42,7 @@ class CriticNetwork:
 		# Define training optimizer
 		weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
 
-		self.q_TD = + self.reward_input + tf.matmul(tf.diag(1- self.done_input),
+		self.q_TD = self.reward_input + tf.matmul(tf.diag(1- self.done_input),
 				tf.scalar_mul(GAMMA, self.target_q_value_output))
 		diff = self.q_value_output - self.q_TD
 		loss = tf.square(diff)
