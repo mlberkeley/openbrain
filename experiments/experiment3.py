@@ -13,6 +13,7 @@ import gc
 import argparse
 gc.enable()
 
+VTOUP = 0.001
 
 from brain.common.filter_env import makeFilteredEnv
 from brain.global_brain import GlobalBrain
@@ -46,7 +47,7 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
     stateDim = env.observation_space.shape[0]
     actionDim = env.action_space.shape[0]
     sess = tf.Session(config=config)
-    brain = GlobalBrain(sess, stateDim, actionDim)
+    brain = GlobalBrain(sess, 1, actionDim)
 
     # Set up tensorboard.
     merged = tf.merge_all_summaries()
@@ -65,15 +66,16 @@ def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000
         for step in range(100):
             w += 1
             t+=1
-            action = brain.getAction(state)
+            action = brain.getAction(state[1] - VTOUP*(state[0]) + VTOUP)
             # Deal with the environment
             
             #print(action)
-            
+            env.render()
+           
             next_state,reward,done, _ = env.step(action)
 
             r_tot += reward
-            ops, feeds = brain.perceive(reward, int(done), state, action, next_state)
+            ops, feeds = brain.perceive(reward, int(done), (state[1] - VTOUP*(state[0]) + VTOUP), action, next_state[1] - VTOUP*(next_state[0]) + VTOUP)
             if ops != None and feeds != None:
                 ops = [merged] + ops
                 result = sess.run(ops, feeds)
