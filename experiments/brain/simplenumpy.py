@@ -1,7 +1,9 @@
 import numpy as np
+import gym
+from common.ou_noise import OUNoise
 
-critic_learning_rate = 1000
-actor_learning_rate = 1
+critic_learning_rate = 10
+actor_learning_rate = 100
 TAU = 0.0001
 GAMMA = 0.99
 
@@ -16,7 +18,7 @@ class Neuron:
 		self.t = 0
 		np.random.seed(0)
 	def init_var(self):
-		return np.array([0.0001])
+		return np.array(2* np.random.rand(1,1) - 1)
 
 	def updateTargets(self):
 		self.t += 1
@@ -27,7 +29,7 @@ class Neuron:
 		self.weightTarget += (1-TAU) * (self.weight - self.weightTarget) 
 
 	def getAction(self, state):
-		return np.tanh(np.dot(self.weight, state)) + 0.1 * (np.random.rand(1) * 2 - 1)
+		return np.tanh(np.dot(self.weight, state))
 
 	def getExplore(self, state):
 		return np.random.rand([1]) * 2 - 1
@@ -66,8 +68,8 @@ class Neuron:
 
 	def trainActor(self, action, state):
 		q, mu, muGrads = self.getQ(action, state)
-		weightgradient = -np.dot(np.dot(muGrads, muGrads), self.qa)
-		if weightgradient > 1:
+		weightgradient = np.dot(np.dot(muGrads, muGrads), self.qa)
+		if np.linalg.norm(weightgradient) > 1:
 			weightgradient = 1
 		if weightgradient < -1:
 			weightgradient = -1
@@ -99,8 +101,28 @@ class StupidGame:
 		else:
 			return self.pose, -1, False, None
 
+class ShittyMountainCar:
+
+	def __init__(self):
+		self.env = gym.make('MountainCarContinuous-v0')
+		self.env.seed(0)
+		self.noise = OUNoise(1)
+
+	def featurizeState(self, state):
+		##TODO
+		VTOUP = 0.01
+		return (state[1] - VTOUP*(state[0] + VTOUP))
+
+	def reset(self):
+		self.noise.reset()
+		return self.featurizeState(self.env.reset())
+
+	def step(self, action):
+		nextstate, reward, done, _ = self.env.step(action + self.noise.noise())
+		return self.featurizeState(nextstate), reward, done, _
+
 if __name__ == '__main__':
-	env = StupidGame()
+	env = ShittyMountainCar()
 	stateDim = 1#env.observation_space.shape[0]
 	actionDim = 1
 	layer1 = Neuron()
@@ -118,7 +140,8 @@ if __name__ == '__main__':
 		r_tot = 0
 
 		for step in range(200):
-
+			# if episode % 100 == 0:
+			env.env.render()
 			#layer 1
 			h1 = layer1.getAction(state)
 			
@@ -164,3 +187,5 @@ if __name__ == '__main__':
 			state = nextstate
 
 		print(" ", state, r_tot)
+		if done:
+			break
