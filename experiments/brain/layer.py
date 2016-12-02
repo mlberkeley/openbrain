@@ -60,7 +60,7 @@ class Layer:
 
 	def createCritic(self):
 		with tf.variable_scope('Q'):
-			
+
 			Ms = variable([self.prevSize, self.size], self.prevSize)
 			Ma = variable([self.size, 1], self.prevSize)
 			b = variable([self.size], self.prevSize)
@@ -69,17 +69,17 @@ class Layer:
 			variable_summaries(q, self.name + "/Q")
 		return q, [Ms, Ma, b]
 
-	def createCriticTraining(self, true_Q):
-		self.Qloss = self.createCriticLoss(true_Q)
+	def createCriticTraining(self, td):
+		self.Qloss = self.createCriticLoss(td)
 		gradLQ = tf.gradients(self.Qloss, self.Q)
 		gradQM = tf.gradients(self.Q, self.Qweights, gradLQ)
 		return list(zip(gradQM, self.Qweights))
 
-	def createCriticLoss(self, true_Q):
+	def createCriticLoss(self, td):
 		with tf.variable_scope('loss'):
-			l = tf.square(self.Q - true_Q)
+			l = tf.square(self.Q - td)
 			loss = tf.reduce_mean(l) + ALPHA*(
-				tf.nn.l2_loss(self.Qweights[0]) 
+				tf.nn.l2_loss(self.Qweights[0])
 				+ tf.nn.l2_loss(self.Qweights[1] )
 				+ tf.nn.l2_loss(self.Qweights[2]))
 			variable_summaries(loss, self.name + "/loss")

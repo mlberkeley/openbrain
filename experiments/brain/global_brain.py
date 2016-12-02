@@ -26,7 +26,7 @@ class GlobalBrain:
 		self.stateInput = tf.placeholder("float", [None, stateDim])
 		self.nextStateInput = tf.placeholder("float", [None, stateDim])
 		self.actionInput = tf.placeholder("float", [None, actionDim])
-		self.rewardInput = tf.placeholder("float", [None]) 
+		self.rewardInput = tf.placeholder("float", [None])
 		self.doneInput = tf.placeholder("float", [None])
 
 		# Construct a series of layers
@@ -45,7 +45,7 @@ class GlobalBrain:
 				stateDim,actionDim,
 				self.stateInput, self.actionInput,
 				self.rewardInput, self.nextStateInput,
-				self.next_action, 
+				self.next_action,
 				self.doneInput)
 
 		# Create the optiomizers
@@ -73,7 +73,7 @@ class GlobalBrain:
 		with tf.variable_scope('subcritic_learning'):
 			for layer in self.layers:
 				with tf.variable_scope(layer.name):
-					grad_vars += layer.createCriticTraining(self.critic.q_value_output)
+					grad_vars += layer.createCriticTraining(self.critic.q_TD)
 
 			optimizer = tf.train.AdamOptimizer(SUBCRITIC_LEARNING_RATE).apply_gradients(grad_vars)
 		return optimizer
