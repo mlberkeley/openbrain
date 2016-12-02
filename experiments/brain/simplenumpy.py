@@ -138,10 +138,10 @@ if __name__ == '__main__':
 		activations = None
 		print("Episode: ", episode, end="")
 		r_tot = 0
-
-		for step in range(200):
-			# if episode % 100 == 0:
+		for step in range(env.env.spec.timestep_limit):
+			#if episode % 100 == 0:
 			env.env.render()
+				
 			#layer 1
 			h1 = layer1.getAction(state)
 			
@@ -187,5 +187,4 @@ if __name__ == '__main__':
 			state = nextstate
 
 		print(" ", state, r_tot)
-		if done:
-			break
+		
