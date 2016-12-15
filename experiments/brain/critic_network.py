@@ -6,10 +6,10 @@ import math
 from .common.utils import variable
 from .common.utils import variable_summaries
 
-LAYER1_SIZE = 400
-LAYER2_SIZE = 300
-LEARNING_RATE = 1e-3
-TAU = 0.001
+LAYER1_SIZE = 1
+LAYER2_SIZE = 1
+LEARNING_RATE = 1e-1
+TAU = 0.01
 L2 = 0.01
 
 class CriticNetwork:

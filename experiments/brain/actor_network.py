@@ -6,9 +6,9 @@ from .common.utils import variable
 
 # Hyper Parameters
 REPLAY_BUFFER_SIZE = 1000000
-LAYER1_SIZE = 10
-LAYER2_SIZE = 10
-LEARNING_RATE = 1e-4
+LAYER1_SIZE = 2
+LAYER2_SIZE = 1
+LEARNING_RATE = 1e-3
 TAU = 0.001
 BATCH_SIZE = 64
 GAMMA = 0.99

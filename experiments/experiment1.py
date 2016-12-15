@@ -17,7 +17,26 @@ gc.enable()
 from brain import DDPG
 from brain import SubCritics
 from brain.common.filter_env import makeFilteredEnv
+from brain.common.ou_noise import OUNoise
+class ShittyMountainCar:
 
+    def __init__(self):
+        self.env = gym.make('MountainCarContinuous-v0')
+        self.env.seed(0)
+        self.noise = OUNoise(1)
+
+    def featurizeState(self, state):
+        ##TODO
+        VTOUP = 0.01
+        return (state[1] - VTOUP*(state[0] + VTOUP))
+
+    def reset(self):
+        self.noise.reset()
+        return self.featurizeState(self.env.reset())
+
+    def step(self, action):
+        nextstate, reward, done, _ = self.env.step(action + self.noise.noise())
+        return self.featurizeState(nextstate), reward, done, _
 
 def test(env, agent, num_tests):
     """
@@ -37,11 +56,11 @@ def test(env, agent, num_tests):
     return avg_reward
 
 
-def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000, TEST=10):
+def run_experiment(exp_name, ENV_NAME='MountainCarContinuous-v0', EPISODES=10000, TEST=10):
     """
     Runs the experiment on the target en
     """
-    env = makeFilteredEnv(gym.make(ENV_NAME))
+    env = ShittyMountainCar()
 
     # Create the standard DDPG agent.
     agent = DDPG(env)
@@ -57,20 +76,21 @@ def run_experiment(exp_name, ENV_NAME='LunarLanderContinuous-v2', EPISODES=10000
 
     t = 0
     for episode in range(EPISODES):
-        state = env.reset()
+        state = [env.reset()]
         activations = None
         print("Episode: ", episode, end="")
         r_tot = 0
 
-        for step in range(env.spec.timestep_limit):
+        for step in range(env.env.spec.timestep_limit):
             t+= 1
             # Explore state space.
             next_action, next_activations = agent.noise_action_activations(state)
 
             # Deal with the environment
             next_state,reward,done,_ = env.step(next_action)
+            next_state = [next_state]
             r_tot += reward
-            env.render()
+            env.env.render()
 
             # Train subcrticis and plot to tensorflow
             if activations is not None and action is not None:

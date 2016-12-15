@@ -169,7 +169,7 @@ Berkeley CA, 94720 \\
 \maketitle
 
 \begin{abstract}
-    In this paper we conjecture that an agent, envirionment pair $(\mu, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q^{\mu}$ can be decomposed into a number of sub-agent, sub-environment pairs  $(\mu^n, E^n)$ ranging over every neuron in $\mu$; that is, we show empircially that treating each neuron $n$ as an agent $\mu^n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q^{\mu^n}$ with respect to the weights of $\mu^n$ is dual to optimizing $Q^\mu$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\mu^n$ without error backpropogation achieving state of the art performance and speed across a variety of OpenAI Gym environments.
+    In this paper we conjecture that an agent, envirionment pair $(\mu, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q^{\mu}$ can be decomposed into a number of sub-agent, sub-environment pairs  $(\mu^n, E^n)$ ranging over every neuron in $\mu$; that is, we show empircially that treating each neuron $n$ as an agent $\mu^n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q^{\mu^n}$ with respect to the weights of $\mu^n$ is dual to optimizing $Q^\mu$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\mu^n$ without error backpropogation opening a new aveneue of deep reinforcement learning research.
 \end{abstract}
 \listoftodos
 

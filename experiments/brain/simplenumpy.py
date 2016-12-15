@@ -1,9 +1,10 @@
 import numpy as np
 import gym
 from common.ou_noise import OUNoise
+import time
 
 critic_learning_rate = 10
-actor_learning_rate = 100
+actor_learning_rate = 50
 TAU = 0.0001
 GAMMA = 0.99
 
@@ -178,7 +179,7 @@ if __name__ == '__main__':
 			# layer3.train(reward, action, h2_1 + h2_2, nextaction, next_h2_1 + next_h2_2, done)
 
 			r_tot += reward
-
+			time.sleep(0.01)
 
 
 			if done:
