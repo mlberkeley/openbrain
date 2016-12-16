@@ -5,15 +5,7 @@
 \textbf{Motivation:}
 Our first batch of experiments aimed to establish empirically that the Q-functions of each layer, denoted $Q_1...Q_L$ are similar to the Q-function of the overall network, denoted $Q_{\mu}$. To that end, we extended the actor-critic methodology used in Lillicrap et al (2016) as follows. In addition to training $Q^\mu$, to estimate the Q functions of the actor network $\mu$, sub-critic networks $Q^n$ were initialized for each individual layer. We then compare the $Q$ values estimated by the subcritics to the $Q$ estimation provided by the main critic, $Q^\mu$. 
 
-
-The inputs used in the calculation of the Q-functions for each layer follow the conceptual framework laid out in Section 2.2. The state and action parameters are therefore voltages represented by the outputs of $\epsilon : \scripts \to \scriptv$ and $\delta : \scriptv \to \scripta$ respectively, where the changes in voltage are described by a voltage transition function $K : \scriptv \to \scriptv$. 
-
-
-To determine and compare the rate at which the subcritics and the main critic learn, the experiment was run in two phases. First, each of the subcritics and the main critic were trained using the standard DDPG algorithm on some actor $\mu$. In the second phase, a new actor $\mu'$ was initialized and its Q-function set to $Q_{\mu}$ as determined above in phase 1. The subcritics were trained, and the values of $Q_1\dots Q_{L}$ were plotted as training occurred. \todo[inline]{Introduce the notion of similary used to compare the q-functions.}
-
-
-After [number of iterations], each $Q^n(s,a)$  networks effectively learned the same cost function as $Q^{\mu}(s,a)$.
-\todo[inline]{Incorporate metrics regarding the performance $Q_n$ w.r.t $Q^{\mu}$'s weights}. Furthermore, the $Q$-value plots for each $Q^n$correlate directly with the  $Q^{\mu}$'s $Q$ plot. This confirms that we are able teach the $Q^n$ model on the level of subcomponents of $\mu$ supporting the argument that we can use $Q^n$ nets to approximate $Q^\mu$. We can now use each $Q^n$ to calculate the gradient of the specific neuron component that the $Q^n$ is critiquing. We proceed with this in Experiment 2.
+To determine and compare the rate at which the subcritics and the main critic learn, the experiment was run in two phases. First, each of the subcritics and the main critic were trained using the standard DDPG algorithm on some actor $\mu$. In the second phase, a new actor $\mu'$ was initialized and its Q-function set to $Q_{\mu}$ as determined above in phase 1. The subcritics were trained, and the values of $Q_1\dots Q_{L}$ were plotted as training occurred.
 
 \subsection{Experiment 2: Treating each neuron as its Actor-Critic network using linear approximators}
 
@@ -22,96 +14,5 @@ Now that we have established that the Critic networks for each of the individual
 $$Q^{n}(v, a) \approx \theta_{n,v}^T v + \theta_{n,a}a = \theta_{n}^T (v, a)^T$$
 $$\mu^{n}(v) = \sigma(K^n v)$$
 
-GOT RID OF $\Theta$ in that it's not very necessary ...
-
-The algorithm for learning (very much INSPIRED by [CONTINUOUS CONTROL WITH DEEP REINFORCEMENT
-LEARNING]):
-
-For each neuron n:
-\begin{enumerate}
-\item[] Initialize random weights $\theta_{n,v}$, $\theta_{n,a}$, and $K^n$
-\item[] Initialize target network ${Q^n}'$ and ${\mu^n}'$ with same weights, $\theta'_{n,v}$, $\theta'_{n,a}$, and $K'^n$
-\item[] Initialize replay buffer R
-\item[] For each episode:
-\begin{enumerate}
-\item[] Receive initial observation voltages $v_1$
-\item[] for t=1, T, do:
-\begin{enumerate}
-\item[] follow dynamics, $a^n_{t+1} = \sigma(K^n v_t)$
-\item[] Observe reward $r_t$, observe new voltages $v_{t+1}$
-\item[] Store transition $(v_t, a_t, r_t, v_{t+1})$ in R.
-\item[] Sample a random minibatch of $N$ transitions $(v_i, a_i, r_i, v_{i+1})$ from R
-\item[] Set $y_i = r_i + \gamma Q'(v_{i+1}, \mu'(v_{i+1}))$
-\item[] Update critic weights $\theta_n$ by minimizing loss $L := \frac{1}{N} \sum_i (y_i - Q(v_i, a_i))^2$
-\item[] Update actor weights (connections) using the sample policy gradient:
-$$\nabla_{K^n} J \approx \frac{1}{N} \sum_i \nabla_a Q(v, a) \vert_{v=v_i, a=\mu^n(v_i)} \nabla_{K^n} \mu^n(v) \vert_{v_i}$$
-\item[] update the target networks:
-$$\theta_n' \leftarrow \tau \theta_n + (1 - \tau) \theta_n'$$
-$${K^n}' \leftarrow \tau K^n + (1 - \tau) {K^n}'$$
-\end{enumerate}
-\item[] end for
-\end{enumerate}
-\item[] end for
-\end{enumerate}
-
-We train the critic weights $(\theta_{n,v}, \theta_{n,a})$ by minimizing the loss:
-
-$$L = \frac{1}{2}((r_i + \gamma {Q^n}'(v_{i+1}, a_{i+1})) -  Q(v_{i}, a_{i})) \\
-= \frac{1}{2}D_i^2$$
-
-
-where $D_i := (r_i + \gamma {\theta_n^T}' (v_{i+1}, a_{i+1})) - \theta_n (v_{i}, a_{i}) $
-
-We thus have:
-$$\nabla_{\theta_n} L = -D_i (v_{i}, a_{i})$$
-
-or, using gradient descent with learning rate $\eta_Q$, we have:
-$$\theta_n \mathrel{-}= \eta_Q \nabla_{\theta_n} L = -\eta_Q D_i (v_{i}, a_{i})$$
-
-or:
-
-$$\theta_{n,v} \mathrel{+}= \eta_Q D_i v_i$$
-and
-$$\theta_{n,a} \mathrel{+}= \eta_Q D_i a_i$$
-
-As for updating the actor policy, with learning rate $eta_A$, we have:
-$$K^n \mathrel{+}= \eta_A \nabla_a Q(v, a) \vert_{v=v_i, a=\mu^n(v_i)} \nabla_{K^n} \mu^n(v) \vert_{v_i} = \eta_A \theta_{n,a} \sigma'(K^n v_i) v_i$$
-
-IN CONCLUSION:
-
-$$\theta_{n,v} \mathrel{+}= \frac{1}{N} \sum_i \eta_Q D_i v_i$$
-$$\theta_{n,a} \mathrel{+}= \frac{1}{N} \sum_i \eta_Q D_i a_i$$
-$$K^n \mathrel{+}= \frac{1}{N} \sum_i \eta_A \theta_{n,a} \sigma'(K^n v_i) v_i$$
-
-where $D_i := (r_i + \gamma {\theta_n^T}' (v_{i+1}, a_{i+1})) - \theta_n (v_{i}, a_{i}) $
-
-
-
-
-
-\todo[inline]{Emperical justification of the iff using the following experiment (s).}
-
 Intuitively, it should be the case that by treating each neuron in the neural network as its own Q-learner, the policy gradient of an individual agent should be the same as for the policy gradient entire agent, if each neuron sees the same reward $r_t$ as the entire agent. In other words, the optimal way of updating the entire connection matrix $K$ should be the optimal way for updating the weights connected to each neuron w.r.t. each neuron as its own Q-learner, given the same rewards.
 
-
-\noindent 3. Plot the output of both $Q^\mu$ and $Qn$ using TENSORFLOW summaries.
-
-From Experiment 1, we see that there is a correlation between the Q-gradient for neuron $n$, and the nth column of the gradient of the agent's Q function:
-
-from strong to weak:
-$$\nabla_{K^n} Q^{\mu^n}(v,a) = \nabla_{K^n} Q^{\mu}(s,a)$$
-$$\nabla_{K^n} Q^{\mu^n}(v,a) \propto \nabla_{K^n} Q^{\mu}(s,a)$$
-$$corr[\nabla_{K^n} Q^{\mu^n}(v,a), \nabla_{K^n} Q^{\mu}(s,a)] \approx EMPERICAL VALUE$$
-
-although (assuming we get a weak experimental result), we propose that it is due to our neurons not being the ideal Q-learner (convergence issues, etc.).
-
-\todo[inline]{1. Training a network on Atari using DDPG and plotting average critic functions for neurons using window.
-}
-
-\textbf{EXPERIMENT 1 SPECIFICATION.}
-\noindent 1. Set up a standard DDPG to play the set of atari games in OpenAi Gym using TENSORFLOW (this will be mac,linux, or windows bash only). If on Windows bash install Xming (its an X server) and run all OpenAI Gym commands with \verb|DISPLAY=localhost:0.0 python3 src/experiment1/some__script_in_src.py|. This will pipe the visual output fo the OpenAI Gym simulators to the display. If you cannot get this to work on your screen, do not do env.render. We can also stop using the atari games, since this works for a fact on the basic Box2d versions. \textbf{We are going to write all of this in Python3, make sure to install gym in python3.}\\
-\noindent 2. DDPG has a $Q^\mu$ network which we use to optimize $\mu(s_t\:|\: \theta)$ with respect to $\theta$. The goal of this experiment is to train a standard DDPG network to play one of these OpenAI Gym simulations, whislt concurrently estimating and viewing the $Q$ functions for every single neuron. THEREFORE, we need to select a subset of neurons in the fully connected layers (for example) of the $\mu$ network (actor) and concurrently train a network $Q^n(s,a)$ to estimate the $Q$ function of the neuron based on its inputs $s$ and its SINGLE output voltage $s$. This can be a 3 layer fully connected network with $|s| + 1$ inputs (one for each input the neuron $n$ and 1 for the voltage of the neuron after receiving that output.) Tensorflow is a dataflow language so the output of a layer looks like $O2 = \sigma(W*O1).$ Therefore you just need to make another "network" whose dataflow could be like $Qn = \sigma(W^n_3*\sigma(W^n_2*\sigma(W^n_1*\mathrm{concat}(O1, O2[i]))))$ where n is the $i$th neuron on layer $O2$. And $O1, O2, O3$ are the outputs of the neurons on those layers in the network. Then as in standard DQN you tain $Qn$ with a lag network $W(Qn') = W(Qn)(1-\tau) + \tau W(Qn)$ where $W$ denotes the weights of $Qn$, say $W^n_3, W^n_2, W^n_1, \dots$. And then actually do gradient decent on the weights of $Qn$ not $Qn'$ by minimizing the following bellman equation
-\begin{equation*}
-  L(s_t, a_t, r_t, s_{t+1}, a_{t+1}) = (Qn(O1(s_t),O2[i](s_t)) - r_t - Qn'(O1(s_{t+1}),O2[i](s_{t+1})))^2
-\end{equation*}
-with respect to the parameters $W(Qn)$. Note I didn't actually use $a_t$ above since really the $Qn$ function takes in the input of the previous layer (to $n$) as its input, say $O1(s_t)$ and the action for that same time step which is just the output of the neuron $n$, say $O2(s_t)[i]$.  The same goes for $Qn'$ but at the next time step.

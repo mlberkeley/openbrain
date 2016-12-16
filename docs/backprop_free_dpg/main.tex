@@ -3,14 +3,16 @@
 \documentclass{article} % For LaTeX2e
 \usepackage{nips15submit_e,times}
 \usepackage{xparse}
+\usepackage{subcaption}
 
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage[toc,page]{appendix}
+% \usepackage{icml2015}
 
 %citation
-%\usepackage[backend=bibtex]{biblatex}
-\bibliography{openbrain}
+\usepackage[backend=bibtex]{biblatex}
+\bibliography{main}
 %
 
 % tikz and associated macros
@@ -26,10 +28,14 @@
 %
 
 % math
+
 \usepackage{amsthm}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathabx}
+
+ 
+
 
 \newcommand{\BlackBox}{\rule{1.5ex}{1.5ex}}  % end of proof
 \newtheorem{example}{Example}
@@ -140,23 +146,22 @@
 \author{
 William H.~Guss \\
 Machine Learning at Berkeley\\
-2650 Durant Ave, Berkeley CA, 94720 \\
-\texttt{wguss@ml.berkeley.edu} \\
+\texttt{wguss@berkeley.edu} \\
 \And
-Mike Zhong \\
+Phillip Kuznetsov \\
 Machine Learning at Berkeley \\
 Berkeley CA, 94720 \\
-\texttt{mlyzhong@berkeley.edu} \\
+\texttt{philkuz@berkeley.edu} \\
 \And
-James Bartlett\\
-Machine Learning at Berkeley \\
+Noah Golmant\\
+Machine Learning at Berkeley\\
 Berkeley CA, 94720 \\
-\texttt{bartlett@ml.berkeley.edu}
+\texttt{noah.golmant@berkeley.edu}
 \And
 Max Johansen \\
 Machine Learning at Berkeley \\
 Berkeley CA, 94720 \\
-\texttt{max@ml.berkeley.edu}
+\texttt{maxjohansen@berkeley.edu}
 }
 
 
@@ -169,30 +174,25 @@ Berkeley CA, 94720 \\
 \maketitle
 
 \begin{abstract}
-    In this paper we conjecture that an agent, envirionment pair $(\mu, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q^{\mu}$ can be decomposed into a number of sub-agent, sub-environment pairs  $(\mu^n, E^n)$ ranging over every neuron in $\mu$; that is, we show empircially that treating each neuron $n$ as an agent $\mu^n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q^{\mu^n}$ with respect to the weights of $\mu^n$ is dual to optimizing $Q^\mu$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\mu^n$ without error backpropogation achieving state of the art performance and speed across a variety of OpenAI Gym environments.
+    In this paper we conjecture that an agent, envirionment pair $(\mu, E)$ trained using DDPG with an actor network $\mu$ and critic network $Q^{\mu}$ can be decomposed into a number of sub-agent, sub-environment pairs  $(\mu^n, E^n)$ ranging over every neuron in $\mu$; that is, we show empirically that treating each neuron $n$ as an agent $\mu^n: \mathbb{R}^n \to \mathbb{R}$ of its inputs and optimizing a value function $Q^{\mu^n}$ with respect to the weights of $\mu^n$ is dual to optimizing $Q^\mu$ with respect to the weights of $\mu$. Finally we propose a learning rule which simultaneously optimizes each $\mu^n$ without error backpropogation.
 \end{abstract}
-\listoftodos
-
+% \listoftodos
 
 \section{Introduction}
-\todo[inline]{Introduction to DDPG and recent advances in deep RL. }
+Recent techniques in deep reinforcement learning attempt to learn two deep neural networks: one to approximate a value function and one to learn a deterministic policy that maximizes this value function according to the action the agent performs.  
 
-\todo[inline]{\textbf{The problem statment is here.} Biological diffusion of dopamine in the brain$\implies$ error backpropagation is not biologically feasible.}
+Other work has attempted to address the issue of decoupling connections between layers in the network using decoupled neural interfaces \cite{DBLP:journals/corr/JaderbergCOVGK16}. Synthetic gradient modules model the error gradient using only local information, allowing immediate feedback that is later corrected when the backpropogated error is finally computed.
 
-Recent work has attempted to address the issue of decoupling connections between layers in the network using decoupled neural interfaces \cite{jaderberg2016syngrad}. The initial coupling is due to the reliance on the forwards and backwards computations to compute the backpropagated error gradient for a given layer. Synthetic gradient modules model the error gradient using only local information, allowing immediate feedback that is later corrected when the backpropogated error is finally computed. This method has had success in both feedforward and recurrent architectures, where the network is able to model much greater time horizons.
-
-Although synthetic gradients decouple the network modules to some degree, this technique still relies on synchronous backpropagation to learn the local regressors. In addition, they model at a lower granularity, learning layer-level gradients instead of those of the individual neurons.
-
-\todo[inline]{Coupling synthetic gradients with dopamine we get blah. Therefore it is feasible that each neuron is maximizing the expectation on his future dopamine intake, and so we propose the following theorem.  }
+Both of these techniques still rely on biologically implausible backpropagation mechanisms to learn the parameters of the networks. We attempt to address these issues by decomposing the agent and learning rules at the local neuron level.
 
 \section{Agent-Environment Value Decomposition}
 
-In this section we will develop a theoretical basis for decomposing the agent and its environment in to neuromorphically local agent which act on the activations of their priors. We then will show that under some mild conditions, these agents act in environments which are so simple that it suffices to estimate the policy gradient using a linear approximation, much in the style of synthetic gradients. These results lead to a new decentralized, local, and asynchronous learning paradigm for deep reinforcement learning without the use of deep error-backpropagation.
+In this section we develop a theoretical basis for decomposing the agent and its environment into local agents which take in prior neuron activations as state and output activations as the neuron's own actions. We will then show that under some mild conditions, these agents act in environments which are so simple that it suffices to estimate the policy gradient using a linear approximation. These results lead to a new local learning rule for deep reinforcement learning without the use of error-backpropagation.
 
 \subsection{Background}
-Recall the standard reinforcement learning setup. We say $E$ is an \emph{environment} if $E \defeq (\scripts, \scripta, \scriptr, T, r)$ where $T$ describes transition probability measure $T\left(s_{t+1}\suchthat s_t, a_t\right)$ and $r: \scripts \times \scripta \to \scriptr$ is a reward function. Furthermore $\scripts$, $\scripta$, $\scriptr$ are the \emph{state space, action space, and reward space} respectively. We restrict $\scriptr$ to a compact subset of $\mathbb{R}$ and action space and state space to finite dimensional real vector spaces. As in DDPG we assume that the environment $E$ is \emph{fully observed}; that is, at any time step the state $s_t$ is fully described by the observation presented, $x_t$, and not by the history $(x_1, a_1, \dots, a_{t-1}).$
+Recall the standard reinforcement learning setup. We say $E$ is an \emph{environment} if $E \defeq (\scripts, \scripta, \scriptr, T, r)$ where $T$ describes transition probability measure $T\left(s_{t+1}\suchthat s_t, a_t\right)$ and $r: \scripts \times \scripta \to \scriptr$ is a reward function. Furthermore $\scripts$, $\scripta$, $\scriptr$ are the \emph{state space, action space, and reward space} respectively. We restrict $\scriptr$ to a compact subset of $\mathbb{R}$ and action space and state space to finite dimensional real vector spaces. As in DDPG \cite{DBLP:journals/corr/LillicrapHPHETS15} we assume that the environment $E$ is \emph{fully observed}; that is, at any time step the state $s_t$ is fully described by the observation presented, $x_t$, and not by the history $(x_1, a_1, \dots, a_{t-1}).$
 
-We define the policy for an agent to be $\mu: \scriptp(\scripta) \times \scripts \to [0,1]$. In general the policy is a probability measure on some $\sigma$-algebra $\scriptm \subset \scriptp(\scripta)$ conditioned on $\scripts$ so that $\mu\left(\scripta \suchthat s \in \scripts\right) = 1$. However, we will deal only with \emph{deterministic} policies where for every $s_t$ there is unique $a_t$ so that $\mu\left(\set{a_t} \suchthat s = s_t\right) = 1$ and the measure is $0$ otherwise. Thus we will abuse notation and define a \emph{deterministic agent} by a policy function $\mu: \scripts \to \scripta$. Additionally we denote the state-space trajectories of $\mu $ by
+We define the policy for an agent to be $\mu: \scriptp(\scripta) \times \scripts \to [0,1]$. We will deal only with \emph{deterministic} policies where for every $s_t$ there is unique $a_t$ so that $\mu\left(\set{a_t} \suchthat s = s_t\right) = 1$ and the measure is $0$ otherwise. Thus we define a \emph{deterministic agent} by a policy function $\mu: \scripts \to \scripta$. Additionally we denote the state-space trajectories of $\mu $ by
 \begin{equation}
  	\Gamma_\mu(\scripts) = \set{((s_1, a_1), (s_2, a_2) \dots)\suchthat s_1 \sim T(s_0), s_{t+1} \sim T\left(s \suchthat s_t, \mu(s_t)\right)}.
  \end{equation}
@@ -201,9 +201,9 @@ For a policy $\mu$  the action-value function is the expected future reward unde
 \begin{equation}
     Q^{\mu}(s_t, a_t) = \expect_{s_{t+1} \sim E}\left[r(s_{t}, a_t) + \gamma Q^{\mu}(s_{t+1}, \mu(s_{t+1}))\right]
 \end{equation}
-with $\gamma \in (0,1)$ a discount factor, and the second expectation removed because $\mu$ is deterministic. \todo{Insert reference and make this a footnote}{[Some survey]} provides an extensive exposition into a justification of this equation and choice for the action-value of $\mu$, so we will assume such a choice is a valid measure of performance.
+with $\gamma \in (0,1)$ a discount factor, and the second expectation removed because $\mu$ is deterministic.
 
-Among a variety of methods, the deep reinforcement learning approach to solving environments (MDPs) has been predominately been separated into deterministic policy gradient methods and direct, optimal Q-Learning methods. In deterministic policy gradient (DPG) methods, we define an actor $\mu: \scripts \to \scripta$ and a critic $Q^\mu: \scripts \times \scripta \to \mathbb{R}$ and optimize $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ Deep determinsiitc policy gradient (DDPG) learning directly learns to approximate $Q_a$ by creating two different deep neural networks for the actor and the critic and then back-propagating the $Q$ gradient from the critic to the actor. Specifically, DDPG maximizes $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ This method is provably the true policy gradient of $\mu$ if $Q^\mu$ is known. In order to decompose the action-value function we will make heavy use of this methodology at a scale local to each neuron in the flavor of \todo{Cite deepmind}{(Synthetic gradients.)}
+The deep reinforcement learning approach to solving environments (MDPs) has predominately been separated into deterministic policy gradient methods and direct Q-Learning methods. In deterministic policy gradient (DPG) methods, we define an actor $\mu: \scripts \to \scripta$ and a critic $Q^\mu: \scripts \times \scripta \to \mathbb{R}$ and optimize $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ Deep determinsitic policy gradient (DDPG) learning directly learns to approximate $Q_a$ by creating two different deep neural networks for the actor and the critic and then back-propagating the $Q$ gradient from the critic to the actor. Specifically, DDPG maximizes $Q^\mu(s_t, \mu(s_t | \theta^{\mu}))$ with respect to the paramers $\theta^\mu$ of $\mu.$ This method is provably the true policy gradient of $\mu$ if $Q^\mu$ is known.
 
 \subsection{Towards Neurocomputational Decomposition of $Q^\mu$}
 
@@ -237,8 +237,7 @@ If $\scriptv$ is an $N$-dimensional vector space then a \textbf{neurocomputation
 \end{definition}
 
 
-It is not hard to see that this definition encompasses any DQN or DDPG network with either reccurent or non recurrent layers. Additionally other paradigms such as the leaky integrattor are neurocomputational agents. In this paper we will mainly discuss standard feed forward neural networks, in which case $\Theta$ is not defined and the neural dynamics are repeatedly applied until an output of $N_O$ is produced (See Appendix A.)
-\todo[inline]{Show equivalence in the appendix.}
+This definition encompasses any DQN or DDPG network with either reccurent or feedforward layers. In this paper we will mainly discuss standard feed forward neural networks, in which case $\Theta$ is not defined and the neural dynamics are repeatedly applied until an output of $N_O$ is produced.
 
 
 \begin{definition}\label{def:subenv}
@@ -261,8 +260,7 @@ It is not hard to see that this definition encompasses any DQN or DDPG network w
 
 \end{definition}
 
-With the basic definitions given, we will now show performing reinforcement learning on $\scriptn$ can be decomposed into the dual problem of perfoming reinforcement learning on agents and environments of type given in Definition \ref{def:subenv}.
-
+With the basic definitions given, we show how reinforcement learning on $\scriptn$ can be decomposed into the dual problem of local reinforcement learning on agents and environments of type given in Definition \ref{def:subenv}.
 \begin{theorem}[Neurocomputational Decompostion]\label{thm:ncomp}
   Let $E$ be an environment and $\scriptn$ be a neurocomputational agent. Then there exists a set of agent environment pairs $\mathfrak{D}_\scriptn \defeq \{(E^n, \mu^n)\}_{n\in \scriptn}$ such that for every $n \in \scriptn$, the following diagram commutes
 \begin{equation}\label{eq:sub_env_com}
@@ -285,142 +283,52 @@ With the basic definitions given, we will now show performing reinforcement lear
          \end{tikzcd}
     \end{equation}
 \end{theorem}
-\begin{proof}
-  If $E$ and $\scriptn$ are given, then for every $n \in \scriptn$ let $E^n$ be a sub-environment of $E$ with respect to $\scriptn$. Next let $\mu^n$ be a neuromorphically local agent in $E^n$ with respect to $\scriptn$.
+\emph{Proof in Appendix}
 
-  We first show that \eqref{eq:sub_env_com} commutes. Let $v_t \in \scriptv$ and $s_t \in \scripts$. Observe that
-\begin{equation*}
-\left[\mu \circ \pi_2\right](v_t, s_t) = \mu(s_t) = \delta\left(D(v_t, \epsilon(s_t))\right) = \left[\delta \circ D \circ (\pi_1 \times \epsilon\circ \pi_2)\right](v_t, s_t),
-\end{equation*}
-and therefore the top half of the diagram commutes. Given some $(v_t, \epsilon(s_t)) \in \scriptv \times \scriptv$ we have that 
-\begin{equation*}
-  \begin{aligned}
-    \left[ \mu^n \circ \pi_1 + \pi_2\right] (v_t, \epsilon(s_t))  &= \mu^n(v_t) + \pi_n(\epsilon(s_t)),\\
-     &= \pi_n\left(D(v_t) + \epsilon(s_t)\right), \\
-     &= \left[\pi_n\circ D\right](v_t, \epsilon(s_t)). 
-  \end{aligned}
-\end{equation*}
-Thus the diagram in \eqref{eq:sub_env_com} commutes. 
-\end{proof}
-
-\todo[inline]{Make a sub environment tikz diagram to help people understand waht this decomposition looks like.}
 Theorem \ref{thm:ncomp} gives a natural connection between the state space trajectories of $\mu$ and $\mu^n$ because in $\scriptn$, the voltage $v_t$ is a hidden variable which governs action of $\scriptn$ at any timestep and dually the state $s_t$ is a hidden variable of the Markov Decision Process formed by $E^n$ which governs the state given by $T^n$ at any timestep. 
 
 Naturally, the following question arises: does DPG learning on $\scriptn$, specifically $\mu$ on $E$, commute with performing DPG learning on on every $(E^n, \mu^n) \in \mathfrak{D}_\scriptn$? Supposing that we have the true $Q^\mu$ function and $\mu$ is optimal with respect to $Q^\mu$, then it is intuitive, but not obvious, that every $\mu^n$ should behave optimally with respect to an $Q^{\mu^n}$ -- but will the reverse hold? To answer these questions we give the following result.
 \begin{theorem}
     If $\scriptn$ is a nuerocomputational agent in $E$, then policy gradient for $\mu$ agrees with the simultaneous policy gradients of its decomposition; that is for every $(E^n, \mu^n) \in \mathfrak{D}_\scriptn$
-    \begin{equation}
+    \begin{equation}\label{eq:ncompagrees}
         \nabla_{K^n} Q^{\mu^n}(v,\alpha)\Big|_{v=v_t,\alpha=\mu^n(v_t)} =\nabla_{K^n} Q^{\mu}(s,a)\Big|_{s=s_t,a=\mu(s_t)}
     \end{equation}
     for every time step $t$, where $K^n$ is the nth column of the linear voltage graph transition matrix, i.e. the weights of the connections from all neurons to neuron $n.$
 \end{theorem}
-\begin{proof}
-  Let $\scriptn, E$ be given and fix $(E^n, \mu^n) \in \mathfrak{D}_\scriptn$.
-  For any initial state $s_0$, Theorem  \ref{def:subenv} gives that the state-action trajectory $\kappa \in \Gamma_\mu(\scripts)$ generated by $\mu$ from $s_0$ is dual to the state-action trajectory $\kappa^* \in \Gamma_{\mu^n}(\scriptv)$ generated by $\mu^n$ from $v_0 = 0$ when the hidden state of $T^n$ is $s_t$. Because $E^n$ is a sub-environment of $E$, $r^n \equiv r$ the sequence of rewards on $\kappa$ and $\kappa^*$ are the same. Using the definition of the action-value function assuming that $s_0$ fixed, 
-  \begin{equation}\label{eq:qequality}
-      Q^{\mu}(s_t, a_t) = \sum_{\tau =t}^\infty r(s_t, \mu(s_t)) \gamma^{\tau - t} = \sum_{\tau =t}^\infty r^n(v_t, \mu^n(v_t)) \gamma^{\tau - t} = Q^{\mu^n}(v_t, a_t)
-  \end{equation}
-  where $\kappa = ((s_t, \mu(s_t)))_{t\in\mathbb{N}}$ and $\kappa^* = ((v_t,\mu^n(v_t)))_{t\in\mathbb{N}}.$ 
-
-
-  
-If $(v_t, s_t)$ are give, Theorem \ref{thm:ncomp} states that both $\mu^n$ and $\mu$ commute with the dynamics on $(v_t, \epsilon(s_t))$ (see the middle path in \eqref{eq:sub_env_com}). Thus if the dynamics are parameterized by $K^n \in \scriptk_n$, application of the equality in \eqref{eq:qequality}, gives the following commutitive diagram, $\mathfrak{k}_n$:
-  \begin{equation}\label{eq:kparam}
-    \begin{tikzcd}
-    &[+15pt] \scripta \arrow{rd}{Q^{\mu}(s_t, \cdot)}\\[+18pt]
-      \scriptk_n \arrow{r}{D(v_t, \epsilon(s_t))}
-            \arrow{rd}[swap]{\mu^n(v_t)} 
-            \arrow{ru}{\mu(s_t)} & \scriptv \arrow{d}[swap]{\pi_n}\arrow{u}{\delta} & \mathbb{R}\\[+18pt]
-      & \mathbb{R} \arrow{ru}[swap]{Q^{\mu^n}(v_t, \cdot)}
-    \end{tikzcd}
-  \end{equation}
-  Recall from category theory that differentiation is a functor on the category of $C^1$ manifolds $\mathrm{\textbf{Man}}^1$ because for any two
-  morphisms $f,g \in \mathrm{Hom}(\mathrm{\textbf{Man}}^1),$ $\nabla f \circ g = \nabla f \circ \nabla g$ by chain rule\todo{cite manifold functor paper}. It then follows that the diagram $\nabla(\mathfrak{k}_n)$ commutes and so
-  \begin{equation*}
-  \begin{aligned}
-    \nabla_{K^n} Q^{\mu^n}(v_t, \alpha) \Big|_{\alpha=\mu^n(v_t)}
-    &= \nabla_\alpha Q^{\mu^n}(v_t, \alpha) \nabla_{K^n} \mu^n(v_t) \\
-    &=\nabla_a Q^{\mu}(s_t, a) \nabla_{K^n} \mu(s_t) \\
-    &=\nabla_{K^n} Q^\mu(s_t, a) \Big|_{a = \mu(s_t)}
-  \end{aligned}
-  \end{equation*}
-  
-  Because this equality holds for any $(s_t, v_t)$ and therefore any state-action trajectory with arbitrary initial hidden variables, the theorem holds.
-\end{proof}
+\emph{Proof in Appendix}
 
 Remarkably, the prevous theorem shows that optimizing every neuromorphically local agent $\mu^n$ with respect 
 to a critic is exactly equivalent to optimizing the entire $\scriptn$ with respect to a global critic $Q^\mu$. 
 Additionally optimization of the each $\mu^n$ does not require any backpropagation of $\nabla_a Q^{\mu^n}$ through the network since every $Q^{\mu^n}$ is diagramatically independent of eachother! As a result the neurocomputational decomposition $\mathfrak{D}_\scriptn$ of $\scriptn$ can be trained asynchronously and simultaneously.
 
-\todo[inline]{Discuss Recurrent Neural Networks and infinite time horizon learning}
 \subsubsection{Simplicity of Sub-Environments}
 An algorithm which learns $\scriptn$ by performing DPG learning on every $(E^n, \mu^n) \in \mathfrak{D}_\scriptn$ is only beneficial if each $Q^{\mu^n}$ can be approximated simply. For example if $Q^{\mu^n}$ are so complex that an approximation parameterized by $K$ requires more than $|K^n| \notin O(1)$ parameters, then standard error-backpropagation is sureley superior.
 
-However the results established in (Synthetic Gradients) show that the approximation of the error backpropagated signal can be empircally linear in the activations. In the framework of DDPG, this intuitively says that the infintesmal effect of the weights $K^n$ on the dynamics and thereby the true $Q^\mu$ of a neurocomputational agent $\scriptn$ might be linear in the local neural neightborhood of $n$. 
-In the spirit of this hypothesis, we present a theorem on the simplicity of $E^n$ and thereby $Q^n$.
-
+However the results established in \cite{DBLP:journals/corr/JaderbergCOVGK16} and \cite{thomas2011policy} show that the approximation of the error backpropagated signal can be linear in the activations. In the framework of DDPG, this intuitively says that the infintesmal effect of the weights $K^n$ on the dynamics and thereby the true $Q^\mu$ of a neurocomputational agent $\scriptn$ might be linear in the local neural neighborhood of $n$.
 
 \section{Decentralized Deep Determinstic Policy Gradient Learning}
-\todo[inline]{Proposal of the rule. Linear approximation of the $Q$ function for every neuron is good enough, (experimentally).}
-
-\todo[inline]{Implications of the rule to DDPG}
-
-\todo[inline]{Implications of the rule to entirely recurrent networks (infinite time horizion and NO unrolling since the environment the local actions of the neuron which globally recur to that neuron again are \emph{encoded} into $Q_n$; large time horizion probably implies that better regresser needed for $Q_n$.)}
-
-\todo[inline]{Parallelism, no error backprop, and only 2x operations, but no locking on GPU, so all can be run sumultaneously if we cache!}
-
+We use the preceding hypothesis as a motivation for the following local decomposition. We decompose the actor-critic dual networks of DDPG into a set of actor-critic pairs, where each actor neuron attempts to learn a local policy to maximize the value of its own critic. This critic is a linear regressor and its gradient agrees with the gradient of a global $Q$ network when the policy is \emph{compatible} as in the framework of \cite{thomas2011policy}.
 
 \input{experimentation}
 
-\section{Results}
 
-
-\todo[inline]{To validate the new learning rule we throw a fuck ton of experiments together on the following list (or better using OpenAI Gym).}
-\begin{verbatim}
-blockworld1 1.156 1.511 0.466 1.299 -0.080 1.260
-blockworld3da 0.340 0.705 0.889 2.225 -0.139 0.658
-canada 0.303 1.735 0.176 0.688 0.125 1.157
-canada2d 0.400 0.978 -0.285 0.119 -0.045 0.701
-cart 0.938 1.336 1.096 1.258 0.343 1.216
-cartpole 0.844 1.115 0.482 1.138 0.244 0.755
-cartpoleBalance 0.951 1.000 0.335 0.996 -0.468 0.528
-cartpoleParallelDouble 0.549 0.900 0.188 0.323 0.197 0.572
-cartpoleSerialDouble 0.272 0.719 0.195 0.642 0.143 0.701
-cartpoleSerialTriple 0.736 0.946 0.412 0.427 0.583 0.942
-cheetah 0.903 1.206 0.457 0.792 -0.008 0.425
-fixedReacher 0.849 1.021 0.693 0.981 0.259 0.927
-fixedReacherDouble 0.924 0.996 0.872 0.943 0.290 0.995
-fixedReacherSingle 0.954 1.000 0.827 0.995 0.620 0.999
-gripper 0.655 0.972 0.406 0.790 0.461 0.816
-gripperRandom 0.618 0.937 0.082 0.791 0.557 0.808
-hardCheetah 1.311 1.990 1.204 1.431 -0.031 1.411
-hopper 0.676 0.936 0.112 0.924 0.078 0.917
-hyq 0.416 0.722 0.234 0.672 0.198 0.618
-movingGripper 0.474 0.936 0.480 0.644 0.416 0.805
-pendulum 0.946 1.021 0.663 1.055 0.099 0.951
-reacher 0.720 0.987 0.194 0.878 0.231 0.953
-reacher3daFixedTarget 0.585 0.943 0.453 0.922 0.204 0.631
-reacher3daRandomTarget 0.467 0.739 0.374 0.735 -0.046 0.158
-reacherSingle 0.981 1.102 1.000 1.083 1.010 1.083
-walker2d 0.705 1.573 0.944 1.476 0.393 1.397
-\end{verbatim}
-\todo[inline]{2. Show that training decentralized policy gradient $\implies$ total policy optimization }
-
-\todo[inline]{3. Show speed improvements on update step through parallelism (samples per second vs DDPG). }
-
-\todo[inline]{4. Show results are comparable with the state of the art.}
+\input{results}
 
 \section{Conclusion}
-\todo[inline]{We wrecked deep reinforcement learning using biological inspiration. }
+The results of experiments 1 and 2 show that local learning rules are plausible. We were able to teach a network to perform a simple task in OpenAI gym using a small network structure. Furthermore, we should that we could employ local \emph{linear} learning rules to reach this end. This is shown in our results of experiment 2. 
 \subsection{Future Work}
-\todo[inline]{Would like to try the method with full recurrent networks and purely asynchronous implementation of leaky integration networks.}
-\todo[inline]{Would like to prove the conjecture. List possible methods of proof.}
+We want to scale our results to include truly deep neural network architectures. We show promising results using multi-layer networks, however we quickly fall victim to issues from high variance in large networks.
 
+There are a number of techniques deep learning practitioners use to limit variance in standard deep learning architectures. 
+
+One technique we're curious about is probabilistically fixing a subset of the neurons, while allowing the remaining neurons to \emph{explore}. This technique is very similar to the dropout used in deep learning research. We believe this will also give us an opportunity to leverage the gains of implicit ensembling that is gained through traditional dropout techniques.
+\newpage
+\input{appendix}
 %\listoftodos
 
 
 
-%\printbibliography
+\printbibliography
 
 %\input{appendices}
 
