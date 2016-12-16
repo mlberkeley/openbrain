@@ -41,9 +41,9 @@
 \setlength{\paperheight}{11in}
 \setlength{\paperwidth}{8.5in}
 
-\oddsidemargin .25in    %   Note \oddsidemargin = \evensidemargin
-\evensidemargin .25in
-\marginparwidth 0.07 true in
+\oddsidemargin -0.21in  %   Note \oddsidemargin = \evensidemargin
+\evensidemargin -0.21in
+\marginparwidth 0 true in
 %\marginparwidth 0.75 true in
 %\topmargin 0 true pt           % Nominal distance from top of page to top of
 %\topmargin 0.125in
@@ -136,7 +136,7 @@ plus      -0.5ex minus -.2ex}{0.5ex plus
 
 
 %\leftmargin2em 
-\leftmargin3pc
+\leftmargin 2em
 \leftmargini\leftmargin \leftmarginii 2em
 \leftmarginiii 1.0em \leftmarginiv 1.0em \leftmarginv .5em  
 
@@ -188,49 +188,3 @@ plus      -0.5ex minus -.2ex}{0.5ex plus
 % Vertical Ruler
 % This code is, largely, from the CVPR 2010 conference style file
 % ----- define vruler
-\makeatletter
-\newbox\nipsrulerbox
-\newcount\nipsrulercount
-\newdimen\nipsruleroffset
-\newdimen\cv@lineheight
-\newdimen\cv@boxheight
-\newbox\cv@tmpbox
-\newcount\cv@refno
-\newcount\cv@tot
-% NUMBER with left flushed zeros  \fillzeros[<WIDTH>]<NUMBER>
-\newcount\cv@tmpc@ \newcount\cv@tmpc
-\def\fillzeros[#1]#2{\cv@tmpc@=#2\relax\ifnum\cv@tmpc@<0\cv@tmpc@=-\cv@tmpc@\fi
-\cv@tmpc=1 %
-\loop\ifnum\cv@tmpc@<10 \else \divide\cv@tmpc@ by 10 \advance\cv@tmpc by 1 \fi
-   \ifnum\cv@tmpc@=10\relax\cv@tmpc@=11\relax\fi \ifnum\cv@tmpc@>10 \repeat
-\ifnum#2<0\advance\cv@tmpc1\relax-\fi
-\loop\ifnum\cv@tmpc<#1\relax0\advance\cv@tmpc1\relax\fi \ifnum\cv@tmpc<#1 \repeat
-\cv@tmpc@=#2\relax\ifnum\cv@tmpc@<0\cv@tmpc@=-\cv@tmpc@\fi \relax\the\cv@tmpc@}%
-% \makevruler[<SCALE>][<INITIAL_COUNT>][<STEP>][<DIGITS>][<HEIGHT>]
-\def\makevruler[#1][#2][#3][#4][#5]{\begingroup\offinterlineskip
-\textheight=#5\vbadness=10000\vfuzz=120ex\overfullrule=0pt%
-\global\setbox\nipsrulerbox=\vbox to \textheight{%
-{\parskip=0pt\hfuzz=150em\cv@boxheight=\textheight
-\cv@lineheight=#1\global\nipsrulercount=#2%
-\cv@tot\cv@boxheight\divide\cv@tot\cv@lineheight\advance\cv@tot2%
-\cv@refno1\vskip-\cv@lineheight\vskip1ex%
-\loop\setbox\cv@tmpbox=\hbox to0cm{{\nipstenhv\hfil\fillzeros[#4]\nipsrulercount}}%
-\ht\cv@tmpbox\cv@lineheight\dp\cv@tmpbox0pt\box\cv@tmpbox\break
-\advance\cv@refno1\global\advance\nipsrulercount#3\relax
-\ifnum\cv@refno<\cv@tot\repeat}}\endgroup}%
-\makeatother
-% ----- end of vruler
-
-% \makevruler[<SCALE>][<INITIAL_COUNT>][<STEP>][<DIGITS>][<HEIGHT>]
-\def\nipsruler#1{\makevruler[12pt][#1][1][3][0.993\textheight]\usebox{\nipsrulerbox}}
-\AddToShipoutPicture{%
-\ifnipsfinal\else
-\nipsruleroffset=\textheight
-\advance\nipsruleroffset by -3.7pt
-  \color[rgb]{.7,.7,.7}
-  \AtTextUpperLeft{%
-    \put(\LenToUnit{-35pt},\LenToUnit{-\nipsruleroffset}){%left ruler
-      \nipsruler{\nipsrulercount}}
-  }
-\fi
-}
